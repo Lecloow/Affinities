@@ -8,6 +8,7 @@ import psycopg
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import time
+from email.mime.image import MIMEImage
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -30,23 +31,90 @@ def get_db_connection():
     )
 
 
-def send_email_blocking(destinataire: str, code: str) -> tuple:
+def send_email_blocking(destinataire: str, code: str, name: str) -> tuple:
     expediteur = os.getenv('EMAIL')
     mot_de_passe = os.getenv('PASSWORD')
+    url = "https://url.com"
 
     if not expediteur or not mot_de_passe:
         return (destinataire, False, "Config email manquante")
 
-    message = MIMEMultipart()
+    # 👈 IMPORTANT pour images inline
+    message = MIMEMultipart("related")
     message["From"] = expediteur
     message["To"] = destinataire
-    message["Subject"] = "Ton code pour acceder a l'évènement de la Saint Valentin"
+    message["Subject"] = "Code d’accès pour l’événement Saint-Valentin du comité de promo 2026"
 
-    corps = f"Voici ton code d'accès : {code}\n\nConnecte ici : https://url.com"
-    message.attach(MIMEText(corps, "plain"))
+    corps = f"""
+    <html>
+      <body style="font-family: Arial, sans-serif; font-size: 15px; color: #000;">
+        <p>Salut {name} 👋</p>
+
+        <p>
+          Voici ton code personnel pour accéder au site de l’événement
+          Saint-Valentin organisé par le comité de promo 💘
+        </p>
+
+        <p style="
+          font-size: 24px;
+          font-weight: bold;
+          letter-spacing: 2px;
+          background-color: #f3f3f3;
+          padding: 10px 15px;
+          display: inline-block;
+          border-radius: 6px;
+        ">
+          {code}
+        </p>
+
+        <p>
+          Accède au site ici :
+          <a href="{url}">{url}</a>
+        </p>
+
+        <p>
+          Garde bien ton code, il te sera demandé pour te connecter 😉
+        </p>
+
+        <p>
+          À très vite,<br>
+          <strong>Le comité de promo 2026</strong>
+        </p>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:20px;">
+          <tr>
+            <td align="center">
+              <img src="cid:logo"
+                   alt="Logo Comité de promo"
+                   width="130"
+                   style="
+                     width:130px;
+                     max-width:130px;
+                     height:auto;
+                     display:block;
+                     border-radius:8px;
+                   ">
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+    """
+
+    # 👈 HTML
+    message.attach(MIMEText(corps, "html", "utf-8"))
+
+    # 👇👇👇 C’EST ICI que tu mets le with open
+    try:
+        with open("logo.png", "rb") as f:
+            img = MIMEImage(f.read())
+            img.add_header("Content-ID", "<logo>")
+            img.add_header("Content-Disposition", "inline", filename="logo.png")
+            message.attach(img)
+    except FileNotFoundError:
+        logger.warning("⚠️ logo.png introuvable, email envoyé sans image")
 
     try:
-        # Connexion SMTP
         server = smtplib.SMTP("smtp.office365.com", 587, timeout=10)
         server.starttls()
         server.login(expediteur, mot_de_passe)
@@ -96,7 +164,7 @@ async def send_all_emails_async():
         tasks = []
 
         for email, code, first_name in rows:
-            task = loop.run_in_executor(executor, send_email_blocking, email, code)
+            task = loop.run_in_executor(executor, send_email_blocking, email, code, first_name)
             tasks.append(task)
 
         # Waiting for results

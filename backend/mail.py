@@ -39,7 +39,6 @@ def send_email_blocking(destinataire: str, code: str, name: str) -> tuple:
     if not expediteur or not mot_de_passe:
         return (destinataire, False, "Config email manquante")
 
-    # 👈 IMPORTANT pour images inline
     message = MIMEMultipart("related")
     message["From"] = expediteur
     message["To"] = destinataire
@@ -101,10 +100,8 @@ def send_email_blocking(destinataire: str, code: str, name: str) -> tuple:
     </html>
     """
 
-    # 👈 HTML
     message.attach(MIMEText(corps, "html", "utf-8"))
 
-    # 👇👇👇 C’EST ICI que tu mets le with open
     try:
         with open("logo.png", "rb") as f:
             img = MIMEImage(f.read())

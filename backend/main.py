@@ -555,12 +555,11 @@ async def import_xlsx(
     if not expected_token:
         raise HTTPException(500, "Configuration serveur manquante")
 
-    # Comparaison sécurisée contre timing attacks
+    # Against timing attacks, use secure comparison
     if not secrets.compare_digest(token, expected_token):
         logging.warning(f"Tentative d'import avec mauvais token depuis {client_ip}")
         raise HTTPException(401, "Non autorisé")
 
-    # Import autorisé
     try:
         contents = await file.read()
         df_raw = pd.read_excel(BytesIO(contents), dtype=object)
@@ -621,7 +620,7 @@ def createMatches(
     if not expected_token:
         raise HTTPException(500, "Token expected")
 
-        # Comparaison sécurisée contre timing attacks
+    # Against timing attacks, use secure comparison
     if not secrets.compare_digest(token, expected_token):
         logging.warning(f"Tentative de calcul des matchs avec mauvais token depuis {client_ip}")
         raise HTTPException(401, "Non autorisé")

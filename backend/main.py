@@ -147,10 +147,14 @@ cursor.execute("""
 cursor.execute("""
                CREATE TABLE IF NOT EXISTS hints
                (
-                   user_id
+                   id
                    TEXT
                    PRIMARY
                    KEY,
+                   user_id
+                   TEXT,
+                   day
+                   INTEGER,
                    hint1_type
                    TEXT,
                    hint1_content
@@ -171,9 +175,7 @@ cursor.execute("""
                    TIMESTAMP,
                    reveal_time
                    TIMESTAMP,
-                   match_id_day1
-                   TEXT,
-                   match_id_day2
+                   match_id
                    TEXT
                )
                """)
@@ -721,13 +723,14 @@ def generate_hints_for_all_users():
                 hints.append((hint_type, hint))
             
             # Insert hints into database
+            hint_id = f"{user_id}_day{day_idx+1}"
             cursor.execute(
-                """INSERT INTO hints (user_id, hint1_type, hint1_content, hint1_time,
+                """INSERT INTO hints (id, user_id, day, hint1_type, hint1_content, hint1_time,
                                       hint2_type, hint2_content, hint2_time,
                                       hint3_type, hint3_content, hint3_time,
-                                      reveal_time, match_id_day1, match_id_day2)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                   ON CONFLICT (user_id) DO UPDATE SET
+                                      reveal_time, match_id)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                   ON CONFLICT (id) DO UPDATE SET
                        hint1_type = EXCLUDED.hint1_type,
                        hint1_content = EXCLUDED.hint1_content,
                        hint1_time = EXCLUDED.hint1_time,
@@ -738,15 +741,12 @@ def generate_hints_for_all_users():
                        hint3_content = EXCLUDED.hint3_content,
                        hint3_time = EXCLUDED.hint3_time,
                        reveal_time = EXCLUDED.reveal_time,
-                       match_id_day1 = EXCLUDED.match_id_day1,
-                       match_id_day2 = EXCLUDED.match_id_day2""",
-                (f"{user_id}_day{day_idx+1}",
+                       match_id = EXCLUDED.match_id""",
+                (hint_id, user_id, day_idx + 1,
                  hints[0][0], hints[0][1], schedule['hint1_time'],
                  hints[1][0], hints[1][1], schedule['hint2_time'],
                  hints[2][0], hints[2][1], schedule['hint3_time'],
-                 schedule['reveal_time'], 
-                 day1_match_id if day_idx == 0 else None,
-                 day2_match_id if day_idx == 1 else None)
+                 schedule['reveal_time'], match_id)
             )
             hints_created += 1
     
@@ -1072,14 +1072,14 @@ def get_user_hints(user_id: str):
         
         # Query hints for both days
         cursor.execute("""
-            SELECT user_id, hint1_type, hint1_content, hint1_time,
+            SELECT id, user_id, day, hint1_type, hint1_content, hint1_time,
                    hint2_type, hint2_content, hint2_time,
                    hint3_type, hint3_content, hint3_time,
-                   reveal_time, match_id_day1, match_id_day2
+                   reveal_time, match_id
             FROM hints
-            WHERE user_id LIKE %s
-            ORDER BY user_id
-        """, (f"{user_id}%",))
+            WHERE user_id = %s
+            ORDER BY day
+        """, (user_id,))
         
         rows = cursor.fetchall()
         
@@ -1089,14 +1089,20 @@ def get_user_hints(user_id: str):
         days_data = []
         
         for row in rows:
-            hint_user_id = row[0]
-            day_num = 1 if hint_user_id.endswith("_day1") else 2
+            hint_id = row[0]
+            day_num = row[2]
             
-            hint1_time = row[3]
-            hint2_time = row[6]
-            hint3_time = row[9]
-            reveal_time = row[10]
-            match_id = row[11] if day_num == 1 else row[12]
+            hint1_type = row[3]
+            hint1_content = row[4]
+            hint1_time = row[5]
+            hint2_type = row[6]
+            hint2_content = row[7]
+            hint2_time = row[8]
+            hint3_type = row[9]
+            hint3_content = row[10]
+            hint3_time = row[11]
+            reveal_time = row[12]
+            match_id = row[13]
             
             # Determine which hints are available
             hints = []
@@ -1104,8 +1110,8 @@ def get_user_hints(user_id: str):
             # Hint 1
             if now >= hint1_time:
                 hints.append({
-                    "type": row[1],
-                    "content": row[2],
+                    "type": hint1_type,
+                    "content": hint1_content,
                     "available": True,
                     "drop_time": hint1_time.isoformat()
                 })
@@ -1120,8 +1126,8 @@ def get_user_hints(user_id: str):
             # Hint 2
             if now >= hint2_time:
                 hints.append({
-                    "type": row[4],
-                    "content": row[5],
+                    "type": hint2_type,
+                    "content": hint2_content,
                     "available": True,
                     "drop_time": hint2_time.isoformat()
                 })
@@ -1136,8 +1142,8 @@ def get_user_hints(user_id: str):
             # Hint 3
             if now >= hint3_time:
                 hints.append({
-                    "type": row[7],
-                    "content": row[8],
+                    "type": hint3_type,
+                    "content": hint3_content,
                     "available": True,
                     "drop_time": hint3_time.isoformat()
                 })

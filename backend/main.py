@@ -1251,13 +1251,26 @@ def reveal_hint(request: RevealHintRequest):
         if hint_revealed_states[request.hint_number - 1]:
             return {"success": True, "message": "Hint already revealed"}
         
-        # Update the revealed status
-        column_name = f"hint{request.hint_number}_revealed"
-        cursor.execute(f"""
-            UPDATE hints
-            SET {column_name} = TRUE
-            WHERE id = %s
-        """, (hint_id,))
+        # Update the revealed status using parameterized queries
+        if request.hint_number == 1:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif request.hint_number == 2:
+            cursor.execute("""
+                UPDATE hints
+                SET hint2_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif request.hint_number == 3:
+            cursor.execute("""
+                UPDATE hints
+                SET hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        
         db.commit()
         
         return {"success": True, "message": "Hint revealed successfully"}

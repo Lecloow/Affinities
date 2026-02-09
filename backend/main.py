@@ -161,18 +161,24 @@ cursor.execute("""
                    TEXT,
                    hint1_time
                    TIMESTAMP,
+                   hint1_revealed
+                   BOOLEAN DEFAULT FALSE,
                    hint2_type
                    TEXT,
                    hint2_content
                    TEXT,
                    hint2_time
                    TIMESTAMP,
+                   hint2_revealed
+                   BOOLEAN DEFAULT FALSE,
                    hint3_type
                    TEXT,
                    hint3_content
                    TEXT,
                    hint3_time
                    TIMESTAMP,
+                   hint3_revealed
+                   BOOLEAN DEFAULT FALSE,
                    reveal_time
                    TIMESTAMP,
                    match_id
@@ -644,6 +650,14 @@ def generate_unique_password(length: int, cursor) -> str:
     raise RuntimeError("Failed to generate a unique password after max attempts")
 
 
+def count_vowels(text):
+    """Count the number of vowels in a text."""
+    if not text:
+        return 0
+    vowels = 'aeiouyAEIOUYàâäéèêëïîôùûüÿœæÀÂÄÉÈÊËÏÎÔÙÛÜŸŒÆ'
+    return sum(1 for char in text if char in vowels)
+
+
 def generate_hints_for_all_users():
     """Generate personalized hints for all users based on their matches."""
     # Define hint times for Thursday Feb 12 and Friday Feb 13, 2026
@@ -702,25 +716,44 @@ def generate_hints_for_all_users():
             match_last_name = match_user_row[1]
             match_class = match_user_row[2]
             
-            # Generate three hints with different difficulty levels
-            hint_types = ['easy', 'medium', 'hard']
-            random.shuffle(hint_types)
+            # Generate three hints with FIXED difficulty order:
+            # hint1 = HARD, hint2 = MEDIUM, hint3 = EASY
             
-            hints = []
-            for hint_type in hint_types:
-                if hint_type == 'easy':
-                    # Easy: Class information
-                    hint = f"Il/Elle est dans la classe: {match_class}"
-                elif hint_type == 'medium':
-                    # Medium: First letter of first name
-                    first_letter = match_first_name[0].upper() if match_first_name else "?"
-                    hint = f"Son prénom commence par: {first_letter}"
-                else:
-                    # Hard: Number of letters in first name
-                    name_length = len(match_first_name) if match_first_name else 0
-                    hint = f"Son prénom contient {name_length} lettres"
-                
-                hints.append((hint_type, hint))
+            # HARD hints (pick one randomly)
+            hard_hints = [
+                # Length of first name
+                f"Son prénom contient {len(match_first_name) if match_first_name else 0} lettres",
+                # Length of last name
+                f"Son nom contient {len(match_last_name) if match_last_name else 0} lettres",
+                # Number of vowels in first name
+                f"Son prénom contient {count_vowels(match_first_name)} voyelles"
+            ]
+            hard_hint = random.choice(hard_hints)
+            
+            # MEDIUM hints (pick one randomly)
+            medium_hints = [
+                # First letter of first name
+                f"Son prénom commence par: {match_first_name[0].upper() if match_first_name else '?'}",
+                # First letter of last name
+                f"Son nom commence par: {match_last_name[0].upper() if match_last_name else '?'}"
+            ]
+            medium_hint = random.choice(medium_hints)
+            
+            # EASY hints (pick one randomly)
+            easy_hints = [
+                # Class
+                f"Il/Elle est dans la classe: {match_class}",
+                # First name
+                f"Son prénom est: {match_first_name}"
+            ]
+            easy_hint = random.choice(easy_hints)
+            
+            # Create hints in fixed order: hard, medium, easy
+            hints = [
+                ('hard', hard_hint),
+                ('medium', medium_hint),
+                ('easy', easy_hint)
+            ]
             
             # Insert hints into database
             hint_id = f"{user_id}_day{day_idx+1}"
@@ -1072,9 +1105,9 @@ def get_user_hints(user_id: str):
         
         # Query hints for both days
         cursor.execute("""
-            SELECT id, user_id, day, hint1_type, hint1_content, hint1_time,
-                   hint2_type, hint2_content, hint2_time,
-                   hint3_type, hint3_content, hint3_time,
+            SELECT id, user_id, day, hint1_type, hint1_content, hint1_time, hint1_revealed,
+                   hint2_type, hint2_content, hint2_time, hint2_revealed,
+                   hint3_type, hint3_content, hint3_time, hint3_revealed,
                    reveal_time, match_id
             FROM hints
             WHERE user_id = %s
@@ -1095,14 +1128,17 @@ def get_user_hints(user_id: str):
             hint1_type = row[3]
             hint1_content = row[4]
             hint1_time = row[5]
-            hint2_type = row[6]
-            hint2_content = row[7]
-            hint2_time = row[8]
-            hint3_type = row[9]
-            hint3_content = row[10]
-            hint3_time = row[11]
-            reveal_time = row[12]
-            match_id = row[13]
+            hint1_revealed = row[6]
+            hint2_type = row[7]
+            hint2_content = row[8]
+            hint2_time = row[9]
+            hint2_revealed = row[10]
+            hint3_type = row[11]
+            hint3_content = row[12]
+            hint3_time = row[13]
+            hint3_revealed = row[14]
+            reveal_time = row[15]
+            match_id = row[16]
             
             # Determine which hints are available
             hints = []
@@ -1110,48 +1146,60 @@ def get_user_hints(user_id: str):
             # Hint 1
             if now >= hint1_time:
                 hints.append({
+                    "id": f"{hint_id}_hint1",
                     "type": hint1_type,
-                    "content": hint1_content,
+                    "content": hint1_content if hint1_revealed else None,
                     "available": True,
+                    "revealed": hint1_revealed,
                     "drop_time": hint1_time.isoformat()
                 })
             else:
                 hints.append({
+                    "id": f"{hint_id}_hint1",
                     "type": "locked",
                     "content": None,
                     "available": False,
+                    "revealed": False,
                     "drop_time": hint1_time.isoformat()
                 })
             
             # Hint 2
             if now >= hint2_time:
                 hints.append({
+                    "id": f"{hint_id}_hint2",
                     "type": hint2_type,
-                    "content": hint2_content,
+                    "content": hint2_content if hint2_revealed else None,
                     "available": True,
+                    "revealed": hint2_revealed,
                     "drop_time": hint2_time.isoformat()
                 })
             else:
                 hints.append({
+                    "id": f"{hint_id}_hint2",
                     "type": "locked",
                     "content": None,
                     "available": False,
+                    "revealed": False,
                     "drop_time": hint2_time.isoformat()
                 })
             
             # Hint 3
             if now >= hint3_time:
                 hints.append({
+                    "id": f"{hint_id}_hint3",
                     "type": hint3_type,
-                    "content": hint3_content,
+                    "content": hint3_content if hint3_revealed else None,
                     "available": True,
+                    "revealed": hint3_revealed,
                     "drop_time": hint3_time.isoformat()
                 })
             else:
                 hints.append({
+                    "id": f"{hint_id}_hint3",
                     "type": "locked",
                     "content": None,
                     "available": False,
+                    "revealed": False,
                     "drop_time": hint3_time.isoformat()
                 })
             
@@ -1187,3 +1235,176 @@ def get_user_hints(user_id: str):
     except Exception as e:
         logging.exception(f"Error getting hints: {e}")
         raise HTTPException(500, f"Error getting hints: {str(e)}")
+
+
+class RevealHintRequest(BaseModel):
+    user_id: str
+    day: int
+    hint_number: int
+
+
+@app.post("/hints/reveal")
+def reveal_hint(request: RevealHintRequest):
+    """Reveal a specific hint for a user."""
+    try:
+        # Validate hint number
+        if request.hint_number not in [1, 2, 3]:
+            raise HTTPException(400, "Invalid hint number. Must be 1, 2, or 3.")
+        
+        # Get current time
+        now = datetime.datetime.now()
+        
+        # Get hint data
+        hint_id = f"{request.user_id}_day{request.day}"
+        cursor.execute("""
+            SELECT hint1_time, hint2_time, hint3_time, hint1_revealed, hint2_revealed, hint3_revealed
+            FROM hints
+            WHERE id = %s
+        """, (hint_id,))
+        
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(404, "Hint not found")
+        
+        hint_times = [row[0], row[1], row[2]]
+        hint_revealed_states = [row[3], row[4], row[5]]
+        
+        # Check if the hint time has passed
+        hint_time = hint_times[request.hint_number - 1]
+        if now < hint_time:
+            raise HTTPException(403, "Hint is not yet available")
+        
+        # Check if already revealed
+        if hint_revealed_states[request.hint_number - 1]:
+            return {"success": True, "message": "Hint already revealed"}
+        
+        # Update the revealed status using explicit conditions to avoid SQL injection
+        # We use separate if-elif blocks instead of dynamic column names to prevent
+        # potential SQL injection vulnerabilities from string interpolation in SQL
+        if request.hint_number == 1:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif request.hint_number == 2:
+            cursor.execute("""
+                UPDATE hints
+                SET hint2_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif request.hint_number == 3:
+            cursor.execute("""
+                UPDATE hints
+                SET hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        
+        db.commit()
+        
+        return {"success": True, "message": "Hint revealed successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error revealing hint: {e}")
+        raise HTTPException(500, f"Error revealing hint: {str(e)}")
+
+
+class RevealAllHintsRequest(BaseModel):
+    user_id: str
+    day: int
+
+
+@app.post("/hints/reveal-all")
+def reveal_all_hints(request: RevealAllHintsRequest):
+    """Reveal all available hints for a user on a specific day."""
+    try:
+        # Get current time
+        now = datetime.datetime.now()
+        
+        # Get hint data
+        hint_id = f"{request.user_id}_day{request.day}"
+        cursor.execute("""
+            SELECT hint1_time, hint2_time, hint3_time, 
+                   hint1_revealed, hint2_revealed, hint3_revealed
+            FROM hints
+            WHERE id = %s
+        """, (hint_id,))
+        
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(404, "Hint not found")
+        
+        hint_times = [row[0], row[1], row[2]]
+        hint_revealed_states = [row[3], row[4], row[5]]
+        
+        # Determine which hints are available and not yet revealed
+        hints_to_reveal = []
+        for i in range(3):
+            if now >= hint_times[i] and not hint_revealed_states[i]:
+                hints_to_reveal.append(i + 1)
+        
+        if not hints_to_reveal:
+            return {"success": True, "message": "No hints to reveal", "revealed_count": 0}
+        
+        # Update all available hints to revealed using safe explicit updates
+        # We use explicit conditions to avoid SQL injection from dynamic column names
+        # While this creates code duplication, it's a security best practice to avoid
+        # constructing SQL statements dynamically, even with validated input
+        if 1 in hints_to_reveal and 2 in hints_to_reveal and 3 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE, hint2_revealed = TRUE, hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 1 in hints_to_reveal and 2 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE, hint2_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 1 in hints_to_reveal and 3 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE, hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 2 in hints_to_reveal and 3 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint2_revealed = TRUE, hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 1 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 2 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint2_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 3 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        
+        db.commit()
+        
+        return {
+            "success": True, 
+            "message": f"{len(hints_to_reveal)} hint(s) revealed successfully",
+            "revealed_count": len(hints_to_reveal)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error revealing all hints: {e}")
+        raise HTTPException(500, f"Error revealing all hints: {str(e)}")

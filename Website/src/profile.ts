@@ -146,6 +146,88 @@ export class ProfilePage {
         ${daysHtml}
       </div>
     `;
+    
+    // Attach event listeners to reveal buttons
+    this.attachGlobalRevealButtonListeners();
+  }
+  
+  private attachGlobalRevealButtonListeners(): void {
+    const revealButtons = document.querySelectorAll('.global-reveal-btn');
+    revealButtons.forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const target = e.target as HTMLButtonElement;
+        const day = parseInt(target.dataset.day || '0');
+        
+        if (day) {
+          await this.handleRevealAllHints(day);
+        }
+      });
+    });
+  }
+  
+  private async handleRevealAllHints(day: number): Promise<void> {
+    const user = StorageService.getUser();
+    if (!user) return;
+    
+    try {
+      // Disable the button during the request
+      const button = document.querySelector(`[data-day="${day}"].global-reveal-btn`) as HTMLButtonElement;
+      if (button) {
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Révélation en cours...';
+      }
+      
+      // Call the API to reveal all hints
+      const result = await ApiService.revealAllHints(user.id, day);
+      
+      // Reload hints to show the revealed content
+      await this.loadAndRenderHints();
+      
+      // Show success message if hints were revealed
+      if (result.revealed_count > 0) {
+        // Success message will be visible through the updated UI
+        console.log(`${result.revealed_count} hint(s) revealed successfully`);
+      }
+      
+    } catch (error) {
+      console.error('Error revealing hints:', error);
+      alert('Erreur lors de la révélation des indices. Veuillez réessayer.');
+      
+      // Reload to restore the correct button state
+      await this.loadAndRenderHints();
+    }
+  }
+
+  private async handleRevealHint(day: number, hintNumber: number): Promise<void> {
+    const user = StorageService.getUser();
+    if (!user) return;
+    
+    try {
+      // Disable the button during the request
+      const button = document.querySelector(`[data-day="${day}"][data-hint-number="${hintNumber}"]`) as HTMLButtonElement;
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Révélation en cours...';
+      }
+      
+      // Call the API to reveal the hint
+      await ApiService.revealHint(user.id, day, hintNumber);
+      
+      // Reload hints to show the revealed content
+      await this.loadAndRenderHints();
+      
+    } catch (error) {
+      console.error('Error revealing hint:', error);
+      alert('Erreur lors de la révélation de l\'indice. Veuillez réessayer.');
+      
+      // Re-enable the button on error
+      const button = document.querySelector(`[data-day="${day}"][data-hint-number="${hintNumber}"]`) as HTMLButtonElement;
+      if (button) {
+        button.disabled = false;
+        button.textContent = 'Révéler l\'indice';
+      }
+    }
   }
 
   private renderDayHints(day: DayHints): string {
@@ -154,13 +236,17 @@ export class ProfilePage {
     let hintsHtml = '';
     const now = new Date();
     
-    // Check for next available hint
+    // Count available but not revealed hints
+    let availableUnrevealedCount = 0;
     let nextHintTime: Date | null = null;
+    
     for (const hint of day.hints) {
+      if (hint.available && !hint.revealed) {
+        availableUnrevealedCount++;
+      }
       const hintTime = new Date(hint.drop_time);
-      if (!hint.available && hintTime > now) {
+      if (!hint.available && hintTime > now && !nextHintTime) {
         nextHintTime = hintTime;
-        break;
       }
     }
 
@@ -169,19 +255,37 @@ export class ProfilePage {
       if (hint.available) {
         const dropTime = new Date(hint.drop_time);
         const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        const difficultyLabel = hint.type === 'easy' ? '🟢 Facile' : 
-                               hint.type === 'medium' ? '🟡 Moyen' : '🔴 Difficile';
         
-        return `
-          <div class="hint-item available">
-            <div class="hint-header">
-              <span class="hint-number">Indice ${index + 1}</span>
-              <span class="hint-difficulty">${difficultyLabel}</span>
-              <span class="hint-time">Révélé à ${timeStr}</span>
+        if (hint.revealed) {
+          // Hint is revealed, show the content
+          const difficultyLabel = hint.type === 'easy' ? '🟢 Facile' : 
+                                 hint.type === 'medium' ? '🟡 Moyen' : '🔴 Difficile';
+          
+          return `
+            <div class="hint-item available revealed">
+              <div class="hint-header">
+                <span class="hint-number">Indice ${index + 1}</span>
+                <span class="hint-difficulty">${difficultyLabel}</span>
+                <span class="hint-time">Révélé à ${timeStr}</span>
+              </div>
+              <div class="hint-content">${hint.content}</div>
             </div>
-            <div class="hint-content">${hint.content}</div>
-          </div>
-        `;
+          `;
+        } else {
+          // Hint is available but not revealed yet, show placeholder
+          return `
+            <div class="hint-item available not-revealed">
+              <div class="hint-header">
+                <span class="hint-number">Indice ${index + 1}</span>
+                <span class="hint-time">Disponible depuis ${timeStr}</span>
+              </div>
+              <div class="hint-content hint-placeholder">
+                <span class="lock-icon">🎁</span>
+                <span class="placeholder-text">Indice disponible - Cliquez sur le bouton en bas pour révéler</span>
+              </div>
+            </div>
+          `;
+        }
       } else {
         const dropTime = new Date(hint.drop_time);
         const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -201,6 +305,35 @@ export class ProfilePage {
         `;
       }
     }).join('');
+    
+    // Create the global reveal button at the bottom
+    let revealButtonHtml = '';
+    if (availableUnrevealedCount > 0) {
+      const buttonText = availableUnrevealedCount === 1 
+        ? 'Révéler l\'indice disponible' 
+        : `Révéler les ${availableUnrevealedCount} indices disponibles`;
+      revealButtonHtml = `
+        <div class="global-reveal-container">
+          <button class="global-reveal-btn" data-day="${day.day}">
+            ${buttonText}
+          </button>
+        </div>
+      `;
+    } else if (nextHintTime) {
+      // Show time until next hint
+      const minutesUntilNext = Math.ceil((nextHintTime.getTime() - now.getTime()) / (1000 * 60));
+      const timeText = minutesUntilNext === 1 
+        ? 'Prochain indice dans 1 minute' 
+        : `Prochain indice dans ${minutesUntilNext} minutes`;
+      revealButtonHtml = `
+        <div class="global-reveal-container">
+          <div class="next-hint-timer">
+            <span class="timer-icon">⏱️</span>
+            <span class="timer-text">${timeText}</span>
+          </div>
+        </div>
+      `;
+    }
 
     // Render match reveal section
     let revealHtml = '';
@@ -239,6 +372,7 @@ export class ProfilePage {
         <div class="hints-list">
           ${hintsHtml}
         </div>
+        ${revealButtonHtml}
         ${revealHtml}
       </div>
     `;

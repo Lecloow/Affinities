@@ -17,9 +17,11 @@ export interface ApiError {
 }
 
 export interface Hint {
+  id: string;
   type: string;
   content: string | null;
   available: boolean;
+  revealed: boolean;
   drop_time: string;
 }
 

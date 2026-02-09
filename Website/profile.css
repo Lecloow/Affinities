@@ -142,6 +142,14 @@ h1 {
   border-left: 4px solid #4caf50;
 }
 
+.hint-item.available.not-revealed {
+  border-left: 4px solid #ff9800;
+}
+
+.hint-item.available.revealed {
+  border-left: 4px solid #4caf50;
+}
+
 .hint-item.locked {
   border-left: 4px solid #999;
   opacity: 0.7;
@@ -276,4 +284,119 @@ h1 {
   border-radius: 5px;
   border: 1px solid #90caf9;
   text-align: center;
+}
+
+.hint-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.placeholder-text {
+  color: #667eea;
+  font-size: 0.95rem;
+}
+
+.global-reveal-container {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.global-reveal-btn {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  min-width: 250px;
+}
+
+.global-reveal-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.global-reveal-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.global-reveal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.next-hint-timer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: white;
+  border-radius: 30px;
+  border: 2px solid #667eea;
+  color: #667eea;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.timer-icon {
+  font-size: 1.5rem;
+}
+
+.timer-text {
+  font-size: 1rem;
+}
+
+/* Remove old reveal button styles that are no longer needed */
+.reveal-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.reveal-message {
+  font-size: 1.1rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.reveal-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.reveal-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.reveal-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.reveal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

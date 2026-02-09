@@ -1282,3 +1282,100 @@ def reveal_hint(request: RevealHintRequest):
     except Exception as e:
         logging.exception(f"Error revealing hint: {e}")
         raise HTTPException(500, f"Error revealing hint: {str(e)}")
+
+
+class RevealAllHintsRequest(BaseModel):
+    user_id: str
+    day: int
+
+
+@app.post("/hints/reveal-all")
+def reveal_all_hints(request: RevealAllHintsRequest):
+    """Reveal all available hints for a user on a specific day."""
+    try:
+        # Get current time
+        now = datetime.datetime.now()
+        
+        # Get hint data
+        hint_id = f"{request.user_id}_day{request.day}"
+        cursor.execute("""
+            SELECT hint1_time, hint2_time, hint3_time, 
+                   hint1_revealed, hint2_revealed, hint3_revealed
+            FROM hints
+            WHERE id = %s
+        """, (hint_id,))
+        
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(404, "Hint not found")
+        
+        hint_times = [row[0], row[1], row[2]]
+        hint_revealed_states = [row[3], row[4], row[5]]
+        
+        # Determine which hints are available and not yet revealed
+        hints_to_reveal = []
+        for i in range(3):
+            if now >= hint_times[i] and not hint_revealed_states[i]:
+                hints_to_reveal.append(i + 1)
+        
+        if not hints_to_reveal:
+            return {"success": True, "message": "No hints to reveal", "revealed_count": 0}
+        
+        # Update all available hints to revealed using safe explicit updates
+        # We use explicit conditions to avoid SQL injection from dynamic column names
+        if 1 in hints_to_reveal and 2 in hints_to_reveal and 3 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE, hint2_revealed = TRUE, hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 1 in hints_to_reveal and 2 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE, hint2_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 1 in hints_to_reveal and 3 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE, hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 2 in hints_to_reveal and 3 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint2_revealed = TRUE, hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 1 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint1_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 2 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint2_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        elif 3 in hints_to_reveal:
+            cursor.execute("""
+                UPDATE hints
+                SET hint3_revealed = TRUE
+                WHERE id = %s
+            """, (hint_id,))
+        
+        db.commit()
+        
+        return {
+            "success": True, 
+            "message": f"{len(hints_to_reveal)} hint(s) revealed successfully",
+            "revealed_count": len(hints_to_reveal)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error revealing all hints: {e}")
+        raise HTTPException(500, f"Error revealing all hints: {str(e)}")

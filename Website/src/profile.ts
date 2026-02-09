@@ -148,24 +148,62 @@ export class ProfilePage {
     `;
     
     // Attach event listeners to reveal buttons
-    this.attachRevealButtonListeners();
+    this.attachGlobalRevealButtonListeners();
   }
   
-  private attachRevealButtonListeners(): void {
-    const revealButtons = document.querySelectorAll('.reveal-btn');
+  private attachGlobalRevealButtonListeners(): void {
+    const revealButtons = document.querySelectorAll('.global-reveal-btn');
     revealButtons.forEach(button => {
       button.addEventListener('click', async (e) => {
         const target = e.target as HTMLButtonElement;
         const day = parseInt(target.dataset.day || '0');
-        const hintNumber = parseInt(target.dataset.hintNumber || '0');
         
-        if (day && hintNumber) {
-          await this.handleRevealHint(day, hintNumber);
+        if (day) {
+          await this.handleRevealAllHints(day);
         }
       });
     });
   }
   
+  private async handleRevealAllHints(day: number): Promise<void> {
+    const user = StorageService.getUser();
+    if (!user) return;
+    
+    try {
+      // Disable the button during the request
+      const button = document.querySelector(`[data-day="${day}"].global-reveal-btn`) as HTMLButtonElement;
+      if (button) {
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Révélation en cours...';
+      }
+      
+      // Call the API to reveal all hints
+      const result = await ApiService.revealAllHints(user.id, day);
+      
+      // Reload hints to show the revealed content
+      await this.loadAndRenderHints();
+      
+      // Show success message if hints were revealed
+      if (result.revealed_count > 0) {
+        // Success message will be visible through the updated UI
+        console.log(`${result.revealed_count} hint(s) revealed successfully`);
+      }
+      
+    } catch (error) {
+      console.error('Error revealing hints:', error);
+      alert('Erreur lors de la révélation des indices. Veuillez réessayer.');
+      
+      // Re-enable the button on error
+      const button = document.querySelector(`[data-day="${day}"].global-reveal-btn`) as HTMLButtonElement;
+      if (button) {
+        button.disabled = false;
+        // Restore original text - could improve this
+        button.textContent = 'Révéler les indices disponibles';
+      }
+    }
+  }
+
   private async handleRevealHint(day: number, hintNumber: number): Promise<void> {
     const user = StorageService.getUser();
     if (!user) return;
@@ -203,13 +241,17 @@ export class ProfilePage {
     let hintsHtml = '';
     const now = new Date();
     
-    // Check for next available hint
+    // Count available but not revealed hints
+    let availableUnrevealedCount = 0;
     let nextHintTime: Date | null = null;
+    
     for (const hint of day.hints) {
+      if (hint.available && !hint.revealed) {
+        availableUnrevealedCount++;
+      }
       const hintTime = new Date(hint.drop_time);
-      if (!hint.available && hintTime > now) {
+      if (!hint.available && hintTime > now && !nextHintTime) {
         nextHintTime = hintTime;
-        break;
       }
     }
 
@@ -235,18 +277,16 @@ export class ProfilePage {
             </div>
           `;
         } else {
-          // Hint is available but not revealed yet, show reveal button
+          // Hint is available but not revealed yet, show placeholder
           return `
             <div class="hint-item available not-revealed">
               <div class="hint-header">
                 <span class="hint-number">Indice ${index + 1}</span>
                 <span class="hint-time">Disponible depuis ${timeStr}</span>
               </div>
-              <div class="hint-content reveal-container">
-                <div class="reveal-message">🎁 Un indice est disponible!</div>
-                <button class="reveal-btn" data-day="${day.day}" data-hint-number="${index + 1}">
-                  Révéler l'indice
-                </button>
+              <div class="hint-content hint-placeholder">
+                <span class="lock-icon">🎁</span>
+                <span class="placeholder-text">Indice disponible - Cliquez sur le bouton en bas pour révéler</span>
               </div>
             </div>
           `;
@@ -270,6 +310,35 @@ export class ProfilePage {
         `;
       }
     }).join('');
+    
+    // Create the global reveal button at the bottom
+    let revealButtonHtml = '';
+    if (availableUnrevealedCount > 0) {
+      const buttonText = availableUnrevealedCount === 1 
+        ? 'Révéler l\'indice disponible' 
+        : `Révéler les ${availableUnrevealedCount} indices disponibles`;
+      revealButtonHtml = `
+        <div class="global-reveal-container">
+          <button class="global-reveal-btn" data-day="${day.day}">
+            ${buttonText}
+          </button>
+        </div>
+      `;
+    } else if (nextHintTime) {
+      // Show time until next hint
+      const minutesUntilNext = Math.ceil((nextHintTime.getTime() - now.getTime()) / (1000 * 60));
+      const timeText = minutesUntilNext === 1 
+        ? 'Prochain indice dans 1 minute' 
+        : `Prochain indice dans ${minutesUntilNext} minutes`;
+      revealButtonHtml = `
+        <div class="global-reveal-container">
+          <div class="next-hint-timer">
+            <span class="timer-icon">⏱️</span>
+            <span class="timer-text">${timeText}</span>
+          </div>
+        </div>
+      `;
+    }
 
     // Render match reveal section
     let revealHtml = '';
@@ -308,6 +377,7 @@ export class ProfilePage {
         <div class="hints-list">
           ${hintsHtml}
         </div>
+        ${revealButtonHtml}
         ${revealHtml}
       </div>
     `;

@@ -15,3 +15,29 @@ export interface ApiError {
   status: number;
   message: string;
 }
+
+export interface Hint {
+  type: string;
+  content: string | null;
+  available: boolean;
+  drop_time: string;
+}
+
+export interface MatchInfo {
+  first_name: string;
+  last_name: string;
+  class: string;
+}
+
+export interface DayHints {
+  day: number;
+  date: string;
+  hints: Hint[];
+  reveal_time: string;
+  match_revealed: boolean;
+  match_info: MatchInfo | null;
+}
+
+export interface HintsResponse {
+  days: DayHints[];
+}

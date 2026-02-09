@@ -95,3 +95,185 @@ h1 {
   border-radius: 5px;
   border: 1px solid #fcc;
 }
+
+/* Hints Section Styles */
+.hints-container {
+  margin-top: 2rem;
+}
+
+.hints-container h2 {
+  color: #667eea;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.day-hints {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e0e0e0;
+}
+
+.day-title {
+  color: #764ba2;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #764ba2;
+}
+
+.hints-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.hint-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.hint-item.available {
+  border-left: 4px solid #4caf50;
+}
+
+.hint-item.locked {
+  border-left: 4px solid #999;
+  opacity: 0.7;
+}
+
+.hint-item:hover {
+  transform: translateY(-2px);
+}
+
+.hint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hint-number {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.hint-difficulty {
+  font-size: 0.9rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  background: #f0f0f0;
+}
+
+.hint-time {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.hint-content {
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #333;
+}
+
+.hint-content.locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  flex-direction: column;
+}
+
+.lock-icon {
+  font-size: 2rem;
+}
+
+.timer {
+  font-weight: 600;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.reveal-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.reveal-section h3 {
+  color: #764ba2;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.reveal-section.revealed {
+  border: 3px solid #4caf50;
+  background: linear-gradient(135deg, #e8f5e9 0%, #f3e5f5 100%);
+}
+
+.reveal-section.locked {
+  border: 2px solid #ddd;
+}
+
+.match-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.match-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 0.5rem;
+}
+
+.match-class {
+  color: #666;
+  font-size: 1rem;
+}
+
+.reveal-timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.reveal-timer .lock-icon {
+  font-size: 2.5rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.info {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 1rem;
+  border-radius: 5px;
+  border: 1px solid #90caf9;
+  text-align: center;
+}

@@ -144,6 +144,42 @@ cursor.execute("""
                )
                """)
 
+cursor.execute("""
+               CREATE TABLE IF NOT EXISTS hints
+               (
+                   id
+                   TEXT
+                   PRIMARY
+                   KEY,
+                   user_id
+                   TEXT,
+                   day
+                   INTEGER,
+                   hint1_type
+                   TEXT,
+                   hint1_content
+                   TEXT,
+                   hint1_time
+                   TIMESTAMP,
+                   hint2_type
+                   TEXT,
+                   hint2_content
+                   TEXT,
+                   hint2_time
+                   TIMESTAMP,
+                   hint3_type
+                   TEXT,
+                   hint3_content
+                   TEXT,
+                   hint3_time
+                   TIMESTAMP,
+                   reveal_time
+                   TIMESTAMP,
+                   match_id
+                   TEXT
+               )
+               """)
+
 db.commit()
 
 
@@ -608,6 +644,116 @@ def generate_unique_password(length: int, cursor) -> str:
     raise RuntimeError("Failed to generate a unique password after max attempts")
 
 
+def generate_hints_for_all_users():
+    """Generate personalized hints for all users based on their matches."""
+    # Define hint times for Thursday Feb 12 and Friday Feb 13, 2026
+    # Hints at 10:00, 12:00, 13:00 on both days, reveal at 15:15
+    hint_schedules = [
+        # Thursday Feb 12
+        {
+            'hint1_time': datetime.datetime(2026, 2, 12, 10, 0, 0),
+            'hint2_time': datetime.datetime(2026, 2, 12, 12, 0, 0),
+            'hint3_time': datetime.datetime(2026, 2, 12, 13, 0, 0),
+            'reveal_time': datetime.datetime(2026, 2, 12, 15, 15, 0),
+        },
+        # Friday Feb 13
+        {
+            'hint1_time': datetime.datetime(2026, 2, 13, 10, 0, 0),
+            'hint2_time': datetime.datetime(2026, 2, 13, 12, 0, 0),
+            'hint3_time': datetime.datetime(2026, 2, 13, 13, 0, 0),
+            'reveal_time': datetime.datetime(2026, 2, 13, 15, 15, 0),
+        }
+    ]
+    
+    # Get all matches
+    cursor.execute("SELECT id, day1, day2 FROM matches")
+    matches = cursor.fetchall()
+    
+    if not matches:
+        logging.warning("No matches found to generate hints for")
+        return 0
+    
+    # Clear existing hints
+    cursor.execute("DELETE FROM hints")
+    
+    hints_created = 0
+    
+    for match_row in matches:
+        user_id = match_row[0]
+        day1_match_id = match_row[1]
+        day2_match_id = match_row[2]
+        
+        # Generate hints for each day
+        for day_idx, (match_id, schedule) in enumerate([(day1_match_id, hint_schedules[0]), 
+                                                          (day2_match_id, hint_schedules[1])]):
+            if not match_id:
+                continue
+                
+            # Get match user info
+            match_user_row = cursor.execute(
+                "SELECT first_name, last_name, currentClass FROM users WHERE id = %s",
+                (match_id,)
+            ).fetchone()
+            
+            if not match_user_row:
+                continue
+            
+            match_first_name = match_user_row[0]
+            match_last_name = match_user_row[1]
+            match_class = match_user_row[2]
+            
+            # Generate three hints with different difficulty levels
+            hint_types = ['easy', 'medium', 'hard']
+            random.shuffle(hint_types)
+            
+            hints = []
+            for hint_type in hint_types:
+                if hint_type == 'easy':
+                    # Easy: Class information
+                    hint = f"Il/Elle est dans la classe: {match_class}"
+                elif hint_type == 'medium':
+                    # Medium: First letter of first name
+                    first_letter = match_first_name[0].upper() if match_first_name else "?"
+                    hint = f"Son prénom commence par: {first_letter}"
+                else:
+                    # Hard: Number of letters in first name
+                    name_length = len(match_first_name) if match_first_name else 0
+                    hint = f"Son prénom contient {name_length} lettres"
+                
+                hints.append((hint_type, hint))
+            
+            # Insert hints into database
+            hint_id = f"{user_id}_day{day_idx+1}"
+            cursor.execute(
+                """INSERT INTO hints (id, user_id, day, hint1_type, hint1_content, hint1_time,
+                                      hint2_type, hint2_content, hint2_time,
+                                      hint3_type, hint3_content, hint3_time,
+                                      reveal_time, match_id)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                   ON CONFLICT (id) DO UPDATE SET
+                       hint1_type = EXCLUDED.hint1_type,
+                       hint1_content = EXCLUDED.hint1_content,
+                       hint1_time = EXCLUDED.hint1_time,
+                       hint2_type = EXCLUDED.hint2_type,
+                       hint2_content = EXCLUDED.hint2_content,
+                       hint2_time = EXCLUDED.hint2_time,
+                       hint3_type = EXCLUDED.hint3_type,
+                       hint3_content = EXCLUDED.hint3_content,
+                       hint3_time = EXCLUDED.hint3_time,
+                       reveal_time = EXCLUDED.reveal_time,
+                       match_id = EXCLUDED.match_id""",
+                (hint_id, user_id, day_idx + 1,
+                 hints[0][0], hints[0][1], schedule['hint1_time'],
+                 hints[1][0], hints[1][1], schedule['hint2_time'],
+                 hints[2][0], hints[2][1], schedule['hint3_time'],
+                 schedule['reveal_time'], match_id)
+            )
+            hints_created += 1
+    
+    db.commit()
+    return hints_created
+
+
 @app.post("/createMatches")
 def createMatches(
         request: Request,
@@ -901,8 +1047,143 @@ def createMatches(
 
         db.commit()
         logging.info(f"Created {matches_created} matches")
+        
+        # Generate hints after creating matches
+        try:
+            hints_generated = generate_hints_for_all_users()
+            logging.info(f"Generated hints for {hints_generated} users")
+        except Exception as e:
+            logging.exception(f"Error generating hints: {e}")
+            # Don't fail the whole request if hints generation fails
+        
         return {"created": matches_created}
 
     except Exception as e:
         logging.exception(f"Error creating matches: {e}")
         raise HTTPException(500, f"Error creating matches: {str(e)}")
+
+
+@app.get("/hints/{user_id}")
+def get_user_hints(user_id: str):
+    """Get all hints for a user with their availability status."""
+    try:
+        # Get current time
+        now = datetime.datetime.now()
+        
+        # Query hints for both days
+        cursor.execute("""
+            SELECT id, user_id, day, hint1_type, hint1_content, hint1_time,
+                   hint2_type, hint2_content, hint2_time,
+                   hint3_type, hint3_content, hint3_time,
+                   reveal_time, match_id
+            FROM hints
+            WHERE user_id = %s
+            ORDER BY day
+        """, (user_id,))
+        
+        rows = cursor.fetchall()
+        
+        if not rows:
+            return {"hints": [], "days": []}
+        
+        days_data = []
+        
+        for row in rows:
+            hint_id = row[0]
+            day_num = row[2]
+            
+            hint1_type = row[3]
+            hint1_content = row[4]
+            hint1_time = row[5]
+            hint2_type = row[6]
+            hint2_content = row[7]
+            hint2_time = row[8]
+            hint3_type = row[9]
+            hint3_content = row[10]
+            hint3_time = row[11]
+            reveal_time = row[12]
+            match_id = row[13]
+            
+            # Determine which hints are available
+            hints = []
+            
+            # Hint 1
+            if now >= hint1_time:
+                hints.append({
+                    "type": hint1_type,
+                    "content": hint1_content,
+                    "available": True,
+                    "drop_time": hint1_time.isoformat()
+                })
+            else:
+                hints.append({
+                    "type": "locked",
+                    "content": None,
+                    "available": False,
+                    "drop_time": hint1_time.isoformat()
+                })
+            
+            # Hint 2
+            if now >= hint2_time:
+                hints.append({
+                    "type": hint2_type,
+                    "content": hint2_content,
+                    "available": True,
+                    "drop_time": hint2_time.isoformat()
+                })
+            else:
+                hints.append({
+                    "type": "locked",
+                    "content": None,
+                    "available": False,
+                    "drop_time": hint2_time.isoformat()
+                })
+            
+            # Hint 3
+            if now >= hint3_time:
+                hints.append({
+                    "type": hint3_type,
+                    "content": hint3_content,
+                    "available": True,
+                    "drop_time": hint3_time.isoformat()
+                })
+            else:
+                hints.append({
+                    "type": "locked",
+                    "content": None,
+                    "available": False,
+                    "drop_time": hint3_time.isoformat()
+                })
+            
+            # Check if reveal time has passed
+            match_revealed = now >= reveal_time
+            match_info = None
+            
+            if match_revealed and match_id:
+                # Get match user info
+                match_user_row = cursor.execute(
+                    "SELECT first_name, last_name, currentClass FROM users WHERE id = %s",
+                    (match_id,)
+                ).fetchone()
+                
+                if match_user_row:
+                    match_info = {
+                        "first_name": match_user_row[0],
+                        "last_name": match_user_row[1],
+                        "class": match_user_row[2]
+                    }
+            
+            days_data.append({
+                "day": day_num,
+                "date": "2026-02-12" if day_num == 1 else "2026-02-13",
+                "hints": hints,
+                "reveal_time": reveal_time.isoformat(),
+                "match_revealed": match_revealed,
+                "match_info": match_info
+            })
+        
+        return {"days": days_data}
+        
+    except Exception as e:
+        logging.exception(f"Error getting hints: {e}")
+        raise HTTPException(500, f"Error getting hints: {str(e)}")

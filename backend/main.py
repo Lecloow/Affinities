@@ -650,6 +650,14 @@ def generate_unique_password(length: int, cursor) -> str:
     raise RuntimeError("Failed to generate a unique password after max attempts")
 
 
+def count_vowels(text):
+    """Count the number of vowels in a text."""
+    if not text:
+        return 0
+    vowels = 'aeiouyAEIOUYàâäéèêëïîôùûüÿœæÀÂÄÉÈÊËÏÎÔÙÛÜŸŒÆ'
+    return sum(1 for char in text if char in vowels)
+
+
 def generate_hints_for_all_users():
     """Generate personalized hints for all users based on their matches."""
     # Define hint times for Thursday Feb 12 and Friday Feb 13, 2026
@@ -708,25 +716,44 @@ def generate_hints_for_all_users():
             match_last_name = match_user_row[1]
             match_class = match_user_row[2]
             
-            # Generate three hints with different difficulty levels
-            hint_types = ['easy', 'medium', 'hard']
-            random.shuffle(hint_types)
+            # Generate three hints with FIXED difficulty order:
+            # hint1 = HARD, hint2 = MEDIUM, hint3 = EASY
             
-            hints = []
-            for hint_type in hint_types:
-                if hint_type == 'easy':
-                    # Easy: Class information
-                    hint = f"Il/Elle est dans la classe: {match_class}"
-                elif hint_type == 'medium':
-                    # Medium: First letter of first name
-                    first_letter = match_first_name[0].upper() if match_first_name else "?"
-                    hint = f"Son prénom commence par: {first_letter}"
-                else:
-                    # Hard: Number of letters in first name
-                    name_length = len(match_first_name) if match_first_name else 0
-                    hint = f"Son prénom contient {name_length} lettres"
-                
-                hints.append((hint_type, hint))
+            # HARD hints (pick one randomly)
+            hard_hints = [
+                # Length of first name
+                f"Son prénom contient {len(match_first_name) if match_first_name else 0} lettres",
+                # Length of last name
+                f"Son nom contient {len(match_last_name) if match_last_name else 0} lettres",
+                # Number of vowels in first name
+                f"Son prénom contient {count_vowels(match_first_name)} voyelles"
+            ]
+            hard_hint = random.choice(hard_hints)
+            
+            # MEDIUM hints (pick one randomly)
+            medium_hints = [
+                # First letter of first name
+                f"Son prénom commence par: {match_first_name[0].upper() if match_first_name else '?'}",
+                # First letter of last name
+                f"Son nom commence par: {match_last_name[0].upper() if match_last_name else '?'}"
+            ]
+            medium_hint = random.choice(medium_hints)
+            
+            # EASY hints (pick one randomly)
+            easy_hints = [
+                # Class
+                f"Il/Elle est dans la classe: {match_class}",
+                # First name
+                f"Son prénom est: {match_first_name}"
+            ]
+            easy_hint = random.choice(easy_hints)
+            
+            # Create hints in fixed order: hard, medium, easy
+            hints = [
+                ('hard', hard_hint),
+                ('medium', medium_hint),
+                ('easy', easy_hint)
+            ]
             
             # Insert hints into database
             hint_id = f"{user_id}_day{day_idx+1}"

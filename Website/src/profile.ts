@@ -244,7 +244,7 @@ export class ProfilePage {
               </div>
               <div class="hint-content reveal-container">
                 <div class="reveal-message">🎁 Un indice est disponible!</div>
-                <button class="reveal-btn" data-hint-id="${hint.id}" data-day="${day.day}" data-hint-number="${index + 1}">
+                <button class="reveal-btn" data-day="${day.day}" data-hint-number="${index + 1}">
                   Révéler l'indice
                 </button>
               </div>

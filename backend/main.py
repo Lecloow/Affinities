@@ -1251,7 +1251,9 @@ def reveal_hint(request: RevealHintRequest):
         if hint_revealed_states[request.hint_number - 1]:
             return {"success": True, "message": "Hint already revealed"}
         
-        # Update the revealed status using parameterized queries
+        # Update the revealed status using explicit conditions to avoid SQL injection
+        # We use separate if-elif blocks instead of dynamic column names to prevent
+        # potential SQL injection vulnerabilities from string interpolation in SQL
         if request.hint_number == 1:
             cursor.execute("""
                 UPDATE hints

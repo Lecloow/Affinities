@@ -287,7 +287,7 @@ ANSWER_MAPPINGS = {
         "Café/Thé": 1,
         "Jus de fruit": 2,
         "Eau": 3,
-        "Soda": 4,
+        "Lait/Chocolat chaud": 4,
     },
     "A Passy, le midi tu préfères être :": {
         "Dehors": 1,
@@ -1102,29 +1102,27 @@ def get_user_hints(user_id: str):
     try:
         # Get current time
         now = datetime.datetime.now()
-        
+
         # Query hints for both days
         cursor.execute("""
-            SELECT id, user_id, day, hint1_type, hint1_content, hint1_time, hint1_revealed,
-                   hint2_type, hint2_content, hint2_time, hint2_revealed,
-                   hint3_type, hint3_content, hint3_time, hint3_revealed,
-                   reveal_time, match_id
-            FROM hints
-            WHERE user_id = %s
-            ORDER BY day
-        """, (user_id,))
-        
+                       SELECT id,
+                              user_id, day, hint1_type, hint1_content, hint1_time, hint1_revealed, hint2_type, hint2_content, hint2_time, hint2_revealed, hint3_type, hint3_content, hint3_time, hint3_revealed, reveal_time, match_id
+                       FROM hints
+                       WHERE user_id = %s
+                       ORDER BY day
+                       """, (user_id,))
+
         rows = cursor.fetchall()
-        
+
         if not rows:
-            return {"hints": [], "days": []}
-        
+            return {"days": []}
+
         days_data = []
-        
+
         for row in rows:
             hint_id = row[0]
             day_num = row[2]
-            
+
             hint1_type = row[3]
             hint1_content = row[4]
             hint1_time = row[5]
@@ -1139,10 +1137,10 @@ def get_user_hints(user_id: str):
             hint3_revealed = row[14]
             reveal_time = row[15]
             match_id = row[16]
-            
+
             # Determine which hints are available
             hints = []
-            
+
             # Hint 1
             if now >= hint1_time:
                 hints.append({
@@ -1162,7 +1160,7 @@ def get_user_hints(user_id: str):
                     "revealed": False,
                     "drop_time": hint1_time.isoformat()
                 })
-            
+
             # Hint 2
             if now >= hint2_time:
                 hints.append({
@@ -1182,7 +1180,7 @@ def get_user_hints(user_id: str):
                     "revealed": False,
                     "drop_time": hint2_time.isoformat()
                 })
-            
+
             # Hint 3
             if now >= hint3_time:
                 hints.append({
@@ -1202,25 +1200,30 @@ def get_user_hints(user_id: str):
                     "revealed": False,
                     "drop_time": hint3_time.isoformat()
                 })
-            
+
             # Check if reveal time has passed
             match_revealed = now >= reveal_time
             match_info = None
-            
+
             if match_revealed and match_id:
                 # Get match user info
-                match_user_row = cursor.execute(
-                    "SELECT first_name, last_name, currentClass FROM users WHERE id = %s",
-                    (match_id,)
-                ).fetchone()
-                
-                if match_user_row:
-                    match_info = {
-                        "first_name": match_user_row[0],
-                        "last_name": match_user_row[1],
-                        "class": match_user_row[2]
-                    }
-            
+                try:
+                    cursor.execute(
+                        "SELECT first_name, last_name, currentClass FROM users WHERE id = %s",
+                        (match_id,)
+                    )
+                    match_user_row = cursor.fetchone()
+
+                    if match_user_row:
+                        match_info = {
+                            "first_name": match_user_row[0],
+                            "last_name": match_user_row[1],
+                            "class": match_user_row[2]
+                        }
+                except Exception as match_error:
+                    logging.error(f"Error fetching match user info for match_id {match_id}: {match_error}")
+                    # Continue without match info instead of failing
+
             days_data.append({
                 "day": day_num,
                 "date": "2026-02-12" if day_num == 1 else "2026-02-13",
@@ -1229,12 +1232,21 @@ def get_user_hints(user_id: str):
                 "match_revealed": match_revealed,
                 "match_info": match_info
             })
-        
+
         return {"days": days_data}
-        
+
     except Exception as e:
         logging.exception(f"Error getting hints: {e}")
-        raise HTTPException(500, f"Error getting hints: {str(e)}")
+        # CORRECTION CRITIQUE : Rollback de la transaction en cas d'erreur
+        try:
+            conn.rollback()
+        except Exception as rollback_error:
+            logging.error(f"Error during rollback: {rollback_error}")
+
+        raise HTTPException(500, detail={
+            "message": "Error getting hints",
+            "detail": str(e)
+        })
 
 
 class RevealHintRequest(BaseModel):

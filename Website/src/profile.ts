@@ -7,6 +7,7 @@ export class ProfilePage {
   private hintsData: HintsResponse | null = null;
   private refreshInterval: number | null = null;
   private timerInterval: number | null = null;
+  private selectedDay: number = 1; // Default to day 1 (Jeudi)
 
   constructor() {
     this.init();
@@ -69,26 +70,7 @@ export class ProfilePage {
     if (!this.contentEl) return;
 
     this.contentEl.innerHTML = `
-      <div class="greeting">Bonjour ${user.first_name}! 👋</div>
-      
-      <div class="user-info">
-        <div class="info-row">
-          <div class="label">Prénom</div>
-          <div class="value">${user.first_name}</div>
-        </div>
-        <div class="info-row">
-          <div class="label">Nom</div>
-          <div class="value">${user.last_name}</div>
-        </div>
-        <div class="info-row">
-          <div class="label">Email</div>
-          <div class="value">${user.email}</div>
-        </div>
-        <div class="info-row">
-          <div class="label">Classe</div>
-          <div class="value">${user.currentClass}</div>
-        </div>
-      </div>
+      <div class="greeting">Salut ${user.first_name}! 👋</div>
 
       <div id="hints-section">
         <div class="loading">Chargement des indices...</div>
@@ -138,17 +120,50 @@ export class ProfilePage {
       return;
     }
 
-    const daysHtml = this.hintsData.days.map(day => this.renderDayHints(day)).join('');
+    // Render segmented control
+    const segmentedControlHtml = `
+      <div class="segmented-control">
+        <button class="segment-btn ${this.selectedDay === 1 ? 'active' : ''}" data-day="1">
+          Jeudi
+        </button>
+        <button class="segment-btn ${this.selectedDay === 2 ? 'active' : ''}" data-day="2">
+          Vendredi
+        </button>
+      </div>
+    `;
+
+    // Find the selected day
+    const selectedDayData = this.hintsData.days.find(day => day.day === this.selectedDay);
+    const dayHtml = selectedDayData ? this.renderDayHints(selectedDayData) : '';
 
     hintsSection.innerHTML = `
       <div class="hints-container">
         <h2>💝 Indices pour trouver ton âme sœur</h2>
-        ${daysHtml}
+        ${segmentedControlHtml}
+        ${dayHtml}
       </div>
     `;
     
+    // Attach event listeners to segmented control buttons
+    this.attachSegmentedControlListeners();
+    
     // Attach event listeners to reveal buttons
     this.attachGlobalRevealButtonListeners();
+  }
+  
+  private attachSegmentedControlListeners(): void {
+    const segmentButtons = document.querySelectorAll('.segment-btn');
+    segmentButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        const target = e.target as HTMLButtonElement;
+        const day = parseInt(target.dataset.day || '1');
+        
+        if (day !== this.selectedDay) {
+          this.selectedDay = day;
+          this.renderHints();
+        }
+      });
+    });
   }
   
   private attachGlobalRevealButtonListeners(): void {
@@ -231,8 +246,6 @@ export class ProfilePage {
   }
 
   private renderDayHints(day: DayHints): string {
-    const dayName = day.day === 1 ? 'Jeudi 12 Février' : 'Vendredi 13 Février';
-    
     let hintsHtml = '';
     const now = new Date();
     
@@ -336,6 +349,7 @@ export class ProfilePage {
     }
 
     // Render match reveal section
+    const dayName = day.day === 1 ? 'Jeudi 12 Février' : 'Vendredi 13 Février';
     let revealHtml = '';
     if (day.match_revealed && day.match_info) {
       revealHtml = `
@@ -367,8 +381,7 @@ export class ProfilePage {
     }
 
     return `
-      <div class="day-hints">
-        <h3 class="day-title">${dayName}</h3>
+      <div class="day-hints-content">
         <div class="hints-list">
           ${hintsHtml}
         </div>

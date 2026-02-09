@@ -73,116 +73,66 @@ cursor = db.cursor()
 cursor.execute("""
                CREATE TABLE IF NOT EXISTS passwords
                (
-                   password
-                   TEXT
-                   PRIMARY
-                   KEY,
-                   user_id
-                   INTEGER
+                   password TEXT PRIMARY KEY,
+                   user_id INTEGER
                )
                """)
 
 cursor.execute("""
                CREATE TABLE IF NOT EXISTS users
                (
-                   id
-                   TEXT
-                   PRIMARY
-                   KEY,
-                   first_name
-                   TEXT,
-                   last_name
-                   TEXT,
-                   email
-                   TEXT,
-                   currentClass
-                   TEXT,
-                   q3
-                   INTEGER,
-                   q4
-                   INTEGER,
-                   q5
-                   INTEGER,
-                   q6
-                   INTEGER,
-                   q7
-                   INTEGER,
-                   q8
-                   INTEGER,
-                   q9
-                   INTEGER,
-                   q10
-                   INTEGER,
-                   q11
-                   INTEGER,
-                   q12
-                   INTEGER,
-                   q13
-                   INTEGER,
-                   q14
-                   INTEGER,
-                   q15
-                   INTEGER,
-                   q16
-                   INTEGER,
-                   q17
-                   INTEGER
+                   id TEXT PRIMARY KEY,
+                   first_name TEXT,
+                   last_name TEXT,
+                   email TEXT,
+                   currentClass TEXT,
+                   q3 INTEGER,
+                   q4 INTEGER,
+                   q5 INTEGER,
+                   q6 INTEGER,
+                   q7 INTEGER,
+                   q8 INTEGER,
+                   q9 INTEGER,
+                   q10 INTEGER,
+                   q11 INTEGER,
+                   q12 INTEGER,
+                   q13 INTEGER,
+                   q14 INTEGER,
+                   q15 INTEGER,
+                   q16 INTEGER,
+                   q17 INTEGER
                )
                """)
 
 cursor.execute("""
                CREATE TABLE IF NOT EXISTS matches
                (
-                   id
-                   TEXT
-                   PRIMARY
-                   KEY,
-                   day1
-                   TEXT,
-                   day2
-                   TEXT
+                   id TEXT PRIMARY KEY,
+                   day1 TEXT,
+                   day2 TEXT
                )
                """)
 
 cursor.execute("""
                CREATE TABLE IF NOT EXISTS hints
                (
-                   id
-                   TEXT
-                   PRIMARY
-                   KEY,
-                   user_id
-                   TEXT,
-                   day
-                   INTEGER,
-                   hint1_type
-                   TEXT,
-                   hint1_content
-                   TEXT,
-                   hint1_time
-                   TIMESTAMP,
-                   hint1_revealed
-                   BOOLEAN DEFAULT FALSE,
-                   hint2_type
-                   TEXT,
-                   hint2_content
-                   TEXT,
-                   hint2_time
-                   TIMESTAMP,
-                   hint2_revealed
-                   BOOLEAN DEFAULT FALSE,
-                   hint3_type
-                   TEXT,
-                   hint3_content
-                   TEXT,
-                   hint3_time
-                   TIMESTAMP,
-                   hint3_revealed
-                   BOOLEAN DEFAULT FALSE,
-                   reveal_time
-                   TIMESTAMP,
-                   match_id
-                   TEXT
+                   id TEXT PRIMARY KEY,
+                   user_id TEXT,
+                   day INTEGER,
+                   hint1_type TEXT,
+                   hint1_content TEXT,
+                   hint1_time TIMESTAMP,
+                   hint1_revealed BOOLEAN DEFAULT FALSE,
+                   hint2_type TEXT,
+                   hint2_content TEXT,
+                   hint2_time TIMESTAMP,
+                   hint2_revealed BOOLEAN DEFAULT FALSE,
+                   hint3_type TEXT,
+                   hint3_content TEXT,
+                   hint3_time TIMESTAMP,
+                   hint3_revealed BOOLEAN DEFAULT FALSE,
+                   reveal_time TIMESTAMP,
+                   match_id TEXT
                )
                """)
 

@@ -7,6 +7,7 @@ export class ProfilePage {
   private hintsData: HintsResponse | null = null;
   private refreshInterval: number | null = null;
   private timerInterval: number | null = null;
+  private selectedDay: number = 1; // Default to day 1 (Jeudi)
 
   constructor() {
     this.init();
@@ -28,12 +29,12 @@ export class ProfilePage {
   private init(): void {
     this.contentEl = document.getElementById('content');
     this.render();
-    
+
     // Refresh hints every 30 seconds to check for new available hints
     this.refreshInterval = window.setInterval(() => {
       this.loadAndRenderHints();
     }, 30000);
-    
+
     // Update timers every second for smooth countdown
     this.timerInterval = window.setInterval(() => {
       this.updateTimersOnly();
@@ -69,26 +70,7 @@ export class ProfilePage {
     if (!this.contentEl) return;
 
     this.contentEl.innerHTML = `
-      <div class="greeting">Bonjour ${user.first_name}! 👋</div>
-      
-      <div class="user-info">
-        <div class="info-row">
-          <div class="label">Prénom</div>
-          <div class="value">${user.first_name}</div>
-        </div>
-        <div class="info-row">
-          <div class="label">Nom</div>
-          <div class="value">${user.last_name}</div>
-        </div>
-        <div class="info-row">
-          <div class="label">Email</div>
-          <div class="value">${user.email}</div>
-        </div>
-        <div class="info-row">
-          <div class="label">Classe</div>
-          <div class="value">${user.currentClass}</div>
-        </div>
-      </div>
+      <div class="greeting">Salut ${user.first_name}! 👋</div>
 
       <div id="hints-section">
         <div class="loading">Chargement des indices...</div>
@@ -138,37 +120,70 @@ export class ProfilePage {
       return;
     }
 
-    const daysHtml = this.hintsData.days.map(day => this.renderDayHints(day)).join('');
+    // Render segmented control
+    const segmentedControlHtml = `
+      <div class="segmented-control">
+        <button class="segment-btn ${this.selectedDay === 1 ? 'active' : ''}" data-day="1">
+          Jeudi
+        </button>
+        <button class="segment-btn ${this.selectedDay === 2 ? 'active' : ''}" data-day="2">
+          Vendredi
+        </button>
+      </div>
+    `;
+
+    // Find the selected day
+    const selectedDayData = this.hintsData.days.find(day => day.day === this.selectedDay);
+    const dayHtml = selectedDayData ? this.renderDayHints(selectedDayData) : '';
 
     hintsSection.innerHTML = `
       <div class="hints-container">
         <h2>💝 Indices pour trouver ton âme sœur</h2>
-        ${daysHtml}
+        ${segmentedControlHtml}
+        ${dayHtml}
       </div>
     `;
-    
+
+    // Attach event listeners to segmented control buttons
+    this.attachSegmentedControlListeners();
+
     // Attach event listeners to reveal buttons
     this.attachGlobalRevealButtonListeners();
   }
-  
+
+  private attachSegmentedControlListeners(): void {
+    const segmentButtons = document.querySelectorAll('.segment-btn');
+    segmentButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        const target = e.target as HTMLButtonElement;
+        const day = parseInt(target.dataset.day || '1');
+
+        if (day !== this.selectedDay) {
+          this.selectedDay = day;
+          this.renderHints();
+        }
+      });
+    });
+  }
+
   private attachGlobalRevealButtonListeners(): void {
     const revealButtons = document.querySelectorAll('.global-reveal-btn');
     revealButtons.forEach(button => {
       button.addEventListener('click', async (e) => {
         const target = e.target as HTMLButtonElement;
         const day = parseInt(target.dataset.day || '0');
-        
+
         if (day) {
           await this.handleRevealAllHints(day);
         }
       });
     });
   }
-  
+
   private async handleRevealAllHints(day: number): Promise<void> {
     const user = StorageService.getUser();
     if (!user) return;
-    
+
     try {
       // Disable the button during the request
       const button = document.querySelector(`[data-day="${day}"].global-reveal-btn`) as HTMLButtonElement;
@@ -177,23 +192,23 @@ export class ProfilePage {
         button.disabled = true;
         button.textContent = 'Révélation en cours...';
       }
-      
+
       // Call the API to reveal all hints
       const result = await ApiService.revealAllHints(user.id, day);
-      
+
       // Reload hints to show the revealed content
       await this.loadAndRenderHints();
-      
+
       // Show success message if hints were revealed
       if (result.revealed_count > 0) {
         // Success message will be visible through the updated UI
         console.log(`${result.revealed_count} hint(s) revealed successfully`);
       }
-      
+
     } catch (error) {
       console.error('Error revealing hints:', error);
       alert('Erreur lors de la révélation des indices. Veuillez réessayer.');
-      
+
       // Reload to restore the correct button state
       await this.loadAndRenderHints();
     }
@@ -202,7 +217,7 @@ export class ProfilePage {
   private async handleRevealHint(day: number, hintNumber: number): Promise<void> {
     const user = StorageService.getUser();
     if (!user) return;
-    
+
     try {
       // Disable the button during the request
       const button = document.querySelector(`[data-day="${day}"][data-hint-number="${hintNumber}"]`) as HTMLButtonElement;
@@ -210,17 +225,17 @@ export class ProfilePage {
         button.disabled = true;
         button.textContent = 'Révélation en cours...';
       }
-      
+
       // Call the API to reveal the hint
       await ApiService.revealHint(user.id, day, hintNumber);
-      
+
       // Reload hints to show the revealed content
       await this.loadAndRenderHints();
-      
+
     } catch (error) {
       console.error('Error revealing hint:', error);
       alert('Erreur lors de la révélation de l\'indice. Veuillez réessayer.');
-      
+
       // Re-enable the button on error
       const button = document.querySelector(`[data-day="${day}"][data-hint-number="${hintNumber}"]`) as HTMLButtonElement;
       if (button) {
@@ -231,15 +246,13 @@ export class ProfilePage {
   }
 
   private renderDayHints(day: DayHints): string {
-    const dayName = day.day === 1 ? 'Jeudi 12 Février' : 'Vendredi 13 Février';
-    
     let hintsHtml = '';
     const now = new Date();
-    
+
     // Count available but not revealed hints
     let availableUnrevealedCount = 0;
     let nextHintTime: Date | null = null;
-    
+
     for (const hint of day.hints) {
       if (hint.available && !hint.revealed) {
         availableUnrevealedCount++;
@@ -255,12 +268,12 @@ export class ProfilePage {
       if (hint.available) {
         const dropTime = new Date(hint.drop_time);
         const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        
+
         if (hint.revealed) {
           // Hint is revealed, show the content
-          const difficultyLabel = hint.type === 'easy' ? '🟢 Facile' : 
+          const difficultyLabel = hint.type === 'easy' ? '🟢 Facile' :
                                  hint.type === 'medium' ? '🟡 Moyen' : '🔴 Difficile';
-          
+
           return `
             <div class="hint-item available revealed">
               <div class="hint-header">
@@ -290,7 +303,7 @@ export class ProfilePage {
         const dropTime = new Date(hint.drop_time);
         const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const timeRemaining = this.getTimeRemaining(dropTime);
-        
+
         return `
           <div class="hint-item locked">
             <div class="hint-header">
@@ -305,12 +318,12 @@ export class ProfilePage {
         `;
       }
     }).join('');
-    
+
     // Create the global reveal button at the bottom
     let revealButtonHtml = '';
     if (availableUnrevealedCount > 0) {
-      const buttonText = availableUnrevealedCount === 1 
-        ? 'Révéler l\'indice disponible' 
+      const buttonText = availableUnrevealedCount === 1
+        ? 'Révéler l\'indice disponible'
         : `Révéler les ${availableUnrevealedCount} indices disponibles`;
       revealButtonHtml = `
         <div class="global-reveal-container">
@@ -322,8 +335,8 @@ export class ProfilePage {
     } else if (nextHintTime) {
       // Show time until next hint
       const minutesUntilNext = Math.ceil((nextHintTime.getTime() - now.getTime()) / (1000 * 60));
-      const timeText = minutesUntilNext === 1 
-        ? 'Prochain indice dans 1 minute' 
+      const timeText = minutesUntilNext === 1
+        ? 'Prochain indice dans 1 minute'
         : `Prochain indice dans ${minutesUntilNext} minutes`;
       revealButtonHtml = `
         <div class="global-reveal-container">
@@ -336,6 +349,7 @@ export class ProfilePage {
     }
 
     // Render match reveal section
+    const dayName = day.day === 1 ? 'Jeudi 12 Février' : 'Vendredi 13 Février';
     let revealHtml = '';
     if (day.match_revealed && day.match_info) {
       revealHtml = `
@@ -351,7 +365,7 @@ export class ProfilePage {
       const revealTime = new Date(day.reveal_time);
       const timeStr = revealTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
       const timeRemaining = this.getTimeRemaining(revealTime);
-      
+
       revealHtml = `
         <div class="reveal-section locked">
           <h3>🎁 Révélation du match</h3>
@@ -367,8 +381,7 @@ export class ProfilePage {
     }
 
     return `
-      <div class="day-hints">
-        <h3 class="day-title">${dayName}</h3>
+      <div class="day-hints-content">
         <div class="hints-list">
           ${hintsHtml}
         </div>

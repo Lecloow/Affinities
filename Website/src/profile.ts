@@ -6,19 +6,38 @@ export class ProfilePage {
   private contentEl: HTMLElement | null = null;
   private hintsData: HintsResponse | null = null;
   private refreshInterval: number | null = null;
+  private timerInterval: number | null = null;
 
   constructor() {
     this.init();
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => this.cleanup());
+  }
+
+  private cleanup(): void {
+    if (this.refreshInterval !== null) {
+      window.clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+    if (this.timerInterval !== null) {
+      window.clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
   }
 
   private init(): void {
     this.contentEl = document.getElementById('content');
     this.render();
     
-    // Refresh hints every 30 seconds to update timers
+    // Refresh hints every 30 seconds to check for new available hints
     this.refreshInterval = window.setInterval(() => {
       this.loadAndRenderHints();
     }, 30000);
+    
+    // Update timers every second for smooth countdown
+    this.timerInterval = window.setInterval(() => {
+      this.updateTimersOnly();
+    }, 1000);
   }
 
   private async render(): Promise<void> {
@@ -244,6 +263,43 @@ export class ProfilePage {
     } else {
       return `Dans ${seconds}s`;
     }
+  }
+
+  private updateTimersOnly(): void {
+    // Update all timer elements without reloading data
+    if (!this.hintsData) return;
+
+    const timerElements = document.querySelectorAll('.timer');
+    if (timerElements.length === 0) return;
+
+    // Collect all times that need updating
+    const times: { element: Element; targetTime: Date }[] = [];
+
+    this.hintsData.days.forEach((day) => {
+      day.hints.forEach((hint) => {
+        if (!hint.available) {
+          times.push({ element: null as any, targetTime: new Date(hint.drop_time) });
+        }
+      });
+      if (!day.match_revealed) {
+        times.push({ element: null as any, targetTime: new Date(day.reveal_time) });
+      }
+    });
+
+    // Update each timer element
+    let timerIndex = 0;
+    timerElements.forEach((el) => {
+      if (timerIndex < times.length) {
+        const timeRemaining = this.getTimeRemaining(times[timerIndex].targetTime);
+        el.textContent = timeRemaining;
+        
+        // If timer expired, reload the full hints data
+        if (timeRemaining === 'Disponible maintenant!') {
+          this.loadAndRenderHints();
+        }
+        timerIndex++;
+      }
+    });
   }
 }
 

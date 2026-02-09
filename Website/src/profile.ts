@@ -146,6 +146,55 @@ export class ProfilePage {
         ${daysHtml}
       </div>
     `;
+    
+    // Attach event listeners to reveal buttons
+    this.attachRevealButtonListeners();
+  }
+  
+  private attachRevealButtonListeners(): void {
+    const revealButtons = document.querySelectorAll('.reveal-btn');
+    revealButtons.forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const target = e.target as HTMLButtonElement;
+        const day = parseInt(target.dataset.day || '0');
+        const hintNumber = parseInt(target.dataset.hintNumber || '0');
+        
+        if (day && hintNumber) {
+          await this.handleRevealHint(day, hintNumber);
+        }
+      });
+    });
+  }
+  
+  private async handleRevealHint(day: number, hintNumber: number): Promise<void> {
+    const user = StorageService.getUser();
+    if (!user) return;
+    
+    try {
+      // Disable the button during the request
+      const button = document.querySelector(`[data-day="${day}"][data-hint-number="${hintNumber}"]`) as HTMLButtonElement;
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Révélation en cours...';
+      }
+      
+      // Call the API to reveal the hint
+      await ApiService.revealHint(user.id, day, hintNumber);
+      
+      // Reload hints to show the revealed content
+      await this.loadAndRenderHints();
+      
+    } catch (error) {
+      console.error('Error revealing hint:', error);
+      alert('Erreur lors de la révélation de l\'indice. Veuillez réessayer.');
+      
+      // Re-enable the button on error
+      const button = document.querySelector(`[data-day="${day}"][data-hint-number="${hintNumber}"]`) as HTMLButtonElement;
+      if (button) {
+        button.disabled = false;
+        button.textContent = 'Révéler l\'indice';
+      }
+    }
   }
 
   private renderDayHints(day: DayHints): string {
@@ -169,19 +218,39 @@ export class ProfilePage {
       if (hint.available) {
         const dropTime = new Date(hint.drop_time);
         const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        const difficultyLabel = hint.type === 'easy' ? '🟢 Facile' : 
-                               hint.type === 'medium' ? '🟡 Moyen' : '🔴 Difficile';
         
-        return `
-          <div class="hint-item available">
-            <div class="hint-header">
-              <span class="hint-number">Indice ${index + 1}</span>
-              <span class="hint-difficulty">${difficultyLabel}</span>
-              <span class="hint-time">Révélé à ${timeStr}</span>
+        if (hint.revealed) {
+          // Hint is revealed, show the content
+          const difficultyLabel = hint.type === 'easy' ? '🟢 Facile' : 
+                                 hint.type === 'medium' ? '🟡 Moyen' : '🔴 Difficile';
+          
+          return `
+            <div class="hint-item available revealed">
+              <div class="hint-header">
+                <span class="hint-number">Indice ${index + 1}</span>
+                <span class="hint-difficulty">${difficultyLabel}</span>
+                <span class="hint-time">Révélé à ${timeStr}</span>
+              </div>
+              <div class="hint-content">${hint.content}</div>
             </div>
-            <div class="hint-content">${hint.content}</div>
-          </div>
-        `;
+          `;
+        } else {
+          // Hint is available but not revealed yet, show reveal button
+          return `
+            <div class="hint-item available not-revealed">
+              <div class="hint-header">
+                <span class="hint-number">Indice ${index + 1}</span>
+                <span class="hint-time">Disponible depuis ${timeStr}</span>
+              </div>
+              <div class="hint-content reveal-container">
+                <div class="reveal-message">🎁 Un indice est disponible!</div>
+                <button class="reveal-btn" data-hint-id="${hint.id}" data-day="${day.day}" data-hint-number="${index + 1}">
+                  Révéler l'indice
+                </button>
+              </div>
+            </div>
+          `;
+        }
       } else {
         const dropTime = new Date(hint.drop_time);
         const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });

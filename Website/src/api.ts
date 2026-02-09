@@ -60,4 +60,38 @@ export class ApiService {
       throw error;
     }
   }
+
+  static async revealHint(userId: string, day: number, hintNumber: number): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/hints/reveal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          day: day,
+          hint_number: hintNumber,
+        }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw {
+          status: response.status,
+          message: text || `Erreur ${response.status}`,
+        } as ApiError;
+      }
+
+      await response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw {
+          status: 0,
+          message: error.message,
+        } as ApiError;
+      }
+      throw error;
+    }
+  }
 }

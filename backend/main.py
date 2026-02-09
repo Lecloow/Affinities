@@ -1323,6 +1323,8 @@ def reveal_all_hints(request: RevealAllHintsRequest):
         
         # Update all available hints to revealed using safe explicit updates
         # We use explicit conditions to avoid SQL injection from dynamic column names
+        # While this creates code duplication, it's a security best practice to avoid
+        # constructing SQL statements dynamically, even with validated input
         if 1 in hints_to_reveal and 2 in hints_to_reveal and 3 in hints_to_reveal:
             cursor.execute("""
                 UPDATE hints

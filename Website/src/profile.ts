@@ -194,13 +194,8 @@ export class ProfilePage {
       console.error('Error revealing hints:', error);
       alert('Erreur lors de la révélation des indices. Veuillez réessayer.');
       
-      // Re-enable the button on error
-      const button = document.querySelector(`[data-day="${day}"].global-reveal-btn`) as HTMLButtonElement;
-      if (button) {
-        button.disabled = false;
-        // Restore original text - could improve this
-        button.textContent = 'Révéler les indices disponibles';
-      }
+      // Reload to restore the correct button state
+      await this.loadAndRenderHints();
     }
   }
 

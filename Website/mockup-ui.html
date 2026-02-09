@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup - Saint Valentin Event UI</title>
+  <link rel="stylesheet" href="./profile.css" />
+  <style>
+    body {
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎀 Saint Valentin Event</h1>
+    <div id="content">
+      <div class="greeting">Salut Marie! 👋</div>
+
+      <div id="hints-section">
+        <div class="hints-container">
+          <h2>💝 Indices pour trouver ton âme sœur</h2>
+          
+          <!-- Segmented Control -->
+          <div class="segmented-control">
+            <button class="segment-btn active" onclick="switchDay(1)">
+              Jeudi
+            </button>
+            <button class="segment-btn" onclick="switchDay(2)">
+              Vendredi
+            </button>
+          </div>
+
+          <!-- Day 1 Content (Jeudi) -->
+          <div id="day1-content" class="day-content">
+            <div class="day-hints-content">
+              <div class="hints-list">
+                <!-- Revealed Hint -->
+                <div class="hint-item available revealed">
+                  <div class="hint-header">
+                    <span class="hint-number">Indice 1</span>
+                    <span class="hint-difficulty">🟢 Facile</span>
+                    <span class="hint-time">Révélé à 10:00</span>
+                  </div>
+                  <div class="hint-content">Il/Elle est dans la classe: Terminale A</div>
+                </div>
+
+                <!-- Available but not revealed -->
+                <div class="hint-item available not-revealed">
+                  <div class="hint-header">
+                    <span class="hint-number">Indice 2</span>
+                    <span class="hint-time">Disponible depuis 12:00</span>
+                  </div>
+                  <div class="hint-content hint-placeholder">
+                    <span class="lock-icon">🎁</span>
+                    <span class="placeholder-text">Indice disponible - Cliquez sur le bouton en bas pour révéler</span>
+                  </div>
+                </div>
+
+                <!-- Locked hint -->
+                <div class="hint-item locked">
+                  <div class="hint-header">
+                    <span class="hint-number">Indice 3</span>
+                    <span class="hint-time">Disponible à 13:00</span>
+                  </div>
+                  <div class="hint-content locked">
+                    <span class="lock-icon">🔒</span>
+                    <span class="timer">Dans 25min 30s</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Global Reveal Button -->
+              <div class="global-reveal-container">
+                <button class="global-reveal-btn" onclick="alert('Révélation de l\'indice!')">
+                  Révéler l'indice disponible
+                </button>
+              </div>
+
+              <!-- Reveal Section -->
+              <div class="reveal-section locked">
+                <h3>🎁 Révélation du match</h3>
+                <div class="reveal-timer">
+                  <span class="lock-icon">🔒</span>
+                  <div>
+                    <div>Disponible à 15:15</div>
+                    <div class="timer">Dans 2h 45min</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Day 2 Content (Vendredi) - Hidden by default -->
+          <div id="day2-content" class="day-content" style="display: none;">
+            <div class="day-hints-content">
+              <div class="hints-list">
+                <!-- All locked for tomorrow -->
+                <div class="hint-item locked">
+                  <div class="hint-header">
+                    <span class="hint-number">Indice 1</span>
+                    <span class="hint-time">Disponible à 10:00</span>
+                  </div>
+                  <div class="hint-content locked">
+                    <span class="lock-icon">🔒</span>
+                    <span class="timer">Demain à 10:00</span>
+                  </div>
+                </div>
+
+                <div class="hint-item locked">
+                  <div class="hint-header">
+                    <span class="hint-number">Indice 2</span>
+                    <span class="hint-time">Disponible à 12:00</span>
+                  </div>
+                  <div class="hint-content locked">
+                    <span class="lock-icon">🔒</span>
+                    <span class="timer">Demain à 12:00</span>
+                  </div>
+                </div>
+
+                <div class="hint-item locked">
+                  <div class="hint-header">
+                    <span class="hint-number">Indice 3</span>
+                    <span class="hint-time">Disponible à 13:00</span>
+                  </div>
+                  <div class="hint-content locked">
+                    <span class="lock-icon">🔒</span>
+                    <span class="timer">Demain à 13:00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reveal Section -->
+              <div class="reveal-section locked">
+                <h3>🎁 Révélation du match</h3>
+                <div class="reveal-timer">
+                  <span class="lock-icon">🔒</span>
+                  <div>
+                    <div>Disponible à 15:15</div>
+                    <div class="timer">Demain à 15:15</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <button class="logout-btn">Se déconnecter</button>
+    </div>
+  </div>
+
+  <script>
+    function switchDay(day) {
+      // Toggle active state on buttons
+      const buttons = document.querySelectorAll('.segment-btn');
+      buttons.forEach((btn, index) => {
+        if (index + 1 === day) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Show/hide day content
+      document.getElementById('day1-content').style.display = day === 1 ? 'block' : 'none';
+      document.getElementById('day2-content').style.display = day === 2 ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>

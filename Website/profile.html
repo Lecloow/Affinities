@@ -1,19 +1,71 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profil - Saint Valentin Event</title>
-  <link rel="stylesheet" href="./profile.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>🎀 Saint Valentin Event</h1>
-    <div id="content">
-      <!-- Content sera généré par le script -->
-    </div>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profil - Saint Valentin Event</title>
+    <link rel="stylesheet" href="./profile.css" />
+  </head>
 
-  <script type="module" src="./src/profile.ts"></script>
-</body>
+  <body>
+    <!-- SECTION BLANCHE (même structure que la première page) -->
+    <section class="hero">
+      <!-- Fleurs décoratives (identiques) -->
+      <img src="flower1.png" class="flower flower-br" alt="" />
+      <img src="flower2.png" class="flower flower-tr" alt="" />
+      <img src="flower3.png" class="flower flower-bl" alt="" />
+      <img src="flower4.png" class="flower flower-tl" alt="" />
+
+      <div class="hero-content">
+        <!-- CONTENU SPÉCIFIQUE À LA PAGE PROFIL -->
+        <h2 class="hello">👋 Salut <span id="username">Nom</span></h2>
+
+        <div class="tabs">
+          <button class="tab active" data-day="jeudi">Jeudi</button>
+          <button class="tab" data-day="vendredi">Vendredi</button>
+        </div>
+
+        <div id="clues" class="clues">
+          <!-- Exemple de contenu statique (tu pourras le remplacer par le TS) -->
+          <div class="clue-line active" data-id="1">
+            <button class="clue-button">Indice n°1</button>
+
+            <span class="clue-hour">Il y a 1 heure</span>
+          </div>
+
+          <div class="clue-content" data-id="1">
+            Son prénom commence par la lettre : <span class="letter">T</span>
+          </div>
+
+          <div class="clue">
+            <div class="clue-title">Indice n°2</div>
+            <div class="clue-time">Dans 20 min</div>
+          </div>
+
+          <div class="clue">
+            <div class="clue-title">Indice n°3</div>
+            <div class="clue-time">À 13h</div>
+          </div>
+
+          <div class="clue">
+            <div class="clue-title">Reveal</div>
+            <div class="clue-time">À 15h15</div>
+          </div>
+        </div>
+
+        <button class="reveal-btn">Révéler un indice</button>
+      </div>
+    </section>
+
+    <!-- SECTION NOIRE (identique à la première page) -->
+    <section class="credits">
+      <p>Made with ❤️ by Thomas Conchon</p>
+      <p>With the help of Thomas Sportisse and Lilian Delahaye</p>
+      <p>Thanks to the Comité de promo 2026</p>
+      <br />
+      <a href="https://github.com" class="github-btn">Code source : GitHub</a>
+    </section>
+
+    <script type="module" src="./src/profile.ts"></script>
+  </body>
 </html>

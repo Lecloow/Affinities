@@ -1,31 +1,74 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connexion - Saint Valentin Event</title>
-  <link rel="stylesheet" href="./style.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>🎀 Saint Valentin Event</h1>
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="password">Code d'accès:</label>
-        <input
-          id="password"
-          name="password"
-          type="text"
-          placeholder="Entrez votre code"
-          required
-          autocomplete="off"
-        />
-      </div>
-      <button type="submit" id="submitBtn">Connexion</button>
-    </form>
-    <div id="result" class="result"></div>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connexion - Saint Valentin Event</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
 
-  <script type="module" src="src/login.ts"></script>
-</body>
+  <body>
+    <!-- SECTION BLANCHE (écran 1) -->
+    <section class="hero">
+      <!-- Fleurs décoratives -->
+      <img src="flower1.png" class="flower flower-br" alt="" />
+      <img src="flower2.png" class="flower flower-tr" alt="" />
+      <img src="flower3.png" class="flower flower-bl" alt="" />
+      <img src="flower4.png" class="flower flower-tl" alt="" />
+
+      <div class="hero-content">
+        <img src="logopassy.png" class="logo" alt="Logo" />
+
+        <h1>Découvre ton âme sœur</h1>
+        <p class="subtitle">Un évènement du Comité de promo 2026</p>
+
+        <div class="separator"></div>
+
+        <div class="schedule">
+          <div class="line">
+            <span class="day">Mardi</span>
+            <span class="event">Remplir le Forms pour participer</span>
+          </div>
+
+          <div class="line">
+            <span class="day">Mercredi</span>
+            <span class="event">Résultats du concours de gâteaux</span>
+          </div>
+
+          <div class="line">
+            <span class="day">Jeudi & Vendredi</span>
+            <span class="event">Découverte des âmes sœurs</span>
+          </div>
+        </div>
+
+        <div class="separator"></div>
+
+        <form id="loginForm">
+          <input
+            id="password"
+            name="password"
+            type="text"
+            placeholder="Rentre ici ton code envoyé par mail"
+            required
+            autocomplete="off"
+          />
+
+          <button type="submit" id="submitBtn">Se connecter ♡</button>
+        </form>
+
+        <div id="result" class="result"></div>
+      </div>
+    </section>
+
+    <!-- SECTION NOIRE (petite zone) -->
+    <section class="credits">
+      <p>Made with ❤️ by Thomas Conchon</p>
+      <p>With the help of Thomas Sportisse and Lilian Delahaye</p>
+      <p>Thanks to the Comité de promo 2026</p>
+      <br />
+      <a href="https://github.com" class="github-btn">Code source : GitHub</a>
+    </section>
+
+    <script type="module" src="src/login.ts"></script>
+  </body>
 </html>

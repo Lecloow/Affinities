@@ -27,7 +27,7 @@ body {
 .flower {
   position: absolute;
   width: 160px;
-  opacity: 0.35;
+  opacity: 0.7;
   pointer-events: none;
   user-select: none;
 }
@@ -95,14 +95,14 @@ input {
 
 input:focus {
   outline: none;
-  border-color: #ff7aa8;
+  border-color: #FF6CA7;
 }
 
 /* Bouton */
 button {
   width: 100%;
   padding: 0.9rem;
-  background: #ff7aa8;
+  background: #FF6CA7;
   color: white;
   border: none;
   border-radius: 8px;
@@ -194,7 +194,7 @@ button:active {
 
 .day {
   font-weight: 700;
-  background: #e8d9ff;
+  background: #ECECF6;
   padding: 0.35rem 0.7rem;
   border-radius: 8px;
   color: #000;

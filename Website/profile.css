@@ -206,36 +206,355 @@ body {
   box-shadow: 0 5px 20px rgba(255, 122, 168, 0.4);
 }
 
-/* SECTION NOIRE (copiée) */
-.credits {
-  background: #111;
-  color: #eee;
-  padding: 2rem 1.5rem;
-  text-align: center;
-  font-size: 0.9rem;
+.error {
+  background: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 5px;
+  border: 1px solid #fcc;
 }
 
-.credits p {
+/* Hints Section Styles */
+.hints-container {
+  margin-top: 2rem;
+}
+
+.hints-container h2 {
+  color: #667eea;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+/* Segmented Control */
+.segmented-control {
+  display: flex;
+  background: #f0f0f0;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 2rem;
+  gap: 4px;
+}
+
+.segment-btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.segment-btn:hover {
+  background: #e0e0e0;
+}
+
+.segment-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.day-hints-content {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+}
+
+.day-hints {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e0e0e0;
+}
+
+.day-title {
+  color: #764ba2;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #764ba2;
+}
+
+.hints-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.hint-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.hint-item.available {
+  border-left: 4px solid #4caf50;
+}
+
+.hint-item.available.not-revealed {
+  border-left: 4px solid #ff9800;
+}
+
+.hint-item.available.revealed {
+  border-left: 4px solid #4caf50;
+}
+
+.hint-item.locked {
+  border-left: 4px solid #999;
+  opacity: 0.7;
+}
+
+.hint-item:hover {
+  transform: translateY(-2px);
+}
+
+.hint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hint-number {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.hint-difficulty {
+  font-size: 0.9rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  background: #f0f0f0;
+}
+
+.hint-time {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.hint-content {
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #333;
+}
+
+.hint-content.locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  flex-direction: column;
+}
+
+.lock-icon {
+  font-size: 2rem;
+}
+
+.timer {
+  font-weight: 600;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.reveal-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.reveal-section h3 {
+  color: #764ba2;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.reveal-section.revealed {
+  border: 3px solid #4caf50;
+  background: linear-gradient(135deg, #e8f5e9 0%, #f3e5f5 100%);
+}
+
+.reveal-section.locked {
+  border: 2px solid #ddd;
+}
+
+.match-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.match-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #667eea;
   margin-bottom: 0.5rem;
 }
 
-/* Bouton GitHub (copié) */
-.github-btn {
-  display: inline-flex;
+.match-class {
+  color: #666;
+  font-size: 1rem;
+}
+
+.reveal-timer {
+  display: flex;
   align-items: center;
-  gap: 0.6rem;
-  background: #1f1f1f;
-  border: 1px solid;
-  border-color: #3d3d3d;
-  color: #dddddd;
-  padding: 0.7rem 1.2rem;
-  border-radius: 10px;
-  font-weight: 600;
-  text-decoration: none;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.reveal-timer .lock-icon {
+  font-size: 2.5rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.info {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 1rem;
+  border-radius: 5px;
+  border: 1px solid #90caf9;
+  text-align: center;
+}
+
+.hint-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.placeholder-text {
+  color: #667eea;
   font-size: 0.95rem;
 }
-.github-btn:hover {
-  background: #3d3d3d;
-  color: #ffffff;
-  border-color: #5a5a5a;
+
+.global-reveal-container {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.global-reveal-btn {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  min-width: 250px;
+}
+
+.global-reveal-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.global-reveal-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.global-reveal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.next-hint-timer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: white;
+  border-radius: 30px;
+  border: 2px solid #667eea;
+  color: #667eea;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.timer-icon {
+  font-size: 1.5rem;
+}
+
+.timer-text {
+  font-size: 1rem;
+}
+
+/* Remove old reveal button styles that are no longer needed */
+.reveal-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.reveal-message {
+  font-size: 1.1rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.reveal-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.reveal-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.reveal-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.reveal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mockup - Indices Saint-Valentin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .greeting {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .hints-container h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .day-hints {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 2px solid #e0e0e0;
+        }
+
+        .day-title {
+            color: #764ba2;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #764ba2;
+        }
+
+        .hints-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .hint-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .hint-item.available {
+            border-left: 4px solid #4caf50;
+        }
+
+        .hint-item.locked {
+            border-left: 4px solid #999;
+            opacity: 0.7;
+        }
+
+        .hint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .hint-number {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .hint-difficulty {
+            font-size: 0.9rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            background: #f0f0f0;
+        }
+
+        .hint-time {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .hint-content {
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .hint-content.locked {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        .lock-icon {
+            font-size: 2rem;
+        }
+
+        .timer {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .reveal-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .reveal-section h3 {
+            color: #764ba2;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .reveal-section.revealed {
+            border: 3px solid #4caf50;
+            background: linear-gradient(135deg, #e8f5e9 0%, #f3e5f5 100%);
+        }
+
+        .reveal-section.locked {
+            border: 2px solid #ddd;
+        }
+
+        .match-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .match-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .match-class {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .reveal-timer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .reveal-timer .lock-icon {
+            font-size: 2.5rem;
+        }
+
+        .scenario {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 3px dashed #ccc;
+        }
+
+        .scenario-title {
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="scenario">
+        <div class="scenario-title">Scénario 1 : Jeudi 12 Février à 10h05 (Premier indice disponible)</div>
+        <div class="container">
+            <h1>🎀 Saint Valentin Event</h1>
+            <div class="greeting">Bonjour Marie! 👋</div>
+
+            <div class="hints-container">
+                <h2>💝 Indices pour trouver ton âme sœur</h2>
+
+                <div class="day-hints">
+                    <h3 class="day-title">Jeudi 12 Février</h3>
+                    <div class="hints-list">
+                        <div class="hint-item available">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 1</span>
+                                <span class="hint-difficulty">🟢 Facile</span>
+                                <span class="hint-time">Révélé à 10:00</span>
+                            </div>
+                            <div class="hint-content">Il/Elle est dans la classe: Terminale A</div>
+                        </div>
+
+                        <div class="hint-item locked">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 2</span>
+                                <span class="hint-time">Disponible à 12:00</span>
+                            </div>
+                            <div class="hint-content locked">
+                                <span class="lock-icon">🔒</span>
+                                <span class="timer">Dans 1h 55min</span>
+                            </div>
+                        </div>
+
+                        <div class="hint-item locked">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 3</span>
+                                <span class="hint-time">Disponible à 13:00</span>
+                            </div>
+                            <div class="hint-content locked">
+                                <span class="lock-icon">🔒</span>
+                                <span class="timer">Dans 2h 55min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reveal-section locked">
+                        <h3>🎁 Révélation du match</h3>
+                        <div class="reveal-timer">
+                            <span class="lock-icon">🔒</span>
+                            <div>
+                                <div>Disponible à 15:15</div>
+                                <div class="timer">Dans 5h 10min</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scénario 2 : Jeudi 12 Février à 13h30 (Tous les indices disponibles)</div>
+        <div class="container">
+            <h1>🎀 Saint Valentin Event</h1>
+            <div class="greeting">Bonjour Marie! 👋</div>
+
+            <div class="hints-container">
+                <h2>💝 Indices pour trouver ton âme sœur</h2>
+
+                <div class="day-hints">
+                    <h3 class="day-title">Jeudi 12 Février</h3>
+                    <div class="hints-list">
+                        <div class="hint-item available">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 1</span>
+                                <span class="hint-difficulty">🟢 Facile</span>
+                                <span class="hint-time">Révélé à 10:00</span>
+                            </div>
+                            <div class="hint-content">Il/Elle est dans la classe: Terminale A</div>
+                        </div>
+
+                        <div class="hint-item available">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 2</span>
+                                <span class="hint-difficulty">🔴 Difficile</span>
+                                <span class="hint-time">Révélé à 12:00</span>
+                            </div>
+                            <div class="hint-content">Son prénom contient 5 lettres</div>
+                        </div>
+
+                        <div class="hint-item available">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 3</span>
+                                <span class="hint-difficulty">🟡 Moyen</span>
+                                <span class="hint-time">Révélé à 13:00</span>
+                            </div>
+                            <div class="hint-content">Son prénom commence par: P</div>
+                        </div>
+                    </div>
+
+                    <div class="reveal-section locked">
+                        <h3>🎁 Révélation du match</h3>
+                        <div class="reveal-timer">
+                            <span class="lock-icon">🔒</span>
+                            <div>
+                                <div>Disponible à 15:15</div>
+                                <div class="timer">Dans 1h 45min</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scenario">
+        <div class="scenario-title">Scénario 3 : Jeudi 12 Février à 15h20 (Match révélé)</div>
+        <div class="container">
+            <h1>🎀 Saint Valentin Event</h1>
+            <div class="greeting">Bonjour Marie! 👋</div>
+
+            <div class="hints-container">
+                <h2>💝 Indices pour trouver ton âme sœur</h2>
+
+                <div class="day-hints">
+                    <h3 class="day-title">Jeudi 12 Février</h3>
+                    <div class="hints-list">
+                        <div class="hint-item available">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 1</span>
+                                <span class="hint-difficulty">🟢 Facile</span>
+                                <span class="hint-time">Révélé à 10:00</span>
+                            </div>
+                            <div class="hint-content">Il/Elle est dans la classe: Terminale A</div>
+                        </div>
+
+                        <div class="hint-item available">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 2</span>
+                                <span class="hint-difficulty">🔴 Difficile</span>
+                                <span class="hint-time">Révélé à 12:00</span>
+                            </div>
+                            <div class="hint-content">Son prénom contient 5 lettres</div>
+                        </div>
+
+                        <div class="hint-item available">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 3</span>
+                                <span class="hint-difficulty">🟡 Moyen</span>
+                                <span class="hint-time">Révélé à 13:00</span>
+                            </div>
+                            <div class="hint-content">Son prénom commence par: P</div>
+                        </div>
+                    </div>
+
+                    <div class="reveal-section revealed">
+                        <h3>🎉 Ton match du Jeudi 12 Février</h3>
+                        <div class="match-card">
+                            <div class="match-name">Pierre Dubois</div>
+                            <div class="match-class">Terminale A</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-hints">
+                    <h3 class="day-title">Vendredi 13 Février</h3>
+                    <div class="hints-list">
+                        <div class="hint-item locked">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 1</span>
+                                <span class="hint-time">Disponible à 10:00</span>
+                            </div>
+                            <div class="hint-content locked">
+                                <span class="lock-icon">🔒</span>
+                                <span class="timer">Demain à 10:00</span>
+                            </div>
+                        </div>
+
+                        <div class="hint-item locked">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 2</span>
+                                <span class="hint-time">Disponible à 12:00</span>
+                            </div>
+                            <div class="hint-content locked">
+                                <span class="lock-icon">🔒</span>
+                                <span class="timer">Demain à 12:00</span>
+                            </div>
+                        </div>
+
+                        <div class="hint-item locked">
+                            <div class="hint-header">
+                                <span class="hint-number">Indice 3</span>
+                                <span class="hint-time">Disponible à 13:00</span>
+                            </div>
+                            <div class="hint-content locked">
+                                <span class="lock-icon">🔒</span>
+                                <span class="timer">Demain à 13:00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reveal-section locked">
+                        <h3>🎁 Révélation du match</h3>
+                        <div class="reveal-timer">
+                            <span class="lock-icon">🔒</span>
+                            <div>
+                                <div>Disponible à 15:15</div>
+                                <div class="timer">Demain à 15:15</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

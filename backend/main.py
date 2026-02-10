@@ -231,7 +231,7 @@ ANSWER_MAPPINGS = {
         "Café/Thé": 1,
         "Jus de fruit": 2,
         "Eau": 3,
-        "Soda": 4,
+        "Lait/Chocolat chaud": 4,
     },
     "Au petit-déjeuner c'est plutôt :\xa0": {  # With non-breaking space
         "Café/Thé": 1,

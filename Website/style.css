@@ -70,7 +70,7 @@ body {
 /* Titre */
 h1 {
   font-size: 2.5em;
-  font-weight: 600;
+  font-weight: 700;
   color: #222;
   margin-bottom: 0.5rem;
 }
@@ -107,11 +107,18 @@ button {
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
+.heart {
+  display: inline-block;
+  margin-left: 0.4rem;
+  transform: translateY(1px); /* alignement optique */
+  filter: grayscale(1) brightness(100);
+}
+
 
 button:hover {
   transform: translateY(-2px);
@@ -201,7 +208,7 @@ button:active {
   color: #000;
   border: none;
   white-space: nowrap;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .event {

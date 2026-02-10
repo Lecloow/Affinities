@@ -34,7 +34,7 @@ def get_db_connection():
 def send_email_blocking(destinataire: str, code: str, name: str) -> tuple:
     expediteur = os.getenv('EMAIL')
     mot_de_passe = os.getenv('PASSWORD')
-    url = "https://url.com"
+    url = "comitedepromo2026.fr"
 
     if not expediteur or not mot_de_passe:
         return (destinataire, False, "Config email manquante")

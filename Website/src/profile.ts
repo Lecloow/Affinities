@@ -11,7 +11,6 @@ export class ProfilePage {
 
   constructor() {
     this.init();
-    // Cleanup on page unload
     window.addEventListener('beforeunload', () => this.cleanup());
   }
 
@@ -58,7 +57,9 @@ export class ProfilePage {
     if (!this.contentEl) return;
 
     this.contentEl.innerHTML = `
-      <div class="error">Vous n'êtes pas connecté. Redirection...</div>
+      <div class="not-connected">
+        <div class="error-state">Vous n'êtes pas connecté. Redirection...</div>
+      </div>
     `;
 
     setTimeout(() => {
@@ -69,17 +70,54 @@ export class ProfilePage {
   private async renderProfile(user: any): Promise<void> {
     if (!this.contentEl) return;
 
+    // Logout icon SVG (door with arrow)
+    const logoutIcon = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 13v-2H7V8l-5 4 5 4v-3z" fill="white"/>
+      <path d="M20 3h-9c-1.103 0-2 .897-2 2v4h2V5h9v14h-9v-4H9v4c0 1.103.897 2 2 2h9c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2z" fill="white"/>
+    </svg>`;
+
     this.contentEl.innerHTML = `
-      <div class="greeting">Salut ${user.first_name}! 👋</div>
+      <div class="page-wrapper">
+        <!-- Top floral corners handled via CSS pseudo-elements on #app -->
+        
+        <!-- Header -->
+        <header>
+          <div class="page-header">
+            <p class="greeting-text">👋 Salut ${user.first_name}!</p>
+            <button class="logout-btn" onclick="logout()" aria-label="Se déconnecter">
+              ${logoutIcon}
+            </button>
+          </div>
+          <div class="header-divider"></div>
+        </header>
 
-      <div id="hints-section">
-        <div class="loading">Chargement des indices...</div>
+        <!-- Hints section -->
+        <main id="hints-section">
+          <div class="loading-state">Chargement des indices…</div>
+        </main>
+
+        <!-- Credits footer -->
+        <footer class="credits">
+          <p>Made with <span class="heart">❤️</span> by Thomas Conchon</p>
+          <p>With the help of Thomas Sportisse and Lilian Delahaye</p>
+          <p>Thanks to the Comité de promo 2026</p>
+          <div class="credits-source-row">
+            <span>Code source :</span>
+            <a class="credits-github" href="#" target="_blank" rel="noopener">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#ddd" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+              </svg>
+              GitHub
+            </a>
+          </div>
+        </footer>
+
+        <!-- Bottom floral decorations -->
+        <div class="bottom-flowers left"></div>
+        <div class="bottom-flowers right"></div>
       </div>
-
-      <button class="logout-btn" onclick="logout()">Se déconnecter</button>
     `;
 
-    // Load hints
     await this.loadAndRenderHints();
   }
 
@@ -95,10 +133,7 @@ export class ProfilePage {
       const hintsSection = document.getElementById('hints-section');
       if (hintsSection) {
         hintsSection.innerHTML = `
-          <div class="hints-container">
-            <h2>💝 Indices pour trouver ton âme sœur</h2>
-            <div class="error">Impossible de charger les indices. Les matchs n'ont peut-être pas encore été créés.</div>
-          </div>
+          <div class="error-state">Impossible de charger les indices.<br>Les âmes soeurs n'ont peut-être pas encore été créés.</div>
         `;
       }
     }
@@ -112,72 +147,70 @@ export class ProfilePage {
 
     if (this.hintsData.days.length === 0) {
       hintsSection.innerHTML = `
-        <div class="hints-container">
-          <h2>💝 Indices pour trouver ton âme sœur</h2>
-          <div class="info">Les indices seront disponibles une fois les matchs créés.</div>
-        </div>
+        <div class="info-state">Les indices seront disponibles une fois les âmes soeurs créés.</div>
       `;
       return;
     }
 
-    // Render segmented control
-    const segmentedControlHtml = `
-      <div class="segmented-control">
-        <button class="segment-btn ${this.selectedDay === 1 ? 'active' : ''}" data-day="1">
-          Jeudi
-        </button>
-        <button class="segment-btn ${this.selectedDay === 2 ? 'active' : ''}" data-day="2">
-          Vendredi
-        </button>
-      </div>
-    `;
+    // Build segmented control only if more than 1 day
+    let segmentedHtml = '';
+    if (this.hintsData.days.length > 1) {
+      const buttons = this.hintsData.days.map(day => {
+        const label = day.day === 1 ? 'Jeudi' : 'Vendredi';
+        const active = day.day === this.selectedDay ? 'active' : '';
+        return `<button class="segment-btn ${active}" data-day="${day.day}">${label}</button>`;
+      }).join('');
+      segmentedHtml = `<div class="segmented-control">${buttons}</div>`;
+    }
 
-    // Find the selected day
-    const selectedDayData = this.hintsData.days.find(day => day.day === this.selectedDay);
-    const dayHtml = selectedDayData ? this.renderDayHints(selectedDayData) : '';
+    const selectedDayData = this.hintsData.days.find(d => d.day === this.selectedDay)
+      ?? this.hintsData.days[0];
 
     hintsSection.innerHTML = `
-      <div class="hints-container">
-        <h2>💝 Indices pour trouver ton âme sœur</h2>
-        ${segmentedControlHtml}
-        ${dayHtml}
+      <div class="page-content">
+        ${segmentedHtml}
+        ${this.renderDayHints(selectedDayData)}
+        ${this.renderRevealButton(selectedDayData)}
       </div>
     `;
 
-    // Attach event listeners to segmented control buttons
-    this.attachSegmentedControlListeners();
-
-    // Attach event listeners to reveal buttons
-    this.attachGlobalRevealButtonListeners();
-  }
-
-  private attachSegmentedControlListeners(): void {
-    const segmentButtons = document.querySelectorAll('.segment-btn');
-    segmentButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
+    // Attach listeners
+    hintsSection.querySelectorAll('.segment-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
         const target = e.target as HTMLButtonElement;
         const day = parseInt(target.dataset.day || '1');
-
         if (day !== this.selectedDay) {
           this.selectedDay = day;
           this.renderHints();
         }
       });
     });
-  }
 
-  private attachGlobalRevealButtonListeners(): void {
-    const revealButtons = document.querySelectorAll('.global-reveal-btn');
-    revealButtons.forEach(button => {
-      button.addEventListener('click', async (e) => {
+    hintsSection.querySelectorAll('.global-reveal-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
         const target = e.target as HTMLButtonElement;
         const day = parseInt(target.dataset.day || '0');
-
-        if (day) {
-          await this.handleRevealAllHints(day);
-        }
+        if (day) await this.handleRevealAllHints(day);
       });
     });
+  }
+
+  private renderRevealButton(day: DayHints): string {
+    const availableUnrevealed = day.hints.filter(h => h.available && !h.revealed).length;
+
+    const label = availableUnrevealed === 0
+      ? 'Révéler un indice'
+      : availableUnrevealed === 1
+        ? 'Révéler l\'indice disponible'
+        : `Révéler les ${availableUnrevealed} indices disponibles`;
+
+    const disabled = availableUnrevealed === 0 ? 'disabled' : '';
+
+    return `
+      <div class="reveal-btn-container">
+        <button class="global-reveal-btn" data-day="${day.day}" ${disabled}>${label}</button>
+      </div>
+    `;
   }
 
   private async handleRevealAllHints(day: number): Promise<void> {
@@ -185,278 +218,265 @@ export class ProfilePage {
     if (!user) return;
 
     try {
-      // Disable the button during the request
-      const button = document.querySelector(`[data-day="${day}"].global-reveal-btn`) as HTMLButtonElement;
+      const button = document.querySelector(`.global-reveal-btn[data-day="${day}"]`) as HTMLButtonElement;
       if (button) {
-        const originalText = button.textContent;
         button.disabled = true;
-        button.textContent = 'Révélation en cours...';
+        button.textContent = 'Révélation en cours…';
       }
 
-      // Call the API to reveal all hints
       const result = await ApiService.revealAllHints(user.id, day);
-
-      // Reload hints to show the revealed content
       await this.loadAndRenderHints();
 
-      // Show success message if hints were revealed
       if (result.revealed_count > 0) {
-        // Success message will be visible through the updated UI
         console.log(`${result.revealed_count} hint(s) revealed successfully`);
       }
-
     } catch (error) {
       console.error('Error revealing hints:', error);
       alert('Erreur lors de la révélation des indices. Veuillez réessayer.');
-
-      // Reload to restore the correct button state
       await this.loadAndRenderHints();
     }
   }
 
-  private async handleRevealHint(day: number, hintNumber: number): Promise<void> {
-    const user = StorageService.getUser();
-    if (!user) return;
+  // ─── Time tag helpers ────────────────────────────────────────────────────
 
-    try {
-      // Disable the button during the request
-      const button = document.querySelector(`[data-day="${day}"][data-hint-number="${hintNumber}"]`) as HTMLButtonElement;
-      if (button) {
-        button.disabled = true;
-        button.textContent = 'Révélation en cours...';
-      }
-
-      // Call the API to reveal the hint
-      await ApiService.revealHint(user.id, day, hintNumber);
-
-      // Reload hints to show the revealed content
-      await this.loadAndRenderHints();
-
-    } catch (error) {
-      console.error('Error revealing hint:', error);
-      alert('Erreur lors de la révélation de l\'indice. Veuillez réessayer.');
-
-      // Re-enable the button on error
-      const button = document.querySelector(`[data-day="${day}"][data-hint-number="${hintNumber}"]`) as HTMLButtonElement;
-      if (button) {
-        button.disabled = false;
-        button.textContent = 'Révéler l\'indice';
-      }
-    }
-  }
-
-  private renderDayHints(day: DayHints): string {
-    let hintsHtml = '';
+  /** Returns the full time tag HTML for a hint */
+  private getHintTimeTagHtml(hint: Hint): string {
     const now = new Date();
+    const dropTime = new Date(hint.drop_time);
 
-    // Count available but not revealed hints
-    let availableUnrevealedCount = 0;
-    let nextHintTime: Date | null = null;
+    if (hint.revealed || hint.available) {
+      // Show "Il y a X"
+      const diff = now.getTime() - dropTime.getTime();
+      const totalMinutes = Math.floor(diff / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
 
-    for (const hint of day.hints) {
-      if (hint.available && !hint.revealed) {
-        availableUnrevealedCount++;
-      }
-      const hintTime = new Date(hint.drop_time);
-      if (!hint.available && hintTime > now && !nextHintTime) {
-        nextHintTime = hintTime;
-      }
-    }
-
-    // Render hints
-    hintsHtml = day.hints.map((hint, index) => {
-      if (hint.available) {
-        const dropTime = new Date(hint.drop_time);
-        const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-
-        if (hint.revealed) {
-          // Hint is revealed, show the content
-          const difficultyLabel = hint.type === 'easy' ? '🟢 Facile' :
-                                 hint.type === 'medium' ? '🟡 Moyen' : '🔴 Difficile';
-
-          return `
-            <div class="hint-item available revealed">
-              <div class="hint-header">
-                <span class="hint-number">Indice ${index + 1}</span>
-                <span class="hint-difficulty">${difficultyLabel}</span>
-                <span class="hint-time">Révélé à ${timeStr}</span>
-              </div>
-              <div class="hint-content">${hint.content}</div>
-            </div>
-          `;
-        } else {
-          // Hint is available but not revealed yet, show placeholder
-          return `
-            <div class="hint-item available not-revealed">
-              <div class="hint-header">
-                <span class="hint-number">Indice ${index + 1}</span>
-                <span class="hint-time">Disponible depuis ${timeStr}</span>
-              </div>
-              <div class="hint-content hint-placeholder">
-                <span class="lock-icon">🎁</span>
-                <span class="placeholder-text">Indice disponible - Cliquez sur le bouton en bas pour révéler</span>
-              </div>
-            </div>
-          `;
-        }
+      let timeStr: string;
+      if (hours > 0) {
+        timeStr = `${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`;
+      } else if (minutes > 0) {
+        timeStr = `${minutes} min`;
       } else {
-        const dropTime = new Date(hint.drop_time);
-        const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        const timeRemaining = this.getTimeRemaining(dropTime);
-
-        return `
-          <div class="hint-item locked">
-            <div class="hint-header">
-              <span class="hint-number">Indice ${index + 1}</span>
-              <span class="hint-time">Disponible à ${timeStr}</span>
-            </div>
-            <div class="hint-content locked">
-              <span class="lock-icon">🔒</span>
-              <span class="timer">${timeRemaining}</span>
-            </div>
-          </div>
-        `;
+        timeStr = '1 min';
       }
-    }).join('');
-
-    // Create the global reveal button at the bottom
-    let revealButtonHtml = '';
-    if (availableUnrevealedCount > 0) {
-      const buttonText = availableUnrevealedCount === 1
-        ? 'Révéler l\'indice disponible'
-        : `Révéler les ${availableUnrevealedCount} indices disponibles`;
-      revealButtonHtml = `
-        <div class="global-reveal-container">
-          <button class="global-reveal-btn" data-day="${day.day}">
-            ${buttonText}
-          </button>
-        </div>
-      `;
-    } else if (nextHintTime) {
-      // Show time until next hint
-      const minutesUntilNext = Math.ceil((nextHintTime.getTime() - now.getTime()) / (1000 * 60));
-      const timeText = minutesUntilNext === 1
-        ? 'Prochain indice dans 1 minute'
-        : `Prochain indice dans ${minutesUntilNext} minutes`;
-      revealButtonHtml = `
-        <div class="global-reveal-container">
-          <div class="next-hint-timer">
-            <span class="timer-icon">⏱️</span>
-            <span class="timer-text">${timeText}</span>
-          </div>
-        </div>
-      `;
-    }
-
-    // Render match reveal section
-    const dayName = day.day === 1 ? 'Jeudi 12 Février' : 'Vendredi 13 Février';
-    let revealHtml = '';
-    if (day.match_revealed && day.match_info) {
-      revealHtml = `
-        <div class="reveal-section revealed">
-          <h3>🎉 Ton match du ${dayName}</h3>
-          <div class="match-card">
-            <div class="match-name">${day.match_info.first_name} ${day.match_info.last_name}</div>
-            <div class="match-class">${day.match_info.class}</div>
-          </div>
-        </div>
-      `;
+      return `<span class="time-tag"><span>Il y a</span><span>${timeStr}</span></span>`;
     } else {
-      const revealTime = new Date(day.reveal_time);
-      const timeStr = revealTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-      const timeRemaining = this.getTimeRemaining(revealTime);
+      // Locked — show "Dans X" or "A HHhMM"
+      const diff = dropTime.getTime() - now.getTime();
+      if (diff <= 0) {
+        return `<span class="time-tag">Disponible !</span>`;
+      }
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
 
-      revealHtml = `
-        <div class="reveal-section locked">
-          <h3>🎁 Révélation du match</h3>
-          <div class="reveal-timer">
-            <span class="lock-icon">🔒</span>
-            <div>
-              <div>Disponible à ${timeStr}</div>
-              <div class="timer">${timeRemaining}</div>
-            </div>
-          </div>
+      if (diff < 60 * 60 * 1000) {
+        // under 1 hour → countdown "Dans Xmin Xs"
+        const countdown = minutes > 0 ? `${minutes}min ${seconds}s` : `${seconds}s`;
+        return `<span class="time-tag" data-timer data-target="${dropTime.toISOString()}"><span>Dans</span><span class="timer-value">${countdown}</span></span>`;
+      } else {
+        // Show scheduled time "A HHhMM"
+        const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+          .replace(':', 'h');
+        return `<span class="time-tag"><span>A</span><span>${timeStr}</span></span>`;
+      }
+    }
+  }
+
+  private getRevealTimeTagHtml(revealTime: Date, isRevealed: boolean): string {
+    const now = new Date();
+    if (isRevealed) {
+      const diff = now.getTime() - revealTime.getTime();
+      const totalMinutes = Math.floor(diff / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const timeStr = hours > 0
+        ? `${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`
+        : `${totalMinutes > 0 ? totalMinutes : 1} min`;
+      return `<span class="time-tag"><span>Il y a</span><span>${timeStr}</span></span>`;
+    }
+
+    const diff = revealTime.getTime() - now.getTime();
+    if (diff <= 0) {
+      return `<span class="time-tag">Maintenant !</span>`;
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    if (diff < 60 * 60 * 1000) {
+      const countdown = minutes > 0 ? `${minutes}min ${seconds}s` : `${seconds}s`;
+      return `<span class="time-tag" data-timer data-target="${revealTime.toISOString()}"><span>Dans</span><span class="timer-value">${countdown}</span></span>`;
+    }
+
+    const timeStr = revealTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      .replace(':', 'h');
+    return `<span class="time-tag"><span>A</span><span>${timeStr}</span></span>`;
+  }
+
+  // ─── Hint content rendering ──────────────────────────────────────────────
+
+  /**
+   * Detects patterns and wraps important info in styled tags:
+   * - "prénom commence par la lettre : X" → letter in letter-tag
+   * - "Son prénom est: Pauline" → name in pink-box
+   * - "Son nom contient 6 lettres" → number in pink-box
+   * - "Il/Elle est dans la classe: Terminale D" → class in pink-box
+   */
+  private renderHintContent(content: string): string {
+    // Pattern 1: Letter (existing)
+    const letterMatch = content.match(/^(.+?:\s*)([A-ZÀ-ÖØ-Ý])$/i);
+    if (letterMatch) {
+      const text = letterMatch[1];
+      const letter = letterMatch[2].toUpperCase();
+      return `
+        <div class="hint-content-row">
+          <span class="hint-content-text">${text}</span>
+          <span class="letter-tag">${letter}</span>
         </div>
       `;
     }
 
-    return `
-      <div class="day-hints-content">
-        <div class="hints-list">
-          ${hintsHtml}
+    // Pattern 2: "Son prénom est: Pauline"
+    const firstNameMatch = content.match(/^(Son prénom est:\s*)(.+)$/i);
+    if (firstNameMatch) {
+      const text = firstNameMatch[1];
+      const name = firstNameMatch[2];
+      return `
+        <div class="hint-content-row">
+          <span class="hint-content-text">${text}</span>
+          <span class="pink-box">${name}</span>
         </div>
-        ${revealButtonHtml}
-        ${revealHtml}
+      `;
+    }
+
+    // Pattern 3: "Son nom contient 6 lettres" or any number
+    const numberMatch = content.match(/^(.+\s)(\d+)(\s.+)$/);
+    if (numberMatch) {
+      const textBefore = numberMatch[1];
+      const number = numberMatch[2];
+      const textAfter = numberMatch[3];
+      return `
+        <div class="hint-content-row">
+          <span class="hint-content-text">${textBefore}</span>
+          <span class="pink-box">${number}</span>
+          <span class="hint-content-text">${textAfter}</span>
+        </div>
+      `;
+    }
+
+    // Pattern 4: "Il/Elle est dans la classe: Terminale D"
+    const classMatch = content.match(/^(Il\/Elle est dans la classe:\s*)(.+)$/i);
+    if (classMatch) {
+      const text = classMatch[1];
+      const className = classMatch[2];
+      return `
+        <div class="hint-content-row">
+          <span class="hint-content-text">${text}</span>
+          <span class="pink-box">${className}</span>
+        </div>
+      `;
+    }
+
+    // Default: no special formatting
+    return `
+      <div class="hint-content-row">
+        <span class="hint-content-text">${content}</span>
       </div>
     `;
   }
 
-  private getTimeRemaining(targetTime: Date): string {
-    const now = new Date();
-    const diff = targetTime.getTime() - now.getTime();
-    
-    if (diff <= 0) {
-      return 'Disponible maintenant!';
-    }
+  // ─── Main day renderer ───────────────────────────────────────────────────
 
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  private renderDayHints(day: DayHints): string {
+    const revealTime = new Date(day.reveal_time);
+    let rows = '';
 
-    if (hours > 0) {
-      return `Dans ${hours}h ${minutes}min`;
-    } else if (minutes > 0) {
-      return `Dans ${minutes}min ${seconds}s`;
-    } else {
-      return `Dans ${seconds}s`;
-    }
-  }
+    day.hints.forEach((hint, index) => {
+      const badgeClass = hint.available && hint.revealed ? 'revealed'
+                       : hint.available && !hint.revealed ? 'undiscovered'
+                       : 'undiscovered';
+      const badgeLabel = `Indice n°${index + 1}`;
+      const timeTagHtml = this.getHintTimeTagHtml(hint);
 
-  private updateTimersOnly(): void {
-    // Update all timer elements without reloading data
-    if (!this.hintsData) return;
+      rows += `
+        <div class="hint-row">
+          <span class="hint-badge ${badgeClass}">${badgeLabel}</span>
+          ${timeTagHtml}
+        </div>
+      `;
 
-    const timerElements = document.querySelectorAll('.timer');
-    if (timerElements.length === 0) return;
-
-    // Collect all times that need updating
-    const times: { element: Element; targetTime: Date }[] = [];
-
-    this.hintsData.days.forEach((day) => {
-      day.hints.forEach((hint) => {
-        if (!hint.available) {
-          times.push({ element: null as any, targetTime: new Date(hint.drop_time) });
-        }
-      });
-      if (!day.match_revealed) {
-        times.push({ element: null as any, targetTime: new Date(day.reveal_time) });
+      if (hint.revealed && hint.content) {
+        rows += this.renderHintContent(hint.content);
       }
     });
 
-    // Update each timer element
-    let timerIndex = 0;
-    timerElements.forEach((el) => {
-      if (timerIndex < times.length) {
-        const timeRemaining = this.getTimeRemaining(times[timerIndex].targetTime);
-        el.textContent = timeRemaining;
-        
-        // If timer expired, reload the full hints data
-        if (timeRemaining === 'Disponible maintenant!') {
-          this.loadAndRenderHints();
-        }
-        timerIndex++;
+    // Match reveal row - badge becomes orange when revealed
+    const revealBadgeClass = day.match_revealed ? 'reveal-badge revealed' : 'reveal-badge';
+    const revealTimeTagHtml = this.getRevealTimeTagHtml(revealTime, day.match_revealed);
+    rows += `
+      <div class="section-divider"></div>
+      <div class="hint-row">
+        <span class="hint-badge ${revealBadgeClass}">Reveal</span>
+        ${revealTimeTagHtml}
+      </div>
+    `;
+
+    if (day.match_revealed && day.match_info) {
+      const dayName = day.day === 1 ? 'Jeudi 12 Février' : 'Vendredi 13 Février';
+      rows += `
+        <div class="match-revealed-card">
+          <p class="match-title">Ton âme soeur du ${dayName}</p>
+          <p class="match-name">${day.match_info.first_name} ${day.match_info.last_name}</p>
+          <p class="match-class">${day.match_info.class}</p>
+        </div>
+      `;
+    }
+
+    return rows;
+  }
+
+  // ─── Timer update (lightweight, no re-render) ────────────────────────────
+
+  private updateTimersOnly(): void {
+    if (!this.hintsData) return;
+
+    const timerEls = document.querySelectorAll<HTMLElement>('[data-timer]');
+    timerEls.forEach(el => {
+      const targetStr = el.dataset.target;
+      if (!targetStr) return;
+
+      const targetTime = new Date(targetStr);
+      const now = new Date();
+      const diff = targetTime.getTime() - now.getTime();
+
+      const valueEl = el.querySelector('.timer-value');
+      if (!valueEl) return;
+
+      if (diff <= 0) {
+        valueEl.textContent = 'maintenant !';
+        this.loadAndRenderHints(); // trigger full reload
+        return;
       }
+
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      const countdown = minutes > 0 ? `${minutes}min ${seconds}s` : `${seconds}s`;
+      valueEl.textContent = countdown;
     });
   }
 }
 
-// Fonction globale pour le logout
-(window as any).logout = function() {
+// ─── Global logout ─────────────────────────────────────────────────────────
+
+(window as any).logout = function () {
   StorageService.clearUser();
   window.location.href = './index.html';
 };
 
-// Initialise la page quand le DOM est chargé
+// ─── Bootstrap ─────────────────────────────────────────────────────────────
+
 document.addEventListener('DOMContentLoaded', () => {
   new ProfilePage();
 });

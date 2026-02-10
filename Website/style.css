@@ -1,4 +1,19 @@
 /* Reset */
+:root {
+  --pink:        #ff6ca7;
+  --pink-light:  #f990da;
+  --pink-pale:   #f5d2f3;
+  --orange:      #ff9a59;
+  --purple-soft: #ececf6;
+  --text-dark:   #1e1e1e;
+  --text-mid:    #444;
+  --text-soft:   #888;
+  --white:       #ffffff;
+  --bg:          #ffffff;
+  --radius-sm:   8px;
+  --radius-pill: 18px;
+  --font:        'Inter', sans-serif;
+}
 * {
   margin: 0;
   padding: 0;
@@ -112,13 +127,12 @@ button {
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.heart {
+.heart-btn {
   display: inline-block;
   margin-left: 0.4rem;
   transform: translateY(1px); /* alignement optique */
   filter: grayscale(1) brightness(100);
 }
-
 
 button:hover {
   transform: translateY(-2px);
@@ -158,32 +172,50 @@ button:active {
   color: #ff7aa8;
 }
 
-/* SECTION NOIRE */
+/* ===== FOOTER / CREDITS ===== */
 .credits {
-  background: #111;
-  color: #eee;
-  padding: 2rem 1.5rem;
-  text-align: center;
-  font-size: 0.9rem;
+  background: #040303;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: auto;
 }
 
 .credits p {
-  margin-bottom: 0.5rem;
+  font-size: 15px;
+  color: #eee;
+  line-height: 1.5;
+  font-weight: 400;
 }
 
-.github-btn {
+.credits .heart {
+  color: #ec1f1f;
+}
+
+.credits-github {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 8px;
   background: #1f1f1f;
-  border: 1px solid;
-  border-color: #3d3d3d;
-  color: #dddddd;
-  padding: 0.7rem 1.2rem;
-  border-radius: 10px;
-  font-weight: 600;
+  border: 1px solid #3d3d3d;
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  color: #ddd;
+  font-size: 16px;
   text-decoration: none;
-  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.credits-source-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.credits-source-row span {
+  color: #eee;
+  font-size: 15px;
 }
 
 .schedule {

@@ -14,7 +14,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 
-executor = ThreadPoolExecutor(max_workers=10)  # 10 at the same time (can go to 30)
+executor = ThreadPoolExecutor(max_workers=20)  # 10 at the same time (can go to 30)
 
 
 def get_db_connection():
@@ -34,7 +34,7 @@ def get_db_connection():
 def send_email_blocking(destinataire: str, code: str, name: str) -> tuple:
     expediteur = os.getenv('EMAIL')
     mot_de_passe = os.getenv('PASSWORD')
-    url = "comitedepromo2026.fr"
+    url = "https://comitedepromo2026.fr"
 
     if not expediteur or not mot_de_passe:
         return (destinataire, False, "Config email manquante")

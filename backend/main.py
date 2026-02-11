@@ -21,7 +21,6 @@ import psycopg
 from io import BytesIO
 import socket
 import requests
-import qrcode
 
 load_dotenv()
 
@@ -1452,18 +1451,18 @@ def get_hints_revealed_count(user_id: str, day: int) -> int:
     return sum([1 for revealed in row if revealed])
 
 
-def calculate_guess_points(hint_number: int) -> int:
-    """Calculate points based on which hint the guess is made on.
-    First guess (after hint 1) = 75 points
-    Second guess (after hint 2) = 50 points
-    Third guess (after hint 3) = 25 points
+def calculate_guess_points(hints_revealed_count: int) -> int:
+    """Calculate points based on how many hints are revealed.
+    1 hint revealed = 75 points
+    2 hints revealed = 50 points
+    3 hints revealed = 25 points
     """
     points_map = {
         1: 75,
         2: 50,
         3: 25
     }
-    return points_map.get(hint_number, 0)
+    return points_map.get(hints_revealed_count, 0)
 
 
 def update_user_score(user_id: str, points: int):
@@ -1508,27 +1507,41 @@ def ensure_reveal_codes_exist():
 
 @app.get("/candidates/{user_id}")
 def get_candidates(user_id: str):
-    """Get list of possible candidates (same class) for a user to guess."""
+    """Get list of possible candidates (same LEVEL, not same class) for a user to guess."""
     try:
-        # Get user's class
+        # Get user's class to extract the level
         cursor.execute("""
-            SELECT currentClass FROM users WHERE id = %s
-        """, (user_id,))
-        
+                       SELECT currentClass
+                       FROM users
+                       WHERE id = %s
+                       """, (user_id,))
+
         user_row = cursor.fetchone()
         if not user_row:
             raise HTTPException(404, "User not found")
-        
+
         user_class = user_row[0]
-        
-        # Get all users in the same class (excluding self)
+        # Extract level from currentClass (e.g., "Terminale F" -> "Terminale")
+        user_level = user_class.split()[0] if user_class and user_class.strip() else ""
+
+        if not user_level:
+            raise HTTPException(400, "User level could not be determined")
+
+        # Get all users in the same LEVEL (excluding self)
+        user_level = user_class.split()[0] if user_class and user_class.strip() else ""
+
+        if not user_level:
+            raise HTTPException(400, "User level could not be determined")
+
+        # Get all users in the same LEVEL (excluding self)
         cursor.execute("""
-            SELECT id, first_name, last_name, currentClass
-            FROM users
-            WHERE currentClass = %s AND id != %s
-            ORDER BY first_name, last_name
-        """, (user_class, user_id))
-        
+                       SELECT id, first_name, last_name, currentClass
+                       FROM users
+                       WHERE currentClass LIKE %s
+                         AND id != %s
+                       ORDER BY first_name, last_name
+                       """, (f"{user_level}%", user_id))
+
         candidates = []
         for row in cursor.fetchall():
             candidates.append({
@@ -1537,9 +1550,9 @@ def get_candidates(user_id: str):
                 "last_name": row[2],
                 "currentClass": row[3]
             })
-        
+
         return {"candidates": candidates}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -1555,77 +1568,91 @@ def submit_guess(request: GuessRequest):
         day = request.day
         hint_number = request.hint_number
         guessed_user_id = request.guessed_user_id
-        
+
         # Validate hint_number
         if hint_number not in [1, 2, 3]:
             raise HTTPException(400, "Hint number must be 1, 2, or 3")
-        
+
         # Check if user has already guessed for this hint
         cursor.execute("""
-            SELECT id FROM guesses WHERE user_id = %s AND day = %s AND hint_number = %s
+            SELECT id
+            FROM guesses
+            WHERE user_id = %s AND day = %s AND hint_number = %s
         """, (user_id, day, hint_number))
-        
+
         if cursor.fetchone():
             raise HTTPException(400, f"You have already submitted a guess for hint {hint_number}")
-        
+
         # Check if the reveal time has passed
         cursor.execute("""
-            SELECT reveal_time, match_id, hint1_revealed, hint2_revealed, hint3_revealed 
-            FROM hints WHERE user_id = %s AND day = %s
+            SELECT reveal_time, match_id, hint1_revealed, hint2_revealed, hint3_revealed
+            FROM hints
+            WHERE user_id = %s AND day = %s
         """, (user_id, day))
-        
+
         hint_row = cursor.fetchone()
         if not hint_row:
             raise HTTPException(404, "Hints not found for this day")
-        
+
         reveal_time, match_id, hint1_revealed, hint2_revealed, hint3_revealed = hint_row
         now = datetime.datetime.now()
-        
+
         if now >= reveal_time:
             raise HTTPException(400, "Cannot guess after reveal time has passed")
-        
+
         # Check if the specified hint is revealed
         hints_revealed_map = {1: hint1_revealed, 2: hint2_revealed, 3: hint3_revealed}
         if not hints_revealed_map.get(hint_number):
             raise HTTPException(400, f"Hint {hint_number} must be revealed before you can guess")
-        
-        # Get number of revealed hints for context
+
+        # Get number of revealed hints for scoring
         hints_revealed = sum([hint1_revealed, hint2_revealed, hint3_revealed])
-        
-        # Calculate points based on hint number
-        points_earned = calculate_guess_points(hint_number)
-        
+
         # Check if guess is correct
         is_correct = (guessed_user_id == match_id)
-        
-        # Only award points if guess is correct
+
+        # Calculate points: only award points if this is the FIRST CORRECT guess of the day
+        points_earned = 0
         if is_correct:
-            update_user_score(user_id, points_earned)
-        else:
-            points_earned = 0
-        
+            # Check if user has already guessed correctly for this day
+            # CORRECTION: Pas besoin de vérifier hint_number ici, juste si is_correct = TRUE
+            cursor.execute("""
+                SELECT id
+                FROM guesses
+                WHERE user_id = %s AND day = %s AND is_correct = TRUE
+            """, (user_id, day))
+
+            already_guessed_correctly = cursor.fetchone() is not None
+
+            if not already_guessed_correctly:
+                # Award points based on number of hints revealed
+                points_earned = calculate_guess_points(hints_revealed)
+                update_user_score(user_id, points_earned)
+
         # Record the guess
         cursor.execute("""
             INSERT INTO guesses (user_id, day, hint_number, guessed_user_id, hints_revealed, points_earned, is_correct)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (user_id, day, hint_number, guessed_user_id, hints_revealed, points_earned, is_correct))
-        
+
         db.commit()
-        
+
         return {
             "success": True,
             "is_correct": is_correct,
             "points_earned": points_earned,
             "hint_number": hint_number,
-            "message": "Correct! You guessed your soulmate!" if is_correct else f"Incorrect guess for hint {hint_number}. Try again with the next hint!"
+            "hints_revealed": hints_revealed,
+            "message": f"Correct! You earned {points_earned} points!" if is_correct and points_earned > 0
+            else "Correct! But you already guessed correctly for this day." if is_correct
+            else f"Incorrect guess. Try again with the next hint!"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logging.exception(f"Error submitting guess: {e}")
         raise HTTPException(500, f"Error submitting guess: {str(e)}")
-
 
 @app.get("/leaderboard")
 def get_leaderboard():
@@ -1673,89 +1700,65 @@ def get_reveal_code(user_id: str, day: int):
     try:
         # Ensure codes exist for all revealed matches
         ensure_reveal_codes_exist()
-        
+
         # Check if reveal time has passed
         cursor.execute("""
-            SELECT reveal_time FROM hints WHERE user_id = %s AND day = %s
-        """, (user_id, day))
-        
+                       SELECT reveal_time
+                       FROM hints
+                       WHERE user_id = %s AND day = %s
+                       """, (user_id, day))
+
         hint_row = cursor.fetchone()
         if not hint_row:
             raise HTTPException(404, "Hints not found for this day")
-        
+
         reveal_time = hint_row[0]
         now = datetime.datetime.now()
-        
+
         if now < reveal_time:
             return {
                 "available": False,
                 "message": "Reveal code will be available after reveal time"
             }
-        
+
         # Get the reveal code
         cursor.execute("""
-            SELECT code, exchanged FROM reveal_codes
-            WHERE user_id = %s AND day = %s
-        """, (user_id, day))
-        
+                       SELECT code, exchanged, exchanged_with
+                       FROM reveal_codes
+                       WHERE user_id = %s AND day = %s
+                       """, (user_id, day))
+
         code_row = cursor.fetchone()
         if not code_row:
             raise HTTPException(404, "Reveal code not found")
-        
-        code, exchanged = code_row
-        
+
+        code, exchanged, exchanged_with = code_row
+
+        # Check if partner has also exchanged
+        partner_exchanged = False
+        if exchanged and exchanged_with:
+            cursor.execute("""
+                           SELECT exchanged
+                           FROM reveal_codes
+                           WHERE user_id = %s AND day = %s
+                           """, (exchanged_with, day))
+            partner_row = cursor.fetchone()
+            if partner_row:
+                partner_exchanged = partner_row[0]
+
         return {
             "available": True,
             "code": code,
-            "exchanged": exchanged
+            "exchanged": exchanged,
+            "partner_exchanged": partner_exchanged,
+            "both_exchanged": exchanged and partner_exchanged
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logging.exception(f"Error getting reveal code: {e}")
         raise HTTPException(500, f"Error getting reveal code: {str(e)}")
-
-
-@app.get("/reveal-code-qr/{user_id}/{day}")
-def get_reveal_code_qr(user_id: str, day: int):
-    """Generate a QR code image for the reveal code."""
-    try:
-        # Get the reveal code first
-        code_data = get_reveal_code(user_id, day)
-        
-        if not code_data.get("available"):
-            raise HTTPException(404, "Reveal code not available yet")
-        
-        code = code_data.get("code")
-        if not code:
-            raise HTTPException(404, "Code not found")
-        
-        # Generate QR code
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(code)
-        qr.make(fit=True)
-        
-        # Create image
-        img = qr.make_image(fill_color="black", back_color="white")
-        
-        # Save to BytesIO
-        buf = BytesIO()
-        img.save(buf, format='PNG')
-        buf.seek(0)
-        
-        return StreamingResponse(buf, media_type="image/png")
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logging.exception(f"Error generating QR code: {e}")
-        raise HTTPException(500, f"Error generating QR code: {str(e)}")
 
 
 @app.post("/exchange-code")

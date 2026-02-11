@@ -1,21 +1,34 @@
 import smtplib
 import logging
 import os
+import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from dotenv import load_dotenv
 import psycopg
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-import time
-from email.mime.image import MIMEImage
+
+# =============================
+# CONFIG
+# =============================
+
+RATE_LIMIT_SECONDS = 0.2      # 5 emails/sec
+MAX_RETRIES = 3               # retry si erreur temporaire
+SMTP_SERVER = "smtp.office365.com"
+SMTP_PORT = 587
+
+# =============================
+# INIT
+# =============================
 
 load_dotenv()
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
-executor = ThreadPoolExecutor(max_workers=20)  # 10 at the same time (can go to 30)
-
+# =============================
+# DB CONNECTION
+# =============================
 
 def get_db_connection():
     database_url = os.getenv('DATABASE_URL')
@@ -30,14 +43,23 @@ def get_db_connection():
         password=os.getenv('DB_PASSWORD', '')
     )
 
+# =============================
+# SMTP CONNECTION
+# =============================
 
-def send_email_blocking(destinataire: str, code: str, name: str) -> tuple:
-    expediteur = os.getenv('EMAIL')
-    mot_de_passe = os.getenv('PASSWORD')
+def create_smtp_connection():
+    server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=30)
+    server.starttls()
+    server.login(os.getenv("EMAIL"), os.getenv("PASSWORD"))
+    return server
+
+# =============================
+# EMAIL BUILDER
+# =============================
+
+def build_email(destinataire: str, code: str, name: str) -> MIMEMultipart:
+    expediteur = os.getenv("EMAIL")
     url = "https://comitedepromo2026.fr"
-
-    if not expediteur or not mot_de_passe:
-        return (destinataire, False, "Config email manquante")
 
     message = MIMEMultipart("related")
     message["From"] = expediteur
@@ -86,13 +108,7 @@ def send_email_blocking(destinataire: str, code: str, name: str) -> tuple:
               <img src="cid:logo"
                    alt="Logo Comité de promo"
                    width="130"
-                   style="
-                     width:130px;
-                     max-width:130px;
-                     height:auto;
-                     display:block;
-                     border-radius:8px;
-                   ">
+                   style="width:130px; max-width:130px; height:auto; display:block; border-radius:8px;">
             </td>
           </tr>
         </table>
@@ -111,96 +127,101 @@ def send_email_blocking(destinataire: str, code: str, name: str) -> tuple:
     except FileNotFoundError:
         logger.warning("⚠️ logo.png introuvable, email envoyé sans image")
 
-    try:
-        server = smtplib.SMTP("smtp.office365.com", 587, timeout=10)
-        server.starttls()
-        server.login(expediteur, mot_de_passe)
-        server.send_message(message)
-        server.quit()
-        return (destinataire, True, "OK")
+    return message
 
-    except smtplib.SMTPAuthenticationError:
-        return (destinataire, False, "Auth error")
-    except smtplib.SMTPException as e:
-        return (destinataire, False, f"SMTP: {str(e)[:30]}")
-    except Exception as e:
-        return (destinataire, False, f"Error: {str(e)[:30]}")
+# =============================
+# SEND WITH RETRY
+# =============================
 
+def send_email(server, destinataire, code, name):
+    for attempt in range(MAX_RETRIES):
+        try:
+            message = build_email(destinataire, code, name)
+            server.send_message(message)
+            return True, "OK"
 
-async def send_all_emails_async():
-    db = None
-    cursor = None
+        except smtplib.SMTPResponseException as e:
+            # Gestion spécifique 432 concurrent connections
+            if e.smtp_code == 432:
+                wait_time = 2 * (attempt + 1)
+                logger.warning(f"⚠️ 432 concurrent connection, retry dans {wait_time}s...")
+                time.sleep(wait_time)
+                server.quit()
+                server = create_smtp_connection()
+                continue
+            else:
+                return False, f"SMTP {e.smtp_code}"
 
-    try:
-        start_time = time.time()
-        logger.info("Lauching ...")
+        except Exception as e:
+            return False, str(e)
 
-        # Get data
-        db = get_db_connection()
-        cursor = db.cursor()
+    return False, "Max retries exceeded"
 
-        cursor.execute(
-            """SELECT users.email, passwords.password, users.first_name
-               FROM users
-                        JOIN passwords ON users.id = passwords.user_id::TEXT
-               ORDER BY users.first_name"""
-        )
-        rows = cursor.fetchall()
+# =============================
+# MAIN
+# =============================
 
-        if not rows:
-            logger.warning("⚠️ Aucun utilisateur trouvé")
-            return
+def send_all_emails():
+    start_time = time.time()
+    logger.info("🚀 Launching...\n")
 
-        cursor.close()
-        db.close()
+    db = get_db_connection()
+    cursor = db.cursor()
 
-        logger.info(f"📧 {len(rows)} emails à envoyer\n")
+    cursor.execute("""
+        SELECT users.email, passwords.password, users.first_name
+        FROM users
+        JOIN passwords ON users.id = passwords.user_id::TEXT
+        ORDER BY users.first_name
+    """)
 
-        # Send all mails at the same time
-        loop = asyncio.get_event_loop()
-        tasks = []
+    rows = cursor.fetchall()
+    cursor.close()
+    db.close()
 
-        for email, code, first_name in rows:
-            task = loop.run_in_executor(executor, send_email_blocking, email, code, first_name)
-            tasks.append(task)
+    if not rows:
+        logger.warning("⚠️ Aucun utilisateur trouvé")
+        return
 
-        # Waiting for results
-        results = await asyncio.gather(*tasks)
+    logger.info(f"📧 {len(rows)} emails à envoyer\n")
 
-        success = sum(1 for _, ok, _ in results if ok)
-        failed = len(results) - success
+    server = create_smtp_connection()
 
-        errors = [(email, msg) for email, ok, msg in results if not ok]
+    success = 0
+    failed = 0
+    errors = []
 
-        elapsed = time.time() - start_time
+    for email, code, first_name in rows:
+        ok, msg = send_email(server, email, code, first_name)
 
-        logger.info(f"   Total : {len(results)}")
-        logger.info(f"   Envoyés : {success}")
-        logger.info(f"   Échoués : {failed}")
-        logger.info(f"   Temps : {elapsed:.2f}s")
-        logger.info(f"   Vitesse : {len(results) / elapsed:.0f} emails/sec")
+        if ok:
+            success += 1
+        else:
+            failed += 1
+            errors.append((email, msg))
 
-        if errors:
-            logger.warning(f"\n⚠️ Erreurs ({len(errors)}):")
-            for email, msg in errors[:10]:
-                logger.warning(f"   {email}: {msg}")
-            if len(errors) > 10:
-                logger.warning(f"   ... et {len(errors) - 10} autres")
+        time.sleep(RATE_LIMIT_SECONDS)
 
-    except Exception as e:
-        logger.error(f"❌ Erreur : {str(e)}")
-    finally:
-        if cursor:
-            try:
-                cursor.close()
-            except:
-                pass
-        if db:
-            try:
-                db.close()
-            except:
-                pass
+    server.quit()
 
+    elapsed = time.time() - start_time
+
+    logger.info("\n==============================")
+    logger.info(f"Total : {len(rows)}")
+    logger.info(f"Envoyés : {success}")
+    logger.info(f"Échoués : {failed}")
+    logger.info(f"Temps : {elapsed:.2f}s")
+    logger.info(f"Vitesse : {len(rows)/elapsed:.2f} emails/sec")
+    logger.info("==============================")
+
+    if errors:
+        logger.warning("\n⚠️ Erreurs :")
+        for email, msg in errors[:10]:
+            logger.warning(f"{email} → {msg}")
+        if len(errors) > 10:
+            logger.warning(f"... et {len(errors)-10} autres")
+
+# =============================
 
 if __name__ == "__main__":
-    asyncio.run(send_all_emails_async())
+    send_all_emails()

@@ -764,67 +764,76 @@ export class ProfilePage {
   }
 
   private async loadRevealCode(userId: string, day: number): Promise<void> {
-    try {
-      const codeData = await ApiService.getRevealCode(userId, day);
-      const container = document.getElementById(`reveal-code-container-${day}`);
-      
-      if (!container) return;
+  try {
+    const codeData = await ApiService.getRevealCode(userId, day);
+    const container = document.getElementById(`reveal-code-container-${day}`);
 
-      if (!codeData.available) {
-        container.innerHTML = '';
-        return;
-      }
+    if (!container) return;
 
-      if (codeData.exchanged) {
-        container.innerHTML = `
-          <div class="reveal-code-section">
-            <div class="reveal-code-title">🎁 Code d'échange</div>
-            <div class="code-exchange-success">
-              ✓ Vous avez déjà échangé votre code avec votre âme sœur!
-            </div>
-          </div>
-        `;
-        return;
-      }
+    if (!codeData.available) {
+      container.innerHTML = '';
+      return;
+    }
 
+    // MODIFICATION ICI : Remplacer codeData.exchanged par codeData.both_exchanged
+    if (codeData.both_exchanged) {
       container.innerHTML = `
         <div class="reveal-code-section">
-          <div class="reveal-code-title">🎁 Votre Code Secret</div>
-          <div class="reveal-code-display">
-            <img src="${import.meta.env.VITE_API_BASE_URL}/reveal-code-qr/${userId}/${day}" alt="QR Code" class="qr-code-image" />
-            <div class="reveal-code-value">${codeData.code}</div>
+          <div class="reveal-code-title">🎁 Code d'échange</div>
+          <div class="code-exchange-success">
+            ✓ Vous avez tous les deux échangé vos codes! Félicitations! 🎉
           </div>
-          <div class="reveal-code-description">
-            Scannez le QR code ou partagez le code avec votre âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
-          </div>
-          <form class="code-exchange-form">
-            <input 
-              type="text" 
-              class="code-exchange-input" 
-              placeholder="Code de votre âme sœur" 
-              maxlength="6"
-              required
-            />
-            <button type="submit" class="code-exchange-btn">Échanger le code</button>
-          </form>
         </div>
       `;
-
-      // Re-attach the form listener for this specific section
-      const form = container.querySelector('.code-exchange-form') as HTMLFormElement;
-      if (form) {
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const input = form.querySelector('.code-exchange-input') as HTMLInputElement;
-          if (input && input.value) {
-            await this.handleExchangeCode(day, input.value);
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error loading reveal code:', error);
+      return;
     }
+
+    // Afficher le code (même si exchanged = true, tant que both_exchanged = false)
+    const exchangeStatus = codeData.exchanged
+      ? '<div class="code-exchange-pending">⏳ En attente que votre âme sœur échange son code...</div>'
+      : '';
+
+    container.innerHTML = `
+      <div class="reveal-code-section">
+        <div class="reveal-code-title">🎁 Votre Code Secret</div>
+        <div class="reveal-code-display">
+          <div class="reveal-code-value">${codeData.code}</div>
+        </div>
+        ${exchangeStatus}
+        <div class="reveal-code-description">
+          Partagez ce code avec votre âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
+        </div>
+        <form class="code-exchange-form">
+          <input 
+            type="text" 
+            class="code-exchange-input" 
+            placeholder="Code de votre âme sœur" 
+            maxlength="6"
+            ${codeData.exchanged ? 'disabled' : ''}
+            required
+          />
+          <button type="submit" class="code-exchange-btn" ${codeData.exchanged ? 'disabled' : ''}>
+            ${codeData.exchanged ? 'Code déjà échangé' : 'Échanger le code'}
+          </button>
+        </form>
+      </div>
+    `;
+
+    // Re-attach the form listener for this specific section
+    const form = container.querySelector('.code-exchange-form') as HTMLFormElement;
+    if (form && !codeData.exchanged) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = form.querySelector('.code-exchange-input') as HTMLInputElement;
+        if (input && input.value) {
+          await this.handleExchangeCode(day, input.value);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error loading reveal code:', error);
   }
+}
 
   private async handleExchangeCode(day: number, partnerCode: string): Promise<void> {
     const user = StorageService.getUser();

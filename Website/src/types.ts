@@ -59,6 +59,7 @@ export interface GuessResponse {
   success: boolean;
   is_correct: boolean;
   points_earned: number;
+  hint_number: number;
   message: string;
 }
 
@@ -92,6 +93,7 @@ export interface ExchangeCodeResponse {
 
 export interface UserGuess {
   day: number;
+  hint_number: number;
   guessed_user_id: string;
   hints_revealed: number;
   points_earned: number;

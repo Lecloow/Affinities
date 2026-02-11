@@ -154,7 +154,7 @@ export class ApiService {
     }
   }
 
-  static async submitGuess(userId: string, day: number, guessedUserId: string): Promise<GuessResponse> {
+  static async submitGuess(userId: string, day: number, hintNumber: number, guessedUserId: string): Promise<GuessResponse> {
     try {
       const response = await fetch(`${API_BASE_URL}/guess`, {
         method: 'POST',
@@ -164,6 +164,7 @@ export class ApiService {
         body: JSON.stringify({
           user_id: userId,
           day: day,
+          hint_number: hintNumber,
           guessed_user_id: guessedUserId,
         }),
       });

@@ -839,3 +839,106 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
+/* ===== AUTOCOMPLETE STYLES ===== */
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.guess-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.guess-input:focus {
+  outline: none;
+  border-color: #ff69b4;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #ff69b4;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.autocomplete-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  transition: background 0.2s ease;
+}
+
+.autocomplete-item:hover {
+  background: #fff4f8;
+}
+
+.autocomplete-item:not(:last-child) {
+  border-bottom: 1px solid #eee;
+}
+
+/* ===== GUESS HISTORY STYLES ===== */
+.guess-history {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.guess-history-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.guess-history-item {
+  padding: 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.guess-history-item.success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.guess-history-item.error {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.guess-history-item:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== QR CODE STYLES ===== */
+.qr-code-image {
+  display: block;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 16px;
+  border-radius: 8px;
+  background: white;
+  padding: 8px;
+}

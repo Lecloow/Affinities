@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 from pathlib3 import Path
 import json
@@ -21,6 +21,7 @@ import psycopg
 from io import BytesIO
 import socket
 import requests
+import qrcode
 
 load_dotenv()
 
@@ -142,12 +143,13 @@ cursor.execute("""
                    id SERIAL PRIMARY KEY,
                    user_id TEXT NOT NULL,
                    day INTEGER NOT NULL,
+                   hint_number INTEGER NOT NULL,
                    guessed_user_id TEXT NOT NULL,
                    hints_revealed INTEGER NOT NULL,
                    points_earned INTEGER NOT NULL,
                    is_correct BOOLEAN NOT NULL,
                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                   UNIQUE(user_id, day)
+                   UNIQUE(user_id, day, hint_number)
                )
                """)
 
@@ -220,6 +222,7 @@ class Person(BaseModel):
 class GuessRequest(BaseModel):
     user_id: str
     day: int
+    hint_number: int
     guessed_user_id: str
 
 
@@ -1449,19 +1452,18 @@ def get_hints_revealed_count(user_id: str, day: int) -> int:
     return sum([1 for revealed in row if revealed])
 
 
-def calculate_guess_points(hints_revealed: int) -> int:
-    """Calculate points based on number of hints revealed.
-    1 hint = 75 points
-    2 hints = 50 points
-    3 hints = 25 points
-    Note: At least 1 hint must be revealed to guess.
+def calculate_guess_points(hint_number: int) -> int:
+    """Calculate points based on which hint the guess is made on.
+    First guess (after hint 1) = 75 points
+    Second guess (after hint 2) = 50 points
+    Third guess (after hint 3) = 25 points
     """
     points_map = {
         1: 75,
         2: 50,
         3: 25
     }
-    return points_map.get(hints_revealed, 0)
+    return points_map.get(hint_number, 0)
 
 
 def update_user_score(user_id: str, points: int):
@@ -1551,40 +1553,47 @@ def submit_guess(request: GuessRequest):
     try:
         user_id = request.user_id
         day = request.day
+        hint_number = request.hint_number
         guessed_user_id = request.guessed_user_id
         
-        # Check if user has already guessed for this day
+        # Validate hint_number
+        if hint_number not in [1, 2, 3]:
+            raise HTTPException(400, "Hint number must be 1, 2, or 3")
+        
+        # Check if user has already guessed for this hint
         cursor.execute("""
-            SELECT id FROM guesses WHERE user_id = %s AND day = %s
-        """, (user_id, day))
+            SELECT id FROM guesses WHERE user_id = %s AND day = %s AND hint_number = %s
+        """, (user_id, day, hint_number))
         
         if cursor.fetchone():
-            raise HTTPException(400, "You have already submitted a guess for this day")
+            raise HTTPException(400, f"You have already submitted a guess for hint {hint_number}")
         
         # Check if the reveal time has passed
         cursor.execute("""
-            SELECT reveal_time, match_id FROM hints WHERE user_id = %s AND day = %s
+            SELECT reveal_time, match_id, hint1_revealed, hint2_revealed, hint3_revealed 
+            FROM hints WHERE user_id = %s AND day = %s
         """, (user_id, day))
         
         hint_row = cursor.fetchone()
         if not hint_row:
             raise HTTPException(404, "Hints not found for this day")
         
-        reveal_time, match_id = hint_row
+        reveal_time, match_id, hint1_revealed, hint2_revealed, hint3_revealed = hint_row
         now = datetime.datetime.now()
         
         if now >= reveal_time:
             raise HTTPException(400, "Cannot guess after reveal time has passed")
         
-        # Get number of revealed hints
-        hints_revealed = get_hints_revealed_count(user_id, day)
+        # Check if the specified hint is revealed
+        hints_revealed_map = {1: hint1_revealed, 2: hint2_revealed, 3: hint3_revealed}
+        if not hints_revealed_map.get(hint_number):
+            raise HTTPException(400, f"Hint {hint_number} must be revealed before you can guess")
         
-        # Check if at least one hint is revealed
-        if hints_revealed == 0:
-            raise HTTPException(400, "You must reveal at least one hint before guessing")
+        # Get number of revealed hints for context
+        hints_revealed = sum([hint1_revealed, hint2_revealed, hint3_revealed])
         
-        # Calculate points
-        points_earned = calculate_guess_points(hints_revealed)
+        # Calculate points based on hint number
+        points_earned = calculate_guess_points(hint_number)
         
         # Check if guess is correct
         is_correct = (guessed_user_id == match_id)
@@ -1597,9 +1606,9 @@ def submit_guess(request: GuessRequest):
         
         # Record the guess
         cursor.execute("""
-            INSERT INTO guesses (user_id, day, guessed_user_id, hints_revealed, points_earned, is_correct)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (user_id, day, guessed_user_id, hints_revealed, points_earned, is_correct))
+            INSERT INTO guesses (user_id, day, hint_number, guessed_user_id, hints_revealed, points_earned, is_correct)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (user_id, day, hint_number, guessed_user_id, hints_revealed, points_earned, is_correct))
         
         db.commit()
         
@@ -1607,7 +1616,8 @@ def submit_guess(request: GuessRequest):
             "success": True,
             "is_correct": is_correct,
             "points_earned": points_earned,
-            "message": "Correct! You guessed your soulmate!" if is_correct else "Incorrect guess. Try again on the next day!"
+            "hint_number": hint_number,
+            "message": "Correct! You guessed your soulmate!" if is_correct else f"Incorrect guess for hint {hint_number}. Try again with the next hint!"
         }
         
     except HTTPException:
@@ -1705,6 +1715,47 @@ def get_reveal_code(user_id: str, day: int):
     except Exception as e:
         logging.exception(f"Error getting reveal code: {e}")
         raise HTTPException(500, f"Error getting reveal code: {str(e)}")
+
+
+@app.get("/reveal-code-qr/{user_id}/{day}")
+def get_reveal_code_qr(user_id: str, day: int):
+    """Generate a QR code image for the reveal code."""
+    try:
+        # Get the reveal code first
+        code_data = get_reveal_code(user_id, day)
+        
+        if not code_data.get("available"):
+            raise HTTPException(404, "Reveal code not available yet")
+        
+        code = code_data.get("code")
+        if not code:
+            raise HTTPException(404, "Code not found")
+        
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(code)
+        qr.make(fit=True)
+        
+        # Create image
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save to BytesIO
+        buf = BytesIO()
+        img.save(buf, format='PNG')
+        buf.seek(0)
+        
+        return StreamingResponse(buf, media_type="image/png")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error generating QR code: {e}")
+        raise HTTPException(500, f"Error generating QR code: {str(e)}")
 
 
 @app.post("/exchange-code")

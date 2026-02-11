@@ -215,16 +215,73 @@ export class ProfilePage {
       });
     });
 
-    // Attach guess form listener
+    // Attach guess form listener with autocomplete
     const guessForm = hintsSection.querySelector('.guess-form') as HTMLFormElement;
-    if (guessForm) {
-      guessForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const select = guessForm.querySelector('.guess-select') as HTMLSelectElement;
-        if (select && select.value) {
-          await this.handleSubmitGuess(this.selectedDay, select.value);
+    const guessInput = hintsSection.querySelector('.guess-input') as HTMLInputElement;
+    const autocompleteDropdown = hintsSection.querySelector('.autocomplete-dropdown') as HTMLElement;
+    
+    if (guessInput && autocompleteDropdown && this.candidates) {
+      let selectedUserId: string | null = null;
+      
+      // Handle input changes
+      guessInput.addEventListener('input', (e) => {
+        const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+        selectedUserId = null; // Reset selection
+        
+        if (query.length === 0) {
+          autocompleteDropdown.style.display = 'none';
+          return;
+        }
+        
+        // Filter candidates
+        const matches = this.candidates!.candidates.filter(c => 
+          c.first_name.toLowerCase().includes(query) || 
+          c.last_name.toLowerCase().includes(query)
+        );
+        
+        if (matches.length === 0) {
+          autocompleteDropdown.style.display = 'none';
+          return;
+        }
+        
+        // Build dropdown
+        autocompleteDropdown.innerHTML = matches.map(c => 
+          `<div class="autocomplete-item" data-id="${c.id}">${c.first_name} ${c.last_name}</div>`
+        ).join('');
+        autocompleteDropdown.style.display = 'block';
+        
+        // Attach click handlers to items
+        autocompleteDropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const id = (item as HTMLElement).dataset.id!;
+            const candidate = this.candidates!.candidates.find(c => c.id === id);
+            if (candidate) {
+              guessInput.value = `${candidate.first_name} ${candidate.last_name}`;
+              selectedUserId = id;
+              autocompleteDropdown.style.display = 'none';
+            }
+          });
+        });
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!guessInput.contains(e.target as Node) && !autocompleteDropdown.contains(e.target as Node)) {
+          autocompleteDropdown.style.display = 'none';
         }
       });
+      
+      // Handle form submission
+      if (guessForm) {
+        guessForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (selectedUserId) {
+            await this.handleSubmitGuess(this.selectedDay, selectedUserId);
+          } else {
+            alert('Veuillez sélectionner une personne dans la liste');
+          }
+        });
+      }
     }
 
     // Attach code exchange form listener
@@ -532,24 +589,6 @@ export class ProfilePage {
     const user = StorageService.getUser();
     if (!user || !this.candidates) return '';
 
-    // Check if user has already guessed for this day
-    const existingGuess = this.userStats?.guesses.find(g => g.day === day.day);
-    if (existingGuess) {
-      const resultClass = existingGuess.is_correct ? 'success' : 'error';
-      const message = existingGuess.is_correct 
-        ? `✓ Correct! Vous avez gagné ${existingGuess.points_earned} points`
-        : `✗ Incorrect. Réessayez le prochain jour!`;
-      
-      return `
-        <div class="guess-section disabled">
-          <div class="guess-title">🎯 Deviner mon âme sœur</div>
-          <div class="guess-result ${resultClass}">
-            ${message}
-          </div>
-        </div>
-      `;
-    }
-
     // Check if reveal time has passed
     const revealTime = new Date(day.reveal_time);
     const now = new Date();
@@ -564,54 +603,125 @@ export class ProfilePage {
       `;
     }
 
-    // Check if at least one hint is revealed
-    const revealedHintsCount = day.hints.filter(h => h.revealed).length;
-    if (revealedHintsCount === 0) {
-      return `
-        <div class="guess-section disabled">
-          <div class="guess-title">🎯 Deviner mon âme sœur</div>
-          <div class="guess-description">
-            Révélez au moins un indice pour pouvoir deviner qui est votre âme sœur!
+    // Get all guesses for this day
+    const dayGuesses = this.userStats?.guesses.filter(g => g.day === day.day) || [];
+    
+    // Check which hints are revealed
+    const hints = day.hints;
+    const hint1Revealed = hints[0]?.revealed || false;
+    const hint2Revealed = hints[1]?.revealed || false;
+    const hint3Revealed = hints[2]?.revealed || false;
+    
+    // Check which guesses have been made
+    const guess1Made = dayGuesses.some(g => g.hint_number === 1);
+    const guess2Made = dayGuesses.some(g => g.hint_number === 2);
+    const guess3Made = dayGuesses.some(g => g.hint_number === 3);
+    
+    // Determine which hint we can guess on
+    let availableHintNumber = 0;
+    let potentialPoints = 0;
+    
+    if (hint1Revealed && !guess1Made) {
+      availableHintNumber = 1;
+      potentialPoints = 75;
+    } else if (hint2Revealed && !guess2Made) {
+      availableHintNumber = 2;
+      potentialPoints = 50;
+    } else if (hint3Revealed && !guess3Made) {
+      availableHintNumber = 3;
+      potentialPoints = 25;
+    }
+    
+    // Build guess history
+    let guessHistoryHtml = '';
+    if (dayGuesses.length > 0) {
+      guessHistoryHtml = '<div class="guess-history">';
+      guessHistoryHtml += '<div class="guess-history-title">Vos tentatives:</div>';
+      dayGuesses.forEach(g => {
+        const icon = g.is_correct ? '✓' : '✗';
+        const className = g.is_correct ? 'success' : 'error';
+        const candidate = this.candidates?.candidates.find(c => c.id === g.guessed_user_id);
+        const name = candidate ? `${candidate.first_name} ${candidate.last_name}` : 'Inconnu';
+        guessHistoryHtml += `
+          <div class="guess-history-item ${className}">
+            ${icon} Indice ${g.hint_number}: ${name} ${g.is_correct ? `(+${g.points_earned}pts)` : ''}
           </div>
-        </div>
-      `;
+        `;
+      });
+      guessHistoryHtml += '</div>';
+    }
+    
+    // If no available hint, show status
+    if (availableHintNumber === 0) {
+      const revealedCount = [hint1Revealed, hint2Revealed, hint3Revealed].filter(Boolean).length;
+      if (revealedCount === 0) {
+        return `
+          <div class="guess-section disabled">
+            <div class="guess-title">🎯 Deviner mon âme sœur</div>
+            <div class="guess-description">
+              Révélez au moins un indice pour pouvoir deviner qui est votre âme sœur!
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="guess-section disabled">
+            <div class="guess-title">🎯 Deviner mon âme sœur</div>
+            ${guessHistoryHtml}
+            <div class="guess-description">
+              Révélez le prochain indice pour faire une nouvelle tentative!
+            </div>
+          </div>
+        `;
+      }
     }
 
-    // Calculate potential points
-    const points = this.calculateGuessPoints(revealedHintsCount);
-
+    // Show guess form with autocomplete input
     return `
-      <div class="guess-section">
-        <div class="guess-title">🎯 Deviner mon âme sœur</div>
+      <div class="guess-section" data-hint-number="${availableHintNumber}">
+        <div class="guess-title">🎯 Deviner mon âme sœur (Indice ${availableHintNumber})</div>
+        ${guessHistoryHtml}
         <div class="guess-description">
-          Vous avez révélé ${revealedHintsCount} indice(s). Si vous devinez correctement, vous gagnerez <strong>${points} points</strong>!
-          Attention: vous ne pouvez deviner qu'une seule fois par jour.
+          Si vous devinez correctement avec cet indice, vous gagnerez <strong>${potentialPoints} points</strong>!
         </div>
         <form class="guess-form">
-          <select class="guess-select" required>
-            <option value="">-- Choisir une personne --</option>
-            ${this.candidates.candidates.map(c => 
-              `<option value="${c.id}">${c.first_name} ${c.last_name}</option>`
-            ).join('')}
-          </select>
+          <div class="autocomplete-container">
+            <input 
+              type="text" 
+              class="guess-input" 
+              placeholder="Tapez le prénom ou nom..." 
+              autocomplete="off"
+              required
+            />
+            <div class="autocomplete-dropdown" style="display: none;"></div>
+          </div>
           <button type="submit" class="guess-submit-btn">Valider mon choix</button>
         </form>
       </div>
     `;
   }
 
-  private calculateGuessPoints(hintsRevealed: number): number {
+  private calculateGuessPoints(hintNumber: number): number {
     const pointsMap: { [key: number]: number } = {
       1: 75,
       2: 50,
       3: 25
     };
-    return pointsMap[hintsRevealed] || 0;
+    return pointsMap[hintNumber] || 0;
   }
 
   private async handleSubmitGuess(day: number, guessedUserId: string): Promise<void> {
     const user = StorageService.getUser();
     if (!user) return;
+
+    // Get hint number from the guess section
+    const guessSection = document.querySelector('.guess-section[data-hint-number]') as HTMLElement;
+    const hintNumber = parseInt(guessSection?.dataset.hintNumber || '0');
+    
+    if (hintNumber === 0) {
+      alert('Erreur: numéro d\'indice invalide');
+      return;
+    }
 
     try {
       const guessForm = document.querySelector('.guess-form');
@@ -621,7 +731,7 @@ export class ProfilePage {
         submitBtn.textContent = 'Envoi en cours...';
       }
 
-      const result = await ApiService.submitGuess(user.id, day, guessedUserId);
+      const result = await ApiService.submitGuess(user.id, day, hintNumber, guessedUserId);
       
       await this.loadAndRenderHints();
 
@@ -681,10 +791,11 @@ export class ProfilePage {
         <div class="reveal-code-section">
           <div class="reveal-code-title">🎁 Votre Code Secret</div>
           <div class="reveal-code-display">
+            <img src="${import.meta.env.VITE_API_BASE_URL}/reveal-code-qr/${userId}/${day}" alt="QR Code" class="qr-code-image" />
             <div class="reveal-code-value">${codeData.code}</div>
           </div>
           <div class="reveal-code-description">
-            Partagez ce code avec votre âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
+            Scannez le QR code ou partagez le code avec votre âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
           </div>
           <form class="code-exchange-form">
             <input 

@@ -232,15 +232,6 @@ export class ProfilePage {
         }
       });
     }
-    });
-
-    hintsSection.querySelectorAll('.global-reveal-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const target = e.target as HTMLButtonElement;
-        const day = parseInt(target.dataset.day || '0');
-        if (day) await this.handleRevealAllHints(day);
-      });
-    });
   }
 
   private renderRevealButton(day: DayHints): string {

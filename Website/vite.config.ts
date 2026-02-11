@@ -13,7 +13,8 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: 'index.html',
-          profile: 'profile.html'
+          profile: 'profile.html',
+          leaderboard: 'leaderboard.html'
         }
       }
     },

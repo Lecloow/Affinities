@@ -1430,7 +1430,7 @@ def reveal_all_hints(request: RevealAllHintsRequest):
 
 def generate_reveal_code(user_id: str, day: int) -> str:
     """Generate a unique 6-character code for a user and day."""
-    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(6))
     return code
 
 
@@ -1451,13 +1451,12 @@ def get_hints_revealed_count(user_id: str, day: int) -> int:
 
 def calculate_guess_points(hints_revealed: int) -> int:
     """Calculate points based on number of hints revealed.
-    0 hints = 100 points
     1 hint = 75 points
     2 hints = 50 points
     3 hints = 25 points
+    Note: At least 1 hint must be revealed to guess.
     """
     points_map = {
-        0: 100,
         1: 75,
         2: 50,
         3: 25

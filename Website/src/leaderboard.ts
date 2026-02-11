@@ -2,6 +2,9 @@ import { StorageService } from './storage';
 import { ApiService } from './api';
 import { LeaderboardResponse } from './types';
 
+// Refresh leaderboard every 2 minutes
+const LEADERBOARD_REFRESH_INTERVAL_MS = 120000;
+
 export class LeaderboardPage {
   private contentEl: HTMLElement | null = null;
   private leaderboardData: LeaderboardResponse | null = null;
@@ -23,10 +26,10 @@ export class LeaderboardPage {
     this.contentEl = document.getElementById('content');
     this.render();
 
-    // Refresh leaderboard every 2 minutes (120 seconds)
+    // Refresh leaderboard periodically
     this.refreshInterval = window.setInterval(() => {
       this.loadAndRenderLeaderboard();
-    }, 120000);
+    }, LEADERBOARD_REFRESH_INTERVAL_MS);
   }
 
   private async render(): Promise<void> {

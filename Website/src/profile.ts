@@ -131,8 +131,14 @@ export class ProfilePage {
       // Load hints, user stats, and candidates in parallel
       const [hintsData, userStats, candidates] = await Promise.all([
         ApiService.getHints(user.id),
-        ApiService.getUserStats(user.id).catch(() => ({ user_id: user.id, total_points: 0, code_exchange_bonus: 0, guesses: [] })),
-        ApiService.getCandidates(user.id).catch(() => ({ candidates: [] }))
+        ApiService.getUserStats(user.id).catch((error) => {
+          console.warn('Failed to load user stats:', error);
+          return { user_id: user.id, total_points: 0, code_exchange_bonus: 0, guesses: [] };
+        }),
+        ApiService.getCandidates(user.id).catch((error) => {
+          console.warn('Failed to load candidates:', error);
+          return { candidates: [] };
+        })
       ]);
       
       this.hintsData = hintsData;
@@ -596,7 +602,6 @@ export class ProfilePage {
 
   private calculateGuessPoints(hintsRevealed: number): number {
     const pointsMap: { [key: number]: number } = {
-      0: 100,
       1: 75,
       2: 50,
       3: 25

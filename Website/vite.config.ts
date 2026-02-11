@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, resolve(__dirname, '..'), '')
 
   return {
-    base: '/SaintValentin_Event',
+    base: '/',
     server: {
       port: 5173,
     },

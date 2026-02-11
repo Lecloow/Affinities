@@ -1,10 +1,12 @@
 import { StorageService } from './storage';
 import { ApiService } from './api';
-import { HintsResponse, DayHints, Hint } from './types';
+import { HintsResponse, DayHints, Hint, UserStatsResponse, CandidatesResponse } from './types';
 
 export class ProfilePage {
   private contentEl: HTMLElement | null = null;
   private hintsData: HintsResponse | null = null;
+  private userStats: UserStatsResponse | null = null;
+  private candidates: CandidatesResponse | null = null;
   private refreshInterval: number | null = null;
   private timerInterval: number | null = null;
   private selectedDay: number = 1; // Default to day 1 (Jeudi)
@@ -126,7 +128,23 @@ export class ProfilePage {
     if (!user) return;
 
     try {
-      this.hintsData = await ApiService.getHints(user.id);
+      // Load hints, user stats, and candidates in parallel
+      const [hintsData, userStats, candidates] = await Promise.all([
+        ApiService.getHints(user.id),
+        ApiService.getUserStats(user.id).catch((error) => {
+          console.warn('Failed to load user stats:', error);
+          return { user_id: user.id, total_points: 0, code_exchange_bonus: 0, guesses: [] };
+        }),
+        ApiService.getCandidates(user.id).catch((error) => {
+          console.warn('Failed to load candidates:', error);
+          return { candidates: [] };
+        })
+      ]);
+      
+      this.hintsData = hintsData;
+      this.userStats = userStats;
+      this.candidates = candidates;
+      
       this.renderHints();
     } catch (error) {
       console.error('Error loading hints:', error);
@@ -168,9 +186,12 @@ export class ProfilePage {
 
     hintsSection.innerHTML = `
       <div class="page-content">
+        ${this.renderUserScore()}
         ${segmentedHtml}
         ${this.renderDayHints(selectedDayData)}
         ${this.renderRevealButton(selectedDayData)}
+        ${this.renderGuessSection(selectedDayData)}
+        ${this.renderRevealCodeSection(selectedDayData)}
       </div>
     `;
 
@@ -193,6 +214,87 @@ export class ProfilePage {
         if (day) await this.handleRevealAllHints(day);
       });
     });
+
+    // Attach guess form listener with autocomplete
+    const guessForm = hintsSection.querySelector('.guess-form') as HTMLFormElement;
+    const guessInput = hintsSection.querySelector('.guess-input') as HTMLInputElement;
+    const autocompleteDropdown = hintsSection.querySelector('.autocomplete-dropdown') as HTMLElement;
+    
+    if (guessInput && autocompleteDropdown && this.candidates) {
+      let selectedUserId: string | null = null;
+      
+      // Handle input changes
+      guessInput.addEventListener('input', (e) => {
+        const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+        selectedUserId = null; // Reset selection
+        
+        if (query.length === 0) {
+          autocompleteDropdown.style.display = 'none';
+          return;
+        }
+        
+        // Filter candidates
+        const matches = this.candidates!.candidates.filter(c => 
+          c.first_name.toLowerCase().includes(query) || 
+          c.last_name.toLowerCase().includes(query)
+        );
+        
+        if (matches.length === 0) {
+          autocompleteDropdown.style.display = 'none';
+          return;
+        }
+        
+        // Build dropdown
+        autocompleteDropdown.innerHTML = matches.map(c => 
+          `<div class="autocomplete-item" data-id="${c.id}">${c.first_name} ${c.last_name}</div>`
+        ).join('');
+        autocompleteDropdown.style.display = 'block';
+        
+        // Attach click handlers to items
+        autocompleteDropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const id = (item as HTMLElement).dataset.id!;
+            const candidate = this.candidates!.candidates.find(c => c.id === id);
+            if (candidate) {
+              guessInput.value = `${candidate.first_name} ${candidate.last_name}`;
+              selectedUserId = id;
+              autocompleteDropdown.style.display = 'none';
+            }
+          });
+        });
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!guessInput.contains(e.target as Node) && !autocompleteDropdown.contains(e.target as Node)) {
+          autocompleteDropdown.style.display = 'none';
+        }
+      });
+      
+      // Handle form submission
+      if (guessForm) {
+        guessForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (selectedUserId) {
+            await this.handleSubmitGuess(this.selectedDay, selectedUserId);
+          } else {
+            alert('Veuillez sélectionner une personne dans la liste');
+          }
+        });
+      }
+    }
+
+    // Attach code exchange form listener
+    const codeExchangeForm = hintsSection.querySelector('.code-exchange-form') as HTMLFormElement;
+    if (codeExchangeForm) {
+      codeExchangeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = codeExchangeForm.querySelector('.code-exchange-input') as HTMLInputElement;
+        if (input && input.value) {
+          await this.handleExchangeCode(this.selectedDay, input.value);
+        }
+      });
+    }
   }
 
   private renderRevealButton(day: DayHints): string {
@@ -465,6 +567,296 @@ export class ProfilePage {
       const countdown = minutes > 0 ? `${minutes}min ${seconds}s` : `${seconds}s`;
       valueEl.textContent = countdown;
     });
+  }
+
+  // ─── User Score ──────────────────────────────────────────────────────────
+
+  private renderUserScore(): string {
+    if (!this.userStats) return '';
+
+    return `
+      <div class="user-score-section">
+        <div class="user-score-label">Votre Score Total</div>
+        <div class="user-score-value">${this.userStats.total_points} pts</div>
+        <a href="./leaderboard.html" class="leaderboard-link-btn">Voir le classement 🏆</a>
+      </div>
+    `;
+  }
+
+  // ─── Guess Section ───────────────────────────────────────────────────────
+
+  private renderGuessSection(day: DayHints): string {
+    const user = StorageService.getUser();
+    if (!user || !this.candidates) return '';
+
+    // Check if reveal time has passed
+    const revealTime = new Date(day.reveal_time);
+    const now = new Date();
+    if (now >= revealTime) {
+      return `
+        <div class="guess-section disabled">
+          <div class="guess-title">🎯 Deviner mon âme sœur</div>
+          <div class="guess-result info">
+            Le temps pour deviner est écoulé. L'identité a été révélée!
+          </div>
+        </div>
+      `;
+    }
+
+    // Get all guesses for this day
+    const dayGuesses = this.userStats?.guesses.filter(g => g.day === day.day) || [];
+    
+    // Check which hints are revealed
+    const hints = day.hints;
+    const hint1Revealed = hints[0]?.revealed || false;
+    const hint2Revealed = hints[1]?.revealed || false;
+    const hint3Revealed = hints[2]?.revealed || false;
+    
+    // Check which guesses have been made
+    const guess1Made = dayGuesses.some(g => g.hint_number === 1);
+    const guess2Made = dayGuesses.some(g => g.hint_number === 2);
+    const guess3Made = dayGuesses.some(g => g.hint_number === 3);
+    
+    // Determine which hint we can guess on
+    let availableHintNumber = 0;
+    let potentialPoints = 0;
+    
+    if (hint1Revealed && !guess1Made) {
+      availableHintNumber = 1;
+      potentialPoints = 75;
+    } else if (hint2Revealed && !guess2Made) {
+      availableHintNumber = 2;
+      potentialPoints = 50;
+    } else if (hint3Revealed && !guess3Made) {
+      availableHintNumber = 3;
+      potentialPoints = 25;
+    }
+    
+    // Build guess history
+    let guessHistoryHtml = '';
+    if (dayGuesses.length > 0) {
+      guessHistoryHtml = '<div class="guess-history">';
+      guessHistoryHtml += '<div class="guess-history-title">Vos tentatives:</div>';
+      dayGuesses.forEach(g => {
+        const icon = g.is_correct ? '✓' : '✗';
+        const className = g.is_correct ? 'success' : 'error';
+        const candidate = this.candidates?.candidates.find(c => c.id === g.guessed_user_id);
+        const name = candidate ? `${candidate.first_name} ${candidate.last_name}` : 'Inconnu';
+        guessHistoryHtml += `
+          <div class="guess-history-item ${className}">
+            ${icon} Indice ${g.hint_number}: ${name} ${g.is_correct ? `(+${g.points_earned}pts)` : ''}
+          </div>
+        `;
+      });
+      guessHistoryHtml += '</div>';
+    }
+    
+    // If no available hint, show status
+    if (availableHintNumber === 0) {
+      const revealedCount = [hint1Revealed, hint2Revealed, hint3Revealed].filter(Boolean).length;
+      if (revealedCount === 0) {
+        return `
+          <div class="guess-section disabled">
+            <div class="guess-title">🎯 Deviner mon âme sœur</div>
+            <div class="guess-description">
+              Révélez au moins un indice pour pouvoir deviner qui est votre âme sœur!
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="guess-section disabled">
+            <div class="guess-title">🎯 Deviner mon âme sœur</div>
+            ${guessHistoryHtml}
+            <div class="guess-description">
+              Révélez le prochain indice pour faire une nouvelle tentative!
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Show guess form with autocomplete input
+    return `
+      <div class="guess-section" data-hint-number="${availableHintNumber}">
+        <div class="guess-title">🎯 Deviner mon âme sœur (Indice ${availableHintNumber})</div>
+        ${guessHistoryHtml}
+        <div class="guess-description">
+          Si vous devinez correctement avec cet indice, vous gagnerez <strong>${potentialPoints} points</strong>!
+        </div>
+        <form class="guess-form">
+          <div class="autocomplete-container">
+            <input 
+              type="text" 
+              class="guess-input" 
+              placeholder="Tapez le prénom ou nom..." 
+              autocomplete="off"
+              required
+            />
+            <div class="autocomplete-dropdown" style="display: none;"></div>
+          </div>
+          <button type="submit" class="guess-submit-btn">Valider mon choix</button>
+        </form>
+      </div>
+    `;
+  }
+
+  private calculateGuessPoints(hintNumber: number): number {
+    const pointsMap: { [key: number]: number } = {
+      1: 75,
+      2: 50,
+      3: 25
+    };
+    return pointsMap[hintNumber] || 0;
+  }
+
+  private async handleSubmitGuess(day: number, guessedUserId: string): Promise<void> {
+    const user = StorageService.getUser();
+    if (!user) return;
+
+    // Get hint number from the guess section
+    const guessSection = document.querySelector('.guess-section[data-hint-number]') as HTMLElement;
+    const hintNumber = parseInt(guessSection?.dataset.hintNumber || '0');
+    
+    if (hintNumber === 0) {
+      alert('Erreur: numéro d\'indice invalide');
+      return;
+    }
+
+    try {
+      const guessForm = document.querySelector('.guess-form');
+      const submitBtn = guessForm?.querySelector('.guess-submit-btn') as HTMLButtonElement;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Envoi en cours...';
+      }
+
+      const result = await ApiService.submitGuess(user.id, day, hintNumber, guessedUserId);
+      
+      await this.loadAndRenderHints();
+
+      if (result.is_correct) {
+        alert(`🎉 ${result.message}\n\nVous avez gagné ${result.points_earned} points!`);
+      } else {
+        alert(`😔 ${result.message}`);
+      }
+    } catch (error: any) {
+      console.error('Error submitting guess:', error);
+      alert(error.message || 'Erreur lors de l\'envoi de votre réponse. Veuillez réessayer.');
+      await this.loadAndRenderHints();
+    }
+  }
+
+  // ─── Reveal Code Section ─────────────────────────────────────────────────
+
+  private renderRevealCodeSection(day: DayHints): string {
+    if (!day.match_revealed) {
+      return ''; // Don't show reveal code section until match is revealed
+    }
+
+    const user = StorageService.getUser();
+    if (!user) return '';
+
+    // We'll fetch the reveal code async and update the section
+    this.loadRevealCode(user.id, day.day);
+
+    return `<div id="reveal-code-container-${day.day}"></div>`;
+  }
+
+  private async loadRevealCode(userId: string, day: number): Promise<void> {
+  try {
+    const codeData = await ApiService.getRevealCode(userId, day);
+    const container = document.getElementById(`reveal-code-container-${day}`);
+
+    if (!container) return;
+
+    if (!codeData.available) {
+      container.innerHTML = '';
+      return;
+    }
+
+    // MODIFICATION ICI : Remplacer codeData.exchanged par codeData.both_exchanged
+    if (codeData.both_exchanged) {
+      container.innerHTML = `
+        <div class="reveal-code-section">
+          <div class="reveal-code-title">🎁 Code d'échange</div>
+          <div class="code-exchange-success">
+            ✓ Vous avez tous les deux échangé vos codes! Félicitations! 🎉
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    // Afficher le code (même si exchanged = true, tant que both_exchanged = false)
+    const exchangeStatus = codeData.exchanged
+      ? '<div class="code-exchange-pending">⏳ En attente que votre âme sœur échange son code...</div>'
+      : '';
+
+    container.innerHTML = `
+      <div class="reveal-code-section">
+        <div class="reveal-code-title">🎁 Votre Code Secret</div>
+        <div class="reveal-code-display">
+          <div class="reveal-code-value">${codeData.code}</div>
+        </div>
+        ${exchangeStatus}
+        <div class="reveal-code-description">
+          Partagez ce code avec votre âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
+        </div>
+        <form class="code-exchange-form">
+          <input 
+            type="text" 
+            class="code-exchange-input" 
+            placeholder="Code de votre âme sœur" 
+            maxlength="6"
+            ${codeData.exchanged ? 'disabled' : ''}
+            required
+          />
+          <button type="submit" class="code-exchange-btn" ${codeData.exchanged ? 'disabled' : ''}>
+            ${codeData.exchanged ? 'Code déjà échangé' : 'Échanger le code'}
+          </button>
+        </form>
+      </div>
+    `;
+
+    // Re-attach the form listener for this specific section
+    const form = container.querySelector('.code-exchange-form') as HTMLFormElement;
+    if (form && !codeData.exchanged) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = form.querySelector('.code-exchange-input') as HTMLInputElement;
+        if (input && input.value) {
+          await this.handleExchangeCode(day, input.value);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error loading reveal code:', error);
+  }
+}
+
+  private async handleExchangeCode(day: number, partnerCode: string): Promise<void> {
+    const user = StorageService.getUser();
+    if (!user) return;
+
+    try {
+      const form = document.querySelector('.code-exchange-form') as HTMLFormElement;
+      const submitBtn = form?.querySelector('.code-exchange-btn') as HTMLButtonElement;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Échange en cours...';
+      }
+
+      const result = await ApiService.exchangeCode(user.id, day, partnerCode.toUpperCase());
+      
+      await this.loadAndRenderHints();
+
+      alert(`🎉 ${result.message}\n\nVous avez gagné ${result.points_earned} points bonus!`);
+    } catch (error: any) {
+      console.error('Error exchanging code:', error);
+      alert(error.message || 'Code invalide ou erreur lors de l\'échange. Veuillez vérifier et réessayer.');
+      await this.loadAndRenderHints();
+    }
   }
 }
 

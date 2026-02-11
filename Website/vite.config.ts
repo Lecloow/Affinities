@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, resolve(__dirname, '..'), '')
 
   return {
-    base: '/',
+    base: '/SaintValentin_Event',
     server: {
       port: 5173,
     },
@@ -13,7 +13,8 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: 'index.html',
-          profile: 'profile.html'
+          profile: 'profile.html',
+          leaderboard: 'leaderboard.html'
         }
       }
     },

@@ -2,33 +2,45 @@
 
 ## Vue d'ensemble
 
-Le système de classement ajoute une dimension compétitive à l'événement Saint-Valentin en permettant aux participants de gagner des points en devinant l'identité de leur âme sœur et en échangeant des codes secrets.
+Le système de classement ajoute une dimension compétitive à l'événement Saint-Valentin en permettant aux participants de gagner des points en devinant l'identité de leur âme sœur et en échangeant des codes secrets via QR code.
 
 ## Fonctionnalités
 
 ### 1. Système de Devinettes
 
 #### Points par Devinette
-Les participants peuvent deviner l'identité de leur âme sœur après avoir révélé au moins un indice. Les points diminuent à mesure que plus d'indices sont révélés :
+Les participants peuvent faire **une tentative par indice révélé**, soit jusqu'à **3 tentatives par jour**. Les points diminuent à chaque tentative :
 
-- **1 indice révélé** : 75 points
-- **2 indices révélés** : 50 points
-- **3 indices révélés** : 25 points
+- **Tentative sur indice 1** : 75 points
+- **Tentative sur indice 2** : 50 points
+- **Tentative sur indice 3** : 25 points
 
 #### Règles
-- Un seul essai par jour autorisé
-- Au moins un indice doit être révélé pour pouvoir deviner
+- **Une tentative par indice révélé** (jusqu'à 3 tentatives par jour)
+- Chaque tentative est liée à un numéro d'indice spécifique
 - Les points ne sont attribués que si la réponse est correcte
 - Impossible de deviner après l'heure de révélation (15h15)
 - Les candidats sont limités aux personnes de la même classe
+- Interface avec **autocomplete** : tapez le prénom et sélectionnez dans la liste
 
-### 2. Codes d'Échange
+#### Historique des Tentatives
+L'interface affiche l'historique de toutes les tentatives avec :
+- ✓ Icône verte pour les réponses correctes
+- ✗ Icône rouge pour les réponses incorrectes
+- Le numéro d'indice utilisé
+- Les points gagnés
+
+### 2. Codes d'Échange avec QR Code
 
 #### Génération de Codes
-Lorsque l'identité de l'âme sœur est révélée (après 15h15), chaque utilisateur reçoit un **code unique de 6 caractères** (ex: "A3BX9K").
+Lorsque l'identité de l'âme sœur est révélée (après 15h15), chaque utilisateur reçoit :
+- Un **code unique de 6 caractères** (ex: "A3BX9K")
+- Un **QR code scannable** généré automatiquement
 
 #### Échange de Codes
 - Les deux partenaires doivent échanger leurs codes
+- Le QR code peut être scanné pour faciliter l'échange
+- Le code texte reste disponible pour saisie manuelle
 - Chaque échange réussi rapporte **50 points bonus**
 - L'échange doit être fait avec le véritable âme sœur
 - Un seul échange par jour est autorisé
@@ -62,14 +74,16 @@ CREATE TABLE guesses (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     day INTEGER NOT NULL,
+    hint_number INTEGER NOT NULL,
     guessed_user_id TEXT NOT NULL,
     hints_revealed INTEGER NOT NULL,
     points_earned INTEGER NOT NULL,
     is_correct BOOLEAN NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, day)
+    UNIQUE(user_id, day, hint_number)
 );
 ```
+**Note**: La contrainte UNIQUE sur `(user_id, day, hint_number)` permet une tentative par indice révélé.
 
 #### Table `scores`
 ```sql
@@ -116,13 +130,14 @@ Récupère la liste des candidats possibles (même classe) pour un utilisateur.
 ```
 
 #### `POST /guess`
-Soumet une devinette sur l'identité de l'âme sœur.
+Soumet une devinette sur l'identité de l'âme sœur pour un indice spécifique.
 
 **Requête :**
 ```json
 {
   "user_id": "user456",
   "day": 1,
+  "hint_number": 1,
   "guessed_user_id": "user123"
 }
 ```
@@ -133,6 +148,7 @@ Soumet une devinette sur l'identité de l'âme sœur.
   "success": true,
   "is_correct": true,
   "points_earned": 75,
+  "hint_number": 1,
   "message": "Correct! You guessed your soulmate!"
 }
 ```
@@ -170,6 +186,15 @@ Récupère le code de révélation d'un utilisateur pour un jour donné.
 }
 ```
 
+#### `GET /reveal-code-qr/{user_id}/{day}`
+Génère une image QR code pour le code de révélation.
+
+**Réponse :** Image PNG (200x200px) contenant le QR code
+
+**Content-Type:** `image/png`
+
+**Utilisation:** Peut être affichée directement dans une balise `<img>` ou scannée avec un lecteur QR code.
+
 #### `POST /exchange-code`
 Échange un code avec l'âme sœur pour obtenir des points bonus.
 
@@ -203,6 +228,7 @@ Récupère les statistiques d'un utilisateur (score total, historique des devine
   "guesses": [
     {
       "day": 1,
+      "hint_number": 1,
       "guessed_user_id": "user123",
       "hints_revealed": 1,
       "points_earned": 75,
@@ -228,32 +254,47 @@ Affiche le score total de l'utilisateur avec un lien vers le classement :
 ```
 
 #### Section Devinette
-Apparaît après avoir révélé au moins un indice :
+Affiche l'historique des tentatives et permet de deviner avec le prochain indice révélé :
 ```
 ┌─────────────────────────────────────┐
-│ 🎯 Deviner mon âme sœur             │
+│ 🎯 Deviner mon âme sœur (Indice 1) │
 │                                     │
-│ Vous avez révélé 1 indice(s).      │
-│ Si vous devinez correctement,       │
-│ vous gagnerez 75 points!            │
+│ Vos tentatives:                     │
+│ ✗ Indice 1: Marie Dupont            │
 │                                     │
-│ [Choisir une personne ▼]           │
+│ Si vous devinez correctement avec   │
+│ cet indice, vous gagnerez 50 pts!   │
+│                                     │
+│ [Tapez le prénom ou nom...]  🔽    │
+│ └─ Jean Dubois                      │
+│ └─ Jeanne Martin                    │
+│                                     │
 │ [Valider mon choix]                 │
 └─────────────────────────────────────┘
 ```
 
+**Fonctionnalités de l'autocomplete:**
+- Tapez les premières lettres du prénom ou nom
+- Liste filtrée en temps réel
+- Cliquez sur un nom pour le sélectionner
+- Validation impossible sans sélection
+
 #### Section Code de Révélation
-Apparaît après 15h15 lorsque l'identité est révélée :
+Apparaît après 15h15 lorsque l'identité est révélée, avec QR code :
 ```
 ┌─────────────────────────────────────┐
 │ 🎁 Votre Code Secret                │
 │                                     │
-│ ┌─────────────┐                    │
-│ │   A3BX9K    │                    │
-│ └─────────────┘                    │
+│ ┌───────────────┐                  │
+│ │   ▄▄▄▄▄▄▄     │  QR Code         │
+│ │   █ ▄▄▄ █     │  200x200px       │
+│ │   █ ███ █     │                  │
+│ │   █▄▄▄▄▄█     │                  │
+│ └───────────────┘                  │
+│      A3BX9K                         │
 │                                     │
-│ Partagez ce code avec votre        │
-│ âme sœur! Vous gagnerez 50 pts!    │
+│ Scannez le QR code ou partagez le  │
+│ code! Vous gagnerez 50 pts!        │
 │                                     │
 │ [Code de votre âme sœur]           │
 │ [Échanger le code]                  │

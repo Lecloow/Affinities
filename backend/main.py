@@ -136,6 +136,46 @@ cursor.execute("""
                )
                """)
 
+cursor.execute("""
+               CREATE TABLE IF NOT EXISTS guesses
+               (
+                   id SERIAL PRIMARY KEY,
+                   user_id TEXT NOT NULL,
+                   day INTEGER NOT NULL,
+                   guessed_user_id TEXT NOT NULL,
+                   hints_revealed INTEGER NOT NULL,
+                   points_earned INTEGER NOT NULL,
+                   is_correct BOOLEAN NOT NULL,
+                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                   UNIQUE(user_id, day)
+               )
+               """)
+
+cursor.execute("""
+               CREATE TABLE IF NOT EXISTS scores
+               (
+                   user_id TEXT PRIMARY KEY,
+                   total_points INTEGER DEFAULT 0,
+                   code_exchange_bonus INTEGER DEFAULT 0,
+                   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+               )
+               """)
+
+cursor.execute("""
+               CREATE TABLE IF NOT EXISTS reveal_codes
+               (
+                   id TEXT PRIMARY KEY,
+                   user_id TEXT NOT NULL,
+                   day INTEGER NOT NULL,
+                   code TEXT NOT NULL,
+                   exchanged BOOLEAN DEFAULT FALSE,
+                   exchanged_with TEXT,
+                   exchanged_at TIMESTAMP,
+                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                   UNIQUE(user_id, day)
+               )
+               """)
+
 db.commit()
 
 
@@ -175,6 +215,18 @@ class Person(BaseModel):
     last_name: str
     email: str
     currentClass: str
+
+
+class GuessRequest(BaseModel):
+    user_id: str
+    day: int
+    guessed_user_id: str
+
+
+class ExchangeCodeRequest(BaseModel):
+    user_id: str
+    day: int
+    partner_code: str
 
 
 # --------------------
@@ -1370,3 +1422,417 @@ def reveal_all_hints(request: RevealAllHintsRequest):
     except Exception as e:
         logging.exception(f"Error revealing all hints: {e}")
         raise HTTPException(500, f"Error revealing all hints: {str(e)}")
+
+
+# --------------------
+# RANKING SYSTEM ENDPOINTS
+# --------------------
+
+def generate_reveal_code(user_id: str, day: int) -> str:
+    """Generate a unique 6-character code for a user and day."""
+    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    return code
+
+
+def get_hints_revealed_count(user_id: str, day: int) -> int:
+    """Get the count of revealed hints for a user on a specific day."""
+    cursor.execute("""
+        SELECT hint1_revealed, hint2_revealed, hint3_revealed
+        FROM hints
+        WHERE user_id = %s AND day = %s
+    """, (user_id, day))
+    
+    row = cursor.fetchone()
+    if not row:
+        return 0
+    
+    return sum([1 for revealed in row if revealed])
+
+
+def calculate_guess_points(hints_revealed: int) -> int:
+    """Calculate points based on number of hints revealed.
+    0 hints = 100 points
+    1 hint = 75 points
+    2 hints = 50 points
+    3 hints = 25 points
+    """
+    points_map = {
+        0: 100,
+        1: 75,
+        2: 50,
+        3: 25
+    }
+    return points_map.get(hints_revealed, 0)
+
+
+def update_user_score(user_id: str, points: int):
+    """Update or create user score."""
+    cursor.execute("""
+        INSERT INTO scores (user_id, total_points)
+        VALUES (%s, %s)
+        ON CONFLICT (user_id)
+        DO UPDATE SET total_points = scores.total_points + %s,
+                      updated_at = CURRENT_TIMESTAMP
+    """, (user_id, points, points))
+    db.commit()
+
+
+def ensure_reveal_codes_exist():
+    """Generate reveal codes for all users who have revealed matches."""
+    cursor.execute("""
+        SELECT DISTINCT h.user_id, h.day, h.reveal_time
+        FROM hints h
+        WHERE NOT EXISTS (
+            SELECT 1 FROM reveal_codes rc 
+            WHERE rc.user_id = h.user_id AND rc.day = h.day
+        )
+    """)
+    
+    rows = cursor.fetchall()
+    now = datetime.datetime.now()
+    
+    for row in rows:
+        user_id, day, reveal_time = row
+        # Only create code if reveal time has passed
+        if now >= reveal_time:
+            code = generate_reveal_code(user_id, day)
+            cursor.execute("""
+                INSERT INTO reveal_codes (id, user_id, day, code, created_at)
+                VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
+                ON CONFLICT (user_id, day) DO NOTHING
+            """, (f"{user_id}_day{day}", user_id, day, code))
+    
+    db.commit()
+
+
+@app.get("/candidates/{user_id}")
+def get_candidates(user_id: str):
+    """Get list of possible candidates (same class) for a user to guess."""
+    try:
+        # Get user's class
+        cursor.execute("""
+            SELECT currentClass FROM users WHERE id = %s
+        """, (user_id,))
+        
+        user_row = cursor.fetchone()
+        if not user_row:
+            raise HTTPException(404, "User not found")
+        
+        user_class = user_row[0]
+        
+        # Get all users in the same class (excluding self)
+        cursor.execute("""
+            SELECT id, first_name, last_name, currentClass
+            FROM users
+            WHERE currentClass = %s AND id != %s
+            ORDER BY first_name, last_name
+        """, (user_class, user_id))
+        
+        candidates = []
+        for row in cursor.fetchall():
+            candidates.append({
+                "id": row[0],
+                "first_name": row[1],
+                "last_name": row[2],
+                "currentClass": row[3]
+            })
+        
+        return {"candidates": candidates}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error getting candidates: {e}")
+        raise HTTPException(500, f"Error getting candidates: {str(e)}")
+
+
+@app.post("/guess")
+def submit_guess(request: GuessRequest):
+    """Submit a guess about soulmate identity."""
+    try:
+        user_id = request.user_id
+        day = request.day
+        guessed_user_id = request.guessed_user_id
+        
+        # Check if user has already guessed for this day
+        cursor.execute("""
+            SELECT id FROM guesses WHERE user_id = %s AND day = %s
+        """, (user_id, day))
+        
+        if cursor.fetchone():
+            raise HTTPException(400, "You have already submitted a guess for this day")
+        
+        # Check if the reveal time has passed
+        cursor.execute("""
+            SELECT reveal_time, match_id FROM hints WHERE user_id = %s AND day = %s
+        """, (user_id, day))
+        
+        hint_row = cursor.fetchone()
+        if not hint_row:
+            raise HTTPException(404, "Hints not found for this day")
+        
+        reveal_time, match_id = hint_row
+        now = datetime.datetime.now()
+        
+        if now >= reveal_time:
+            raise HTTPException(400, "Cannot guess after reveal time has passed")
+        
+        # Get number of revealed hints
+        hints_revealed = get_hints_revealed_count(user_id, day)
+        
+        # Check if at least one hint is revealed
+        if hints_revealed == 0:
+            raise HTTPException(400, "You must reveal at least one hint before guessing")
+        
+        # Calculate points
+        points_earned = calculate_guess_points(hints_revealed)
+        
+        # Check if guess is correct
+        is_correct = (guessed_user_id == match_id)
+        
+        # Only award points if guess is correct
+        if is_correct:
+            update_user_score(user_id, points_earned)
+        else:
+            points_earned = 0
+        
+        # Record the guess
+        cursor.execute("""
+            INSERT INTO guesses (user_id, day, guessed_user_id, hints_revealed, points_earned, is_correct)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (user_id, day, guessed_user_id, hints_revealed, points_earned, is_correct))
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "is_correct": is_correct,
+            "points_earned": points_earned,
+            "message": "Correct! You guessed your soulmate!" if is_correct else "Incorrect guess. Try again on the next day!"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error submitting guess: {e}")
+        raise HTTPException(500, f"Error submitting guess: {str(e)}")
+
+
+@app.get("/leaderboard")
+def get_leaderboard():
+    """Get the leaderboard with all users ranked by total points."""
+    try:
+        cursor.execute("""
+            SELECT 
+                s.user_id,
+                u.first_name,
+                u.last_name,
+                u.currentClass,
+                s.total_points,
+                s.code_exchange_bonus,
+                s.updated_at
+            FROM scores s
+            JOIN users u ON s.user_id = u.id
+            ORDER BY s.total_points DESC, s.updated_at ASC
+        """)
+        
+        leaderboard = []
+        rank = 1
+        for row in cursor.fetchall():
+            leaderboard.append({
+                "rank": rank,
+                "user_id": row[0],
+                "first_name": row[1],
+                "last_name": row[2],
+                "currentClass": row[3],
+                "total_points": row[4],
+                "code_exchange_bonus": row[5],
+                "updated_at": row[6].isoformat() if row[6] else None
+            })
+            rank += 1
+        
+        return {"leaderboard": leaderboard}
+        
+    except Exception as e:
+        logging.exception(f"Error getting leaderboard: {e}")
+        raise HTTPException(500, f"Error getting leaderboard: {str(e)}")
+
+
+@app.get("/reveal-code/{user_id}/{day}")
+def get_reveal_code(user_id: str, day: int):
+    """Get the reveal code for a user on a specific day (only if reveal time has passed)."""
+    try:
+        # Ensure codes exist for all revealed matches
+        ensure_reveal_codes_exist()
+        
+        # Check if reveal time has passed
+        cursor.execute("""
+            SELECT reveal_time FROM hints WHERE user_id = %s AND day = %s
+        """, (user_id, day))
+        
+        hint_row = cursor.fetchone()
+        if not hint_row:
+            raise HTTPException(404, "Hints not found for this day")
+        
+        reveal_time = hint_row[0]
+        now = datetime.datetime.now()
+        
+        if now < reveal_time:
+            return {
+                "available": False,
+                "message": "Reveal code will be available after reveal time"
+            }
+        
+        # Get the reveal code
+        cursor.execute("""
+            SELECT code, exchanged FROM reveal_codes
+            WHERE user_id = %s AND day = %s
+        """, (user_id, day))
+        
+        code_row = cursor.fetchone()
+        if not code_row:
+            raise HTTPException(404, "Reveal code not found")
+        
+        code, exchanged = code_row
+        
+        return {
+            "available": True,
+            "code": code,
+            "exchanged": exchanged
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error getting reveal code: {e}")
+        raise HTTPException(500, f"Error getting reveal code: {str(e)}")
+
+
+@app.post("/exchange-code")
+def exchange_code(request: ExchangeCodeRequest):
+    """Exchange reveal codes with soulmate for bonus points."""
+    try:
+        user_id = request.user_id
+        day = request.day
+        partner_code = request.partner_code
+        
+        # Get user's match for this day
+        cursor.execute("""
+            SELECT match_id FROM hints WHERE user_id = %s AND day = %s
+        """, (user_id, day))
+        
+        hint_row = cursor.fetchone()
+        if not hint_row:
+            raise HTTPException(404, "Match not found for this day")
+        
+        match_id = hint_row[0]
+        
+        # Verify the partner's code
+        cursor.execute("""
+            SELECT user_id, exchanged FROM reveal_codes
+            WHERE code = %s AND day = %s
+        """, (partner_code, day))
+        
+        partner_row = cursor.fetchone()
+        if not partner_row:
+            raise HTTPException(400, "Invalid code")
+        
+        partner_id, partner_exchanged = partner_row
+        
+        # Verify that the partner is the actual match
+        if partner_id != match_id:
+            raise HTTPException(400, "This code does not belong to your soulmate")
+        
+        # Check if user has already exchanged their code
+        cursor.execute("""
+            SELECT exchanged FROM reveal_codes
+            WHERE user_id = %s AND day = %s
+        """, (user_id, day))
+        
+        user_code_row = cursor.fetchone()
+        if not user_code_row:
+            raise HTTPException(404, "Your reveal code not found")
+        
+        user_exchanged = user_code_row[0]
+        
+        if user_exchanged:
+            raise HTTPException(400, "You have already exchanged your code for this day")
+        
+        # Award bonus points (50 points for code exchange)
+        bonus_points = 50
+        
+        # Update user's code as exchanged
+        cursor.execute("""
+            UPDATE reveal_codes
+            SET exchanged = TRUE, exchanged_with = %s, exchanged_at = CURRENT_TIMESTAMP
+            WHERE user_id = %s AND day = %s
+        """, (partner_id, user_id, day))
+        
+        # Update user's score
+        cursor.execute("""
+            INSERT INTO scores (user_id, total_points, code_exchange_bonus)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (user_id)
+            DO UPDATE SET total_points = scores.total_points + %s,
+                          code_exchange_bonus = scores.code_exchange_bonus + %s,
+                          updated_at = CURRENT_TIMESTAMP
+        """, (user_id, bonus_points, bonus_points, bonus_points, bonus_points))
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "points_earned": bonus_points,
+            "message": "Code exchanged successfully! Bonus points awarded."
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error exchanging code: {e}")
+        raise HTTPException(500, f"Error exchanging code: {str(e)}")
+
+
+@app.get("/user-stats/{user_id}")
+def get_user_stats(user_id: str):
+    """Get user statistics including guesses and score."""
+    try:
+        # Get user's score
+        cursor.execute("""
+            SELECT total_points, code_exchange_bonus FROM scores WHERE user_id = %s
+        """, (user_id,))
+        
+        score_row = cursor.fetchone()
+        total_points = score_row[0] if score_row else 0
+        code_exchange_bonus = score_row[1] if score_row else 0
+        
+        # Get user's guesses
+        cursor.execute("""
+            SELECT day, guessed_user_id, hints_revealed, points_earned, is_correct, created_at
+            FROM guesses
+            WHERE user_id = %s
+            ORDER BY day
+        """, (user_id,))
+        
+        guesses = []
+        for row in cursor.fetchall():
+            guesses.append({
+                "day": row[0],
+                "guessed_user_id": row[1],
+                "hints_revealed": row[2],
+                "points_earned": row[3],
+                "is_correct": row[4],
+                "created_at": row[5].isoformat() if row[5] else None
+            })
+        
+        return {
+            "user_id": user_id,
+            "total_points": total_points,
+            "code_exchange_bonus": code_exchange_bonus,
+            "guesses": guesses
+        }
+        
+    except Exception as e:
+        logging.exception(f"Error getting user stats: {e}")
+        raise HTTPException(500, f"Error getting user stats: {str(e)}")
+

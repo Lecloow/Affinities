@@ -745,13 +745,15 @@ private async handleSubmitGuess(day: number, guessedUserId: string): Promise<voi
   const dayGuesses = this.userStats?.guesses.filter(g => g.day === day) || [];
 
   // Déterminer le prochain hint disponible à deviner
-  let hintNumber = 0;
-  dayData.hints.forEach((hint, index) => {
+  // Trouve le premier hint révélé qui n'a pas encore été deviné
+  const nextHint = dayData.hints.find((hint, index) => {
     const guessMade = dayGuesses.some(g => g.hint_number === index + 1);
-    if (hint.revealed && !guessMade && hintNumber === 0) {
-      hintNumber = index + 1;
-    }
+    return hint.revealed && !guessMade;
   });
+
+  // Si trouvé, récupère son numéro (index + 1), sinon 0
+  const hintNumber = nextHint ? dayData.hints.indexOf(nextHint) + 1 : 0;
+
 
   if (hintNumber === 0) {
     alert('Aucun indice disponible pour deviner pour le moment !');

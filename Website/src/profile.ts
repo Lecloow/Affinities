@@ -582,7 +582,7 @@ private adjustServerTime(dateInput: string | Date): Date {
 
     return `
       <div class="user-score-section">
-        <div class="user-score-label">Votre Score Total</div>
+        <div class="user-score-label">Ton Score Total</div>
         <div class="user-score-value">${this.userStats.total_points} pts</div>
         <a href="./leaderboard.html" class="leaderboard-link-btn">Voir le classement 🏆</a>
       </div>
@@ -642,7 +642,7 @@ private adjustServerTime(dateInput: string | Date): Date {
     let guessHistoryHtml = '';
     if (dayGuesses.length > 0) {
       guessHistoryHtml = '<div class="guess-history">';
-      guessHistoryHtml += '<div class="guess-history-title">Vos tentatives:</div>';
+      guessHistoryHtml += '<div class="guess-history-title">Tes tentatives:</div>';
       dayGuesses.forEach(g => {
         const icon = g.is_correct ? '✓' : '✗';
         const className = g.is_correct ? 'success' : 'error';
@@ -665,7 +665,7 @@ private adjustServerTime(dateInput: string | Date): Date {
           <div class="guess-section disabled">
             <div class="guess-title">🎯 Deviner mon âme sœur</div>
             <div class="guess-description">
-              Révélez au moins un indice pour pouvoir deviner qui est votre âme sœur!
+              Révèles au moins un indice pour pouvoir deviner qui est ton âme sœur!
             </div>
           </div>
         `;
@@ -675,7 +675,7 @@ private adjustServerTime(dateInput: string | Date): Date {
             <div class="guess-title">🎯 Deviner mon âme sœur</div>
             ${guessHistoryHtml}
             <div class="guess-description">
-              Révélez le prochain indice pour faire une nouvelle tentative!
+              Révèles le prochain indice pour faire une nouvelle tentative!
             </div>
           </div>
         `;
@@ -688,14 +688,14 @@ private adjustServerTime(dateInput: string | Date): Date {
         <div class="guess-title">🎯 Deviner mon âme sœur (Indice ${availableHintNumber})</div>
         ${guessHistoryHtml}
         <div class="guess-description">
-          Si vous devinez correctement avec cet indice, vous gagnerez <strong>${potentialPoints} points</strong>!
+          Si tu devines correctement avec cet indice, tu gagneras <strong>${potentialPoints} points</strong>!
         </div>
         <form class="guess-form">
           <div class="autocomplete-container">
             <input 
               type="text" 
               class="guess-input" 
-              placeholder="Tapez le prénom ou nom..." 
+              placeholder="Tapes le prénom ou nom..." 
               autocomplete="off"
               required
             />
@@ -742,13 +742,13 @@ private adjustServerTime(dateInput: string | Date): Date {
       await this.loadAndRenderHints();
 
       if (result.is_correct) {
-        alert(`🎉 ${result.message}\n\nVous avez gagné ${result.points_earned} points!`);
+        alert(`🎉 ${result.message}\n\nTu as gagné ${result.points_earned} points!`);
       } else {
         alert(`😔 ${result.message}`);
       }
     } catch (error: any) {
       console.error('Error submitting guess:', error);
-      alert(error.message || 'Erreur lors de l\'envoi de votre réponse. Veuillez réessayer.');
+      alert(error.message || 'Erreur lors de l\'envoi de ta réponse. Veuillez réessayer.');
       await this.loadAndRenderHints();
     }
   }
@@ -801,19 +801,19 @@ private adjustServerTime(dateInput: string | Date): Date {
 
     container.innerHTML = `
       <div class="reveal-code-section">
-        <div class="reveal-code-title">🎁 Votre Code Secret</div>
+        <div class="reveal-code-title">🎁 Ton Code Secret</div>
         <div class="reveal-code-display">
           <div class="reveal-code-value">${codeData.code}</div>
         </div>
         ${exchangeStatus}
         <div class="reveal-code-description">
-          Partagez ce code avec votre âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
+          Partages ce code avec ton âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
         </div>
         <form class="code-exchange-form">
           <input 
             type="text" 
             class="code-exchange-input" 
-            placeholder="Code de votre âme sœur" 
+            placeholder="Code de ton âme sœur" 
             maxlength="6"
             ${codeData.exchanged ? 'disabled' : ''}
             required
@@ -857,7 +857,7 @@ private adjustServerTime(dateInput: string | Date): Date {
       
       await this.loadAndRenderHints();
 
-      alert(`🎉 ${result.message}\n\nVous avez gagné ${result.points_earned} points bonus!`);
+      alert(`🎉 ${result.message}\n\nTu as gagné ${result.points_earned} points bonus!`);
     } catch (error: any) {
       console.error('Error exchanging code:', error);
       alert(error.message || 'Code invalide ou erreur lors de l\'échange. Veuillez vérifier et réessayer.');

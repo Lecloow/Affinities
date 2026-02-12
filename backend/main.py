@@ -1812,7 +1812,7 @@ def exchange_code(request: ExchangeCodeRequest):
             raise HTTPException(400, "Tu as déjà échangé ton code pour aujourd'hui !")
         
         # Award bonus points (50 points for code exchange)
-        bonus_points = 50
+        bonus_points = 100
         
         # Update user's code as exchanged
         cursor.execute("""

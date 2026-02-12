@@ -150,15 +150,16 @@ private adjustServerTime(dateInput: string | Date): Date {
     this.userStats = userStats;
     this.candidates = candidates;
 
-    // 👇 AJOUT IMPORTANT ICI
-    if (Array.isArray(this.hintsData)) {
-      const unlockedHints = this.hintsData.filter(h => h.is_unlocked);
-      this.currentHintNumber = unlockedHints.length;
+    // 🔥 Calcul correct du nombre d'indices révélés
+    if (this.hintsData) {
+      let count = 0;
+      if (this.hintsData.hint1_revealed) count++;
+      if (this.hintsData.hint2_revealed) count++;
+      if (this.hintsData.hint3_revealed) count++;
+      this.currentHintNumber = count;
     } else {
       this.currentHintNumber = 0;
     }
-
-    console.log("Current hint number updated:", this.currentHintNumber);
 
     this.renderHints();
 
@@ -175,6 +176,7 @@ private adjustServerTime(dateInput: string | Date): Date {
     }
   }
 }
+
 
 
   private renderHints(): void {

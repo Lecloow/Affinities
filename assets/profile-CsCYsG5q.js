@@ -106,7 +106,7 @@ import{S as g,A as f}from"./storage-CNG1vvmV.js";/* empty css                */c
         </div>
       `}return s}updateTimersOnly(){if(!this.hintsData)return;document.querySelectorAll("[data-timer]").forEach(a=>{const s=a.dataset.target;if(!s)return;const n=new Date(s),i=new Date,t=n.getTime()-i.getTime(),o=a.querySelector(".timer-value");if(!o)return;if(t<=0){o.textContent="maintenant !",this.loadAndRenderHints();return}const r=Math.floor(t%(1e3*60*60)/6e4),c=Math.floor(t%6e4/1e3),l=r>0?`${r}min ${c}s`:`${c}s`;o.textContent=l})}renderUserScore(){return this.userStats?`
       <div class="user-score-section">
-        <div class="user-score-label">Votre Score Total</div>
+        <div class="user-score-label">Ton Score Total</div>
         <div class="user-score-value">${this.userStats.total_points} pts</div>
         <a href="./leaderboard.html" class="leaderboard-link-btn">Voir le classement 🏆</a>
       </div>
@@ -117,15 +117,15 @@ import{S as g,A as f}from"./storage-CNG1vvmV.js";/* empty css                */c
             Le temps pour deviner est écoulé. L'identité a été révélée!
           </div>
         </div>
-      `;const i=(($=this.userStats)==null?void 0:$.guesses.filter(d=>d.day===e.day))||[],t=e.hints,o=((y=t[0])==null?void 0:y.revealed)||!1,r=((w=t[1])==null?void 0:w.revealed)||!1,c=((S=t[2])==null?void 0:S.revealed)||!1,l=i.some(d=>d.hint_number===1),u=i.some(d=>d.hint_number===2),v=i.some(d=>d.hint_number===3);let h=0,m=0;o&&!l?(h=1,m=100):r&&!u?(h=2,m=75):c&&!v&&(h=3,m=50);let p="";return i.length>0&&(p='<div class="guess-history">',p+='<div class="guess-history-title">Vos tentatives:</div>',i.forEach(d=>{var x;const H=d.is_correct?"✓":"✗",E=d.is_correct?"success":"error",b=(x=this.candidates)==null?void 0:x.candidates.find(_=>_.id===d.guessed_user_id),T=b?`${b.first_name} ${b.last_name}`:"Inconnu";p+=`
-          <div class="guess-history-item ${E}">
-            ${H} Indice ${d.hint_number}: ${T} ${d.is_correct?`(+${d.points_earned}pts)`:""}
+      `;const i=(($=this.userStats)==null?void 0:$.guesses.filter(d=>d.day===e.day))||[],t=e.hints,o=((y=t[0])==null?void 0:y.revealed)||!1,r=((w=t[1])==null?void 0:w.revealed)||!1,c=((S=t[2])==null?void 0:S.revealed)||!1,l=i.some(d=>d.hint_number===1),u=i.some(d=>d.hint_number===2),v=i.some(d=>d.hint_number===3);let h=0,m=0;o&&!l?(h=1,m=100):r&&!u?(h=2,m=75):c&&!v&&(h=3,m=50);let p="";return i.length>0&&(p='<div class="guess-history">',p+='<div class="guess-history-title">Tes tentatives:</div>',i.forEach(d=>{var x;const T=d.is_correct?"✓":"✗",H=d.is_correct?"success":"error",b=(x=this.candidates)==null?void 0:x.candidates.find(_=>_.id===d.guessed_user_id),E=b?`${b.first_name} ${b.last_name}`:"Inconnu";p+=`
+          <div class="guess-history-item ${H}">
+            ${T} Indice ${d.hint_number}: ${E} ${d.is_correct?`(+${d.points_earned}pts)`:""}
           </div>
         `}),p+="</div>"),h===0?[o,r,c].filter(Boolean).length===0?`
           <div class="guess-section disabled">
             <div class="guess-title">🎯 Deviner mon âme sœur</div>
             <div class="guess-description">
-              Révélez au moins un indice pour pouvoir deviner qui est votre âme sœur!
+              Révèles au moins un indice pour pouvoir deviner qui est ton âme sœur!
             </div>
           </div>
         `:`
@@ -133,7 +133,7 @@ import{S as g,A as f}from"./storage-CNG1vvmV.js";/* empty css                */c
             <div class="guess-title">🎯 Deviner mon âme sœur</div>
             ${p}
             <div class="guess-description">
-              Révélez le prochain indice pour faire une nouvelle tentative!
+              Révèles le prochain indice pour faire une nouvelle tentative!
             </div>
           </div>
         `:`
@@ -141,14 +141,14 @@ import{S as g,A as f}from"./storage-CNG1vvmV.js";/* empty css                */c
         <div class="guess-title">🎯 Deviner mon âme sœur (Indice ${h})</div>
         ${p}
         <div class="guess-description">
-          Si vous devinez correctement avec cet indice, vous gagnerez <strong>${m} points</strong>!
+          Si tu devines correctement avec cet indice, tu gagneras <strong>${m} points</strong>!
         </div>
         <form class="guess-form">
           <div class="autocomplete-container">
             <input 
               type="text" 
               class="guess-input" 
-              placeholder="Tapez le prénom ou nom..." 
+              placeholder="Tapes le prénom ou nom..." 
               autocomplete="off"
               required
             />
@@ -159,7 +159,7 @@ import{S as g,A as f}from"./storage-CNG1vvmV.js";/* empty css                */c
       </div>
     `}calculateGuessPoints(e){return{1:100,2:75,3:50}[e]||0}async handleSubmitGuess(e,a){const s=g.getUser();if(!s)return;const n=document.querySelector(".guess-section[data-hint-number]"),i=parseInt((n==null?void 0:n.dataset.hintNumber)||"0");if(i===0){alert("Erreur: numéro d'indice invalide");return}try{const t=document.querySelector(".guess-form"),o=t==null?void 0:t.querySelector(".guess-submit-btn");o&&(o.disabled=!0,o.textContent="Envoi en cours...");const r=await f.submitGuess(s.id,e,i,a);await this.loadAndRenderHints(),r.is_correct?alert(`🎉 ${r.message}
 
-Vous avez gagné ${r.points_earned} points!`):alert(`😔 ${r.message}`)}catch(t){console.error("Error submitting guess:",t),alert(t.message||"Erreur lors de l'envoi de votre réponse. Veuillez réessayer."),await this.loadAndRenderHints()}}renderRevealCodeSection(e){if(!e.match_revealed)return"";const a=g.getUser();return a?(this.loadRevealCode(a.id,e.day),`<div id="reveal-code-container-${e.day}"></div>`):""}async loadRevealCode(e,a){try{const s=await f.getRevealCode(e,a),n=document.getElementById(`reveal-code-container-${a}`);if(!n)return;if(!s.available){n.innerHTML="";return}if(s.both_exchanged){n.innerHTML=`
+Tu as gagné ${r.points_earned} points!`):alert(`😔 ${r.message}`)}catch(t){console.error("Error submitting guess:",t),alert(t.message||"Erreur lors de l'envoi de ta réponse. Veuillez réessayer."),await this.loadAndRenderHints()}}renderRevealCodeSection(e){if(!e.match_revealed)return"";const a=g.getUser();return a?(this.loadRevealCode(a.id,e.day),`<div id="reveal-code-container-${e.day}"></div>`):""}async loadRevealCode(e,a){try{const s=await f.getRevealCode(e,a),n=document.getElementById(`reveal-code-container-${a}`);if(!n)return;if(!s.available){n.innerHTML="";return}if(s.both_exchanged){n.innerHTML=`
         <div class="reveal-code-section">
           <div class="reveal-code-title">🎁 Code d'échange</div>
           <div class="code-exchange-success">
@@ -168,19 +168,19 @@ Vous avez gagné ${r.points_earned} points!`):alert(`😔 ${r.message}`)}catch(t
         </div>
       `;return}const i=s.exchanged?'<div class="code-exchange-pending">⏳ En attente que votre âme sœur échange son code...</div>':"";n.innerHTML=`
       <div class="reveal-code-section">
-        <div class="reveal-code-title">🎁 Votre Code Secret</div>
+        <div class="reveal-code-title">🎁 Ton Code Secret</div>
         <div class="reveal-code-display">
           <div class="reveal-code-value">${s.code}</div>
         </div>
         ${i}
         <div class="reveal-code-description">
-          Partagez ce code avec votre âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
+          Partages ce code avec ton âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
         </div>
         <form class="code-exchange-form">
           <input 
             type="text" 
             class="code-exchange-input" 
-            placeholder="Code de votre âme sœur" 
+            placeholder="Code de ton âme sœur" 
             maxlength="6"
             ${s.exchanged?"disabled":""}
             required
@@ -192,4 +192,4 @@ Vous avez gagné ${r.points_earned} points!`):alert(`😔 ${r.message}`)}catch(t
       </div>
     `;const t=n.querySelector(".code-exchange-form");t&&!s.exchanged&&t.addEventListener("submit",async o=>{o.preventDefault();const r=t.querySelector(".code-exchange-input");r&&r.value&&await this.handleExchangeCode(a,r.value)})}catch(s){console.error("Error loading reveal code:",s)}}async handleExchangeCode(e,a){const s=g.getUser();if(s)try{const n=document.querySelector(".code-exchange-form"),i=n==null?void 0:n.querySelector(".code-exchange-btn");i&&(i.disabled=!0,i.textContent="Échange en cours...");const t=await f.exchangeCode(s.id,e,a.toUpperCase());await this.loadAndRenderHints(),alert(`🎉 ${t.message}
 
-Vous avez gagné ${t.points_earned} points bonus!`)}catch(n){console.error("Error exchanging code:",n),alert(n.message||"Code invalide ou erreur lors de l'échange. Veuillez vérifier et réessayer."),await this.loadAndRenderHints()}}}window.logout=function(){g.clearUser(),window.location.href="./index.html"};document.addEventListener("DOMContentLoaded",()=>{new D});
+Tu as gagné ${t.points_earned} points bonus!`)}catch(n){console.error("Error exchanging code:",n),alert(n.message||"Code invalide ou erreur lors de l'échange. Veuillez vérifier et réessayer."),await this.loadAndRenderHints()}}}window.logout=function(){g.clearUser(),window.location.href="./index.html"};document.addEventListener("DOMContentLoaded",()=>{new D});

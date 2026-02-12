@@ -29,7 +29,7 @@ import{S as o,A as h}from"./storage-CNG1vvmV.js";/* empty css                */c
           <p>Thanks to the Comité de promo 2026</p>
           <div class="credits-source-row">
             <span>Code source :</span>
-            <a class="credits-github" href="#" target="_blank" rel="noopener">
+            <a class="credits-github" href="https://github.com/Lecloow/SaintValentin_Event" target="_blank" rel="noopener">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="#ddd" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8 0C3.58 0 0 3.58 0 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
               </svg>
@@ -46,13 +46,20 @@ import{S as o,A as h}from"./storage-CNG1vvmV.js";/* empty css                */c
           <div class="error-state">Impossible de charger le classement.</div>
         `)}}renderLeaderboard(){if(!this.leaderboardData||!this.contentEl)return;const t=document.getElementById("leaderboard-section");if(!t)return;if(this.leaderboardData.leaderboard.length===0){t.innerHTML=`
         <div class="info-state">Le classement sera disponible une fois que des participants auront obtenu des points.</div>
-      `;return}const a=o.getUser(),s=a==null?void 0:a.id;let r='<div class="leaderboard-container">';const i=new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});r+=`<div class="leaderboard-update-time">Dernière mise à jour : ${i}</div>`,this.leaderboardData.leaderboard.forEach(e=>{const d=e.user_id===s,l=e.rank===1?"rank-1":e.rank===2?"rank-2":e.rank===3?"rank-3":"",c=d?"current-user":"",n=e.rank===1?"🥇":e.rank===2?"🥈":e.rank===3?"🥉":"";r+=`
+      `;return}const a=o.getUser(),s=a==null?void 0:a.id;let r='<div class="leaderboard-container">';const d=new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});r+=`
+        <div class="leaderboard-update-time">Dernière mise à jour : ${d}</div>
+        <div class="leaderboard-comment">
+            Suite aux bugs d’hier, nous avons décidé de réinitialiser le classement pour repartir sur de bonnes bases.<br>
+            Merci de votre compréhension.
+         </div>
+
+    `,this.leaderboardData.leaderboard.forEach(e=>{const i=e.user_id===s,l=e.rank===1?"rank-1":e.rank===2?"rank-2":e.rank===3?"rank-3":"",c=i?"current-user":"",n=e.rank===1?"🥇":e.rank===2?"🥈":e.rank===3?"🥉":"";r+=`
         <div class="leaderboard-row ${l} ${c}">
           <div class="leaderboard-rank">
             ${n||`#${e.rank}`}
           </div>
           <div class="leaderboard-info">
-            <div class="leaderboard-name">${e.first_name} ${e.last_name}${d?" (Vous)":""}</div>
+            <div class="leaderboard-name">${e.first_name} ${e.last_name}${i?" (Toi)":""}</div>
             <div class="leaderboard-class">${e.currentClass}</div>
           </div>
           <div class="leaderboard-points">

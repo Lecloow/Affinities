@@ -703,9 +703,9 @@ export class ProfilePage {
 
   private calculateGuessPoints(hintNumber: number): number {
     const pointsMap: { [key: number]: number } = {
-      1: 75,
-      2: 50,
-      3: 25
+      1: 100,
+      2: 75,
+      3: 60
     };
     return pointsMap[hintNumber] || 0;
   }

@@ -1458,9 +1458,9 @@ def calculate_guess_points(hints_revealed_count: int) -> int:
     3 hints revealed = 25 points
     """
     points_map = {
-        1: 75,
-        2: 50,
-        3: 25
+        1: 100,
+        2: 75,
+        3: 60
     }
     return points_map.get(hints_revealed_count, 0)
 

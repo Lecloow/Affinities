@@ -732,14 +732,29 @@ private async loadAndRenderHints(): Promise<void> {
     return pointsMap[hintNumber] || 0;
   }
 
-  private async handleSubmitGuess(day: number, guessedUserId: string): Promise<void> {
+private async handleSubmitGuess(day: number, guessedUserId: string): Promise<void> {
   const user = StorageService.getUser();
   if (!user) return;
 
-  const hintNumber = this.currentHintNumber + 1; // On devine le prochain hint à deviner
+  const dayData = this.hintsData?.days.find(d => d.day === day);
+  if (!dayData) {
+    alert('Impossible de trouver les indices pour ce jour');
+    return;
+  }
 
-  if (!hintNumber || hintNumber <= 0 || hintNumber > 3) {
-    alert('Erreur: numéro d\'indice invalide');
+  const dayGuesses = this.userStats?.guesses.filter(g => g.day === day) || [];
+
+  // Déterminer le prochain hint disponible à deviner
+  let hintNumber = 0;
+  dayData.hints.forEach((hint, index) => {
+    const guessMade = dayGuesses.some(g => g.hint_number === index + 1);
+    if (hint.revealed && !guessMade && hintNumber === 0) {
+      hintNumber = index + 1;
+    }
+  });
+
+  if (hintNumber === 0) {
+    alert('Aucun indice disponible pour deviner pour le moment !');
     return;
   }
 
@@ -751,16 +766,14 @@ private async loadAndRenderHints(): Promise<void> {
       submitBtn.textContent = 'Envoi en cours...';
     }
 
-    // 🔥 Envoi du guess au backend
     const result = await ApiService.submitGuess(user.id, day, hintNumber, guessedUserId);
 
-    // Recharge les hints pour mettre à jour l'état
     await this.loadAndRenderHints();
 
     if (result.is_correct) {
       alert(`🎉 ${result.message}\n\nTu as gagné ${result.points_earned} points!`);
     } else {
-      alert(`😔 ${result.message}`);
+      alert(`😔 ${result.message} ${hintNumber}`);
     }
 
   } catch (error: any) {
@@ -768,15 +781,16 @@ private async loadAndRenderHints(): Promise<void> {
     alert(error.message || 'Erreur lors de l\'envoi de ta réponse. Veuillez réessayer.');
     await this.loadAndRenderHints();
   } finally {
-    // Reset button
     const guessForm = document.querySelector('.guess-form');
     const submitBtn = guessForm?.querySelector('.guess-submit-btn') as HTMLButtonElement;
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Envoyer';
+      submitBtn.textContent = 'Valider mon choix';
     }
   }
 }
+
+
 
 
   // ─── Reveal Code Section ─────────────────────────────────────────────────

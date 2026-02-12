@@ -827,8 +827,7 @@ private async handleSubmitGuess(day: number, guessedUserId: string): Promise<voi
       `;
       return;
     }
-
-    // Afficher le code (même si exchanged = true, tant que both_exchanged = false)
+    // Show the code until both type it
     const exchangeStatus = codeData.exchanged
       ? '<div class="code-exchange-pending">⏳ En attente que ton âme sœur échange son code...</div>'
       : '';

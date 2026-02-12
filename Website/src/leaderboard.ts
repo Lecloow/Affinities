@@ -130,9 +130,11 @@ export class LeaderboardPage {
     const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     rows += `
         <div class="leaderboard-update-time">Dernière mise à jour : ${timeStr}</div>
-        <div class="leaderboard-update-time">Comme vous avez pu le constater, hier nous avons subi quelques bugs, la decision que nous avont donc prise a ete d'effacer le classment</div>
-        <div class="leaderboard-update-time">Suite aux bugs d’hier, nous avons décidé de réinitialiser le classement pour repartir sur de bonnes bases. 
-Merci de votre compréhension.</div>
+        <div class="leaderboard-comment">
+            Suite aux bugs d’hier, nous avons décidé de réinitialiser le classement pour repartir sur de bonnes bases.<br>
+            Merci de votre compréhension.
+         </div>
+
     `;
 
     this.leaderboardData.leaderboard.forEach((entry) => {
@@ -148,7 +150,7 @@ Merci de votre compréhension.</div>
             ${medal ? medal : `#${entry.rank}`}
           </div>
           <div class="leaderboard-info">
-            <div class="leaderboard-name">${entry.first_name} ${entry.last_name}${isCurrentUser ? ' (Vous)' : ''}</div>
+            <div class="leaderboard-name">${entry.first_name} ${entry.last_name}${isCurrentUser ? ' (Toi)' : ''}</div>
             <div class="leaderboard-class">${entry.currentClass}</div>
           </div>
           <div class="leaderboard-points">

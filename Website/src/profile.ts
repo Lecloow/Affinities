@@ -16,6 +16,12 @@ export class ProfilePage {
     window.addEventListener('beforeunload', () => this.cleanup());
   }
 
+private adjustServerTime(dateInput: string | Date): Date {
+  const date = new Date(dateInput);
+  date.setHours(date.getHours() + 1);
+  return date;
+}
+
   private cleanup(): void {
     if (this.refreshInterval !== null) {
       window.clearInterval(this.refreshInterval);
@@ -344,7 +350,7 @@ export class ProfilePage {
   /** Returns the full time tag HTML for a hint */
   private getHintTimeTagHtml(hint: Hint): string {
     const now = new Date();
-    const dropTime = new Date(hint.drop_time);
+    const dropTime = this.adjustServerTime(hint.drop_time);
 
     if (hint.revealed || hint.available) {
       // Show "Il y a X"

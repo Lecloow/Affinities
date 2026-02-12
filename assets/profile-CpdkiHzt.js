@@ -180,7 +180,7 @@ Tu gagne ${u.points_earned} points!`):alert(`😔 ${u.message}`)}catch(l){consol
         </div>
         ${i}
         <div class="reveal-code-description">
-          Partages ce code avec ton âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>50 points bonus</strong>!
+          Partages ce code avec ton âme sœur! Si vous échangez vos codes, vous gagnerez tous les deux <strong>100 points bonus</strong>!
         </div>
         <form class="code-exchange-form">
           <input 

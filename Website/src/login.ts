@@ -1,6 +1,5 @@
 import { ApiService } from './api';
 import { StorageService } from './storage';
-import { LoginPayload } from './types';
 
 export class LoginPage {
   private form: HTMLFormElement | null = null;

@@ -82,6 +82,7 @@ export interface RevealCodeResponse {
   available: boolean;
   code?: string;
   exchanged?: boolean;
+  both_exchanged?: boolean;
   message?: string;
 }
 

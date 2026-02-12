@@ -9,7 +9,7 @@ export class ProfilePage {
   private candidates: CandidatesResponse | null = null;
   private refreshInterval: number | null = null;
   private timerInterval: number | null = null;
-  private selectedDay: number = 1; // Default to day 1 (Jeudi)
+  private selectedDay: number = 1;
 
   constructor() {
     this.init();
@@ -111,7 +111,7 @@ private adjustServerTime(dateInput: string | Date): Date {
           <p>Thanks to the Comité de promo 2026</p>
           <div class="credits-source-row">
             <span>Code source :</span>
-            <a class="credits-github" href="#" target="_blank" rel="noopener">
+            <a class="credits-github" href="https://github.com/Lecloow/SaintValentin_Event" target="_blank" rel="noopener">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="#ddd" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
               </svg>
@@ -149,17 +149,6 @@ private async loadAndRenderHints(): Promise<void> {
     this.hintsData = hintsData;
     this.userStats = userStats;
     this.candidates = candidates;
-
-    // 🔥 Calcul correct du nombre d'indices révélés
-    if (this.hintsData) {
-      let count = 0;
-      if (this.hintsData.hint1_revealed) count++;
-      if (this.hintsData.hint2_revealed) count++;
-      if (this.hintsData.hint3_revealed) count++;
-      this.currentHintNumber = count;
-    } else {
-      this.currentHintNumber = 0;
-    }
 
     this.renderHints();
 
@@ -363,81 +352,82 @@ private async loadAndRenderHints(): Promise<void> {
 
   // ─── Time tag helpers ────────────────────────────────────────────────────
 
-  /** Returns the full time tag HTML for a hint */
-  private getHintTimeTagHtml(hint: Hint): string {
+  private getTimeTagHtml(
+    targetTime: Date,
+    options: {
+      isActive: boolean;        // équivalent de revealed/available
+      nowLabel?: string;        // "Disponible !" ou "Maintenant !"
+    }
+  ): string {
     const now = new Date();
-    const dropTime = this.adjustServerTime(hint.drop_time);
+    const diff = targetTime.getTime() - now.getTime();
 
-    if (hint.revealed || hint.available) {
-      // Show "Il y a X"
-      const diff = now.getTime() - dropTime.getTime();
-      const totalMinutes = Math.floor(diff / 60000);
+
+    // Passe (il y a x min/heures)
+    if (options.isActive) {
+      const pastDiff = now.getTime() - targetTime.getTime();
+      const totalMinutes = Math.floor(pastDiff / 60000);
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
 
       let timeStr: string;
+
       if (hours > 0) {
         timeStr = `${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`;
-      } else if (minutes > 0) {
-        timeStr = `${minutes} min`;
       } else {
-        timeStr = '1 min';
+        timeStr = `${totalMinutes > 0 ? totalMinutes : 1} min`;
       }
-      return `<span class="time-tag"><span>Il y a</span><span>${timeStr}</span></span>`;
-    } else {
-      // Locked — show "Dans X" or "A HHhMM"
-      const diff = dropTime.getTime() - now.getTime();
-      if (diff <= 0) {
-        return `<span class="time-tag">Disponible !</span>`;
-      }
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / 60000);
-      const seconds = Math.floor((diff % 60000) / 1000);
 
-      if (diff < 60 * 60 * 1000) {
-        // under 1 hour → countdown "Dans Xmin Xs"
-        const countdown = minutes > 0 ? `${minutes}min ${seconds}s` : `${seconds}s`;
-        return `<span class="time-tag" data-timer data-target="${dropTime.toISOString()}"><span>Dans</span><span class="timer-value">${countdown}</span></span>`;
-      } else {
-        // Show scheduled time "A HHhMM"
-        const timeStr = dropTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-          .replace(':', 'h');
-        return `<span class="time-tag"><span>A</span><span>${timeStr}</span></span>`;
-      }
-    }
-  }
-
-  private getRevealTimeTagHtml(revealTime: Date, isRevealed: boolean): string {
-    const now = new Date();
-    if (isRevealed) {
-      const diff = now.getTime() - revealTime.getTime();
-      const totalMinutes = Math.floor(diff / 60000);
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-      const timeStr = hours > 0
-        ? `${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`
-        : `${totalMinutes > 0 ? totalMinutes : 1} min`;
       return `<span class="time-tag"><span>Il y a</span><span>${timeStr}</span></span>`;
     }
 
-    const diff = revealTime.getTime() - now.getTime();
     if (diff <= 0) {
-      return `<span class="time-tag">Maintenant !</span>`;
+      return `<span class="time-tag">${options.nowLabel ?? 'Maintenant !'}</span>`;
     }
 
+
+    // Futur(dans x min/heures ou à HHhMM)
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
 
     if (diff < 60 * 60 * 1000) {
-      const countdown = minutes > 0 ? `${minutes}min ${seconds}s` : `${seconds}s`;
-      return `<span class="time-tag" data-timer data-target="${revealTime.toISOString()}"><span>Dans</span><span class="timer-value">${countdown}</span></span>`;
+      const countdown = minutes > 0
+        ? `${minutes}min ${seconds}s`
+        : `${seconds}s`;
+
+      return `<span class="time-tag" data-timer data-target="${targetTime.toISOString()}">
+                <span>Dans</span>
+                <span class="timer-value">${countdown}</span>
+              </span>`;
     }
 
-    const timeStr = revealTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    const timeStr = targetTime
+      .toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
       .replace(':', 'h');
+
     return `<span class="time-tag"><span>A</span><span>${timeStr}</span></span>`;
   }
+
+  private getHintTimeTagHtml(hint: Hint): string {
+    const dropTime = this.adjustServerTime(hint.drop_time);
+
+    return this.getTimeTagHtml(dropTime, {
+      isActive: hint.revealed || hint.available,
+      nowLabel: 'Disponible !'
+    });
+  }
+
+
+  private getRevealTimeTagHtml(revealTime: Date, isRevealed: boolean): string {
+    const dropTime = this.adjustServerTime(revealTime);
+
+    return this.getTimeTagHtml(dropTime, {
+      isActive: isRevealed,
+      nowLabel: 'Maintenant !'
+    });
+  }
+
 
   // ─── Hint content rendering ──────────────────────────────────────────────
 
@@ -640,19 +630,22 @@ private async loadAndRenderHints(): Promise<void> {
     const guess3Made = dayGuesses.some(g => g.hint_number === 3);
     
     // Determine which hint we can guess on
-    let availableHintNumber = 0;
-    let potentialPoints = 0;
-    
+   let availableHintNumber = 0;
+
     if (hint1Revealed && !guess1Made) {
       availableHintNumber = 1;
-      potentialPoints = 100;
     } else if (hint2Revealed && !guess2Made) {
       availableHintNumber = 2;
-      potentialPoints = 75;
     } else if (hint3Revealed && !guess3Made) {
       availableHintNumber = 3;
-      potentialPoints = 50;
     }
+
+    // Calculate potential points based on number of hints revealed (not hint number)
+    const hintsRevealedCount = [hint1Revealed, hint2Revealed, hint3Revealed].filter(Boolean).length;
+    let potentialPoints = 0;
+    if (hintsRevealedCount === 1) potentialPoints = 100;
+    else if (hintsRevealedCount === 2) potentialPoints = 75;
+    else if (hintsRevealedCount === 3) potentialPoints = 50;
     
     // Build guess history
     let guessHistoryHtml = '';
@@ -773,9 +766,9 @@ private async handleSubmitGuess(day: number, guessedUserId: string): Promise<voi
     await this.loadAndRenderHints();
 
     if (result.is_correct) {
-      alert(`🎉 ${result.message}\n\nTu as gagné ${result.points_earned} points!`);
+      alert(`🎉 ${result.message}\n\nTu gagne ${result.points_earned} points!`);
     } else {
-      alert(`😔 ${result.message} ${hintNumber}`);
+      alert(`😔 ${result.message}`);
     }
 
   } catch (error: any) {
@@ -823,7 +816,6 @@ private async handleSubmitGuess(day: number, guessedUserId: string): Promise<voi
       return;
     }
 
-    // MODIFICATION ICI : Remplacer codeData.exchanged par codeData.both_exchanged
     if (codeData.both_exchanged) {
       container.innerHTML = `
         <div class="reveal-code-section">
@@ -838,7 +830,7 @@ private async handleSubmitGuess(day: number, guessedUserId: string): Promise<voi
 
     // Afficher le code (même si exchanged = true, tant que both_exchanged = false)
     const exchangeStatus = codeData.exchanged
-      ? '<div class="code-exchange-pending">⏳ En attente que votre âme sœur échange son code...</div>'
+      ? '<div class="code-exchange-pending">⏳ En attente que ton âme sœur échange son code...</div>'
       : '';
 
     container.innerHTML = `
@@ -899,7 +891,7 @@ private async handleSubmitGuess(day: number, guessedUserId: string): Promise<voi
       
       await this.loadAndRenderHints();
 
-      alert(`🎉 ${result.message}\n\nTu as gagné ${result.points_earned} points bonus!`);
+      alert(`🎉 ${result.message}\n\nTu gagne ${result.points_earned} points bonus!`);
     } catch (error: any) {
       console.error('Error exchanging code:', error);
       alert(error.message || 'Code invalide ou erreur lors de l\'échange. Veuillez vérifier et réessayer.');

@@ -1453,9 +1453,9 @@ def get_hints_revealed_count(user_id: str, day: int) -> int:
 
 def calculate_guess_points(hints_revealed_count: int) -> int:
     """Calculate points based on how many hints are revealed.
-    1 hint revealed = 75 points
-    2 hints revealed = 50 points
-    3 hints revealed = 25 points
+    1 hint revealed = 100 points
+    2 hints revealed = 75 points
+    3 hints revealed = 50 points
     """
     points_map = {
         1: 100,
@@ -1605,35 +1605,35 @@ def submit_guess(request: GuessRequest):
         if not hints_revealed_map.get(hint_number):
             raise HTTPException(400, f"Hint {hint_number} must be revealed before you can guess")
 
-        # Get number of revealed hints for scoring
+        # Calculate number of hints revealed at time of guess (for DB record)
         hints_revealed = sum([hint1_revealed, hint2_revealed, hint3_revealed])
 
         # Check if guess is correct
         is_correct = (guessed_user_id == match_id)
 
-        # Calculate points: only award points if this is the FIRST CORRECT guess of the day
+        # Check if user has already guessed correctly for this day
+        cursor.execute("""
+                       SELECT id
+                       FROM guesses
+                       WHERE user_id = %s AND day = %s
+                         AND is_correct = TRUE
+                       """, (user_id, day))
+
+        if cursor.fetchone():
+            raise HTTPException(400, "Tu as déjà deviné correctement ton âme sœur pour ce jour !")
+
+        # Calculate points based on number of hints revealed (not hint_number)
         points_earned = 0
         if is_correct:
-            # Check if user has already guessed correctly for this day
-            # CORRECTION: Pas besoin de vérifier hint_number ici, juste si is_correct = TRUE
-            cursor.execute("""
-                SELECT id
-                FROM guesses
-                WHERE user_id = %s AND day = %s AND is_correct = TRUE
-            """, (user_id, day))
-
-            already_guessed_correctly = cursor.fetchone() is not None
-
-            if not already_guessed_correctly:
-                # Award points based on number of hints revealed
-                points_earned = calculate_guess_points(hints_revealed)
-                update_user_score(user_id, points_earned)
+            points_earned = calculate_guess_points(hints_revealed)  # hints_revealed au lieu de hint_number
+            update_user_score(user_id, points_earned)
 
         # Record the guess
         cursor.execute("""
-            INSERT INTO guesses (user_id, day, hint_number, guessed_user_id, hints_revealed, points_earned, is_correct)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (user_id, day, hint_number, guessed_user_id, hints_revealed, points_earned, is_correct))
+                       INSERT INTO guesses (user_id, day, hint_number, guessed_user_id, hints_revealed, points_earned,
+                                            is_correct)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s)
+                       """, (user_id, day, hint_number, guessed_user_id, hints_revealed, points_earned, is_correct))
 
         db.commit()
 
@@ -1643,9 +1643,9 @@ def submit_guess(request: GuessRequest):
             "points_earned": points_earned,
             "hint_number": hint_number,
             "hints_revealed": hints_revealed,
-            "message": f"Correct! You earned {points_earned} points!" if is_correct and points_earned > 0
-            else "Correct! But you already guessed correctly for this day." if is_correct
-            else f"Incorrect guess. Try again with the next hint!"
+            "message": f"Bien joué! Tu as trouvé ton âme soeur!" if is_correct and points_earned > 0
+            else "Correct! Mais tu as déja trouvé ton âme soeur d'aujourd'hui" if is_correct
+            else f"Dommage ce n'est pas ton âme soeur, réessaies au prochain indice"
         }
 
     except HTTPException:
@@ -1788,13 +1788,13 @@ def exchange_code(request: ExchangeCodeRequest):
         
         partner_row = cursor.fetchone()
         if not partner_row:
-            raise HTTPException(400, "Invalid code")
+            raise HTTPException(400, "Ce code ne correspond pas à celui de ton âme sœur.")
         
         partner_id, partner_exchanged = partner_row
         
         # Verify that the partner is the actual match
         if partner_id != match_id:
-            raise HTTPException(400, "This code does not belong to your soulmate")
+            raise HTTPException(400, "Ce code ne correspond pas à celui de ton âme sœur.")
         
         # Check if user has already exchanged their code
         cursor.execute("""
@@ -1809,7 +1809,7 @@ def exchange_code(request: ExchangeCodeRequest):
         user_exchanged = user_code_row[0]
         
         if user_exchanged:
-            raise HTTPException(400, "You have already exchanged your code for this day")
+            raise HTTPException(400, "Tu as déjà échangé ton code pour aujourd'hui !")
         
         # Award bonus points (50 points for code exchange)
         bonus_points = 50
@@ -1836,7 +1836,7 @@ def exchange_code(request: ExchangeCodeRequest):
         return {
             "success": True,
             "points_earned": bonus_points,
-            "message": "Code exchanged successfully! Bonus points awarded."
+            "message": "Le code a été échangé avec succès !"
         }
         
     except HTTPException:
@@ -1852,39 +1852,42 @@ def get_user_stats(user_id: str):
     try:
         # Get user's score
         cursor.execute("""
-            SELECT total_points, code_exchange_bonus FROM scores WHERE user_id = %s
-        """, (user_id,))
-        
+                       SELECT total_points, code_exchange_bonus
+                       FROM scores
+                       WHERE user_id = %s
+                       """, (user_id,))
+
         score_row = cursor.fetchone()
         total_points = score_row[0] if score_row else 0
         code_exchange_bonus = score_row[1] if score_row else 0
-        
-        # Get user's guesses
+
+        # Get user's guesses - AJOUTE hint_number ici !
         cursor.execute("""
-            SELECT day, guessed_user_id, hints_revealed, points_earned, is_correct, created_at
-            FROM guesses
-            WHERE user_id = %s
-            ORDER BY day
-        """, (user_id,))
-        
+                       SELECT day, hint_number, guessed_user_id, hints_revealed, points_earned, is_correct, created_at
+                       FROM guesses
+                       WHERE user_id = %s
+                       ORDER BY day, hint_number
+                       """, (user_id,))
+
         guesses = []
         for row in cursor.fetchall():
             guesses.append({
                 "day": row[0],
-                "guessed_user_id": row[1],
-                "hints_revealed": row[2],
-                "points_earned": row[3],
-                "is_correct": row[4],
-                "created_at": row[5].isoformat() if row[5] else None
+                "hint_number": row[1],
+                "guessed_user_id": row[2],
+                "hints_revealed": row[3],
+                "points_earned": row[4],
+                "is_correct": row[5],
+                "created_at": row[6].isoformat() if row[6] else None
             })
-        
+
         return {
             "user_id": user_id,
             "total_points": total_points,
             "code_exchange_bonus": code_exchange_bonus,
             "guesses": guesses
         }
-        
+
     except Exception as e:
         logging.exception(f"Error getting user stats: {e}")
         raise HTTPException(500, f"Error getting user stats: {str(e)}")

@@ -366,8 +366,19 @@ body {
   padding: 16px;
   border-radius: var(--radius-sm);
   border: 1px solid #c8d4ff;
-  font-size: 14px;
   text-align: center;
+}
+
+.info-h1{
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.info-comment {
+  font-size: 13px;
+  color: #4466cc;
+  line-height: 1.4;
 }
 
 /* ===== NOT CONNECTED ===== */

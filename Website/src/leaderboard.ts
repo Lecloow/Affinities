@@ -115,7 +115,15 @@ export class LeaderboardPage {
 
     if (this.leaderboardData.leaderboard.length === 0) {
       leaderboardSection.innerHTML = `
-        <div class="info-state">Le classement sera disponible une fois que des participants auront obtenu des points.</div>
+        <div class="info-state">
+          <div class="info-h1">
+            Le classement sera disponible une fois que des participants auront obtenu des points.
+          </div>
+          <div class="info-comment">
+              Suite aux bugs d’hier, nous avons décidé de réinitialiser le classement pour repartir sur de bonnes bases.<br>
+              Merci de votre compréhension.
+           </div>
+        </div>
       `;
       return;
     }

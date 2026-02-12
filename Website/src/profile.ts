@@ -717,41 +717,47 @@ private adjustServerTime(dateInput: string | Date): Date {
   }
 
   private async handleSubmitGuess(day: number, guessedUserId: string): Promise<void> {
-    const user = StorageService.getUser();
-    if (!user) return;
+  const user = StorageService.getUser();
+  if (!user) return;
 
-    // Get hint number from the guess section
-    const guessSection = document.querySelector('.guess-section[data-hint-number]') as HTMLElement;
-    const hintNumber = parseInt(guessSection?.dataset.hintNumber || '0');
-    
-    if (hintNumber === 0) {
-      alert('Erreur: numéro d\'indice invalide');
-      return;
-    }
+  const hintNumber = this.currentHintNumber;
 
-    try {
-      const guessForm = document.querySelector('.guess-form');
-      const submitBtn = guessForm?.querySelector('.guess-submit-btn') as HTMLButtonElement;
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Envoi en cours...';
-      }
-
-      const result = await ApiService.submitGuess(user.id, day, hintNumber, guessedUserId);
-      
-      await this.loadAndRenderHints();
-
-      if (result.is_correct) {
-        alert(`🎉 ${result.message}\n\nTu as gagné ${result.points_earned} points!`);
-      } else {
-        alert(`😔 ${result.message}`);
-      }
-    } catch (error: any) {
-      console.error('Error submitting guess:', error);
-      alert(error.message || 'Erreur lors de l\'envoi de ta réponse. Veuillez réessayer.');
-      await this.loadAndRenderHints();
-    }
+  if (!hintNumber || hintNumber <= 0) {
+    alert('Erreur: numéro d\'indice invalide');
+    return;
   }
+
+  try {
+    const guessForm = document.querySelector('.guess-form');
+    const submitBtn = guessForm?.querySelector('.guess-submit-btn') as HTMLButtonElement;
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Envoi en cours...';
+    }
+
+    const result = await ApiService.submitGuess(
+      user.id,
+      day,
+      hintNumber,
+      guessedUserId
+    );
+
+    await this.loadAndRenderHints();
+
+    if (result.is_correct) {
+      alert(`🎉 ${result.message}\n\nTu as gagné ${result.points_earned} points!`);
+    } else {
+      alert(`😔 ${result.message}`);
+    }
+
+  } catch (error: any) {
+    console.error('Error submitting guess:', error);
+    alert(error.message || 'Erreur lors de l\'envoi de ta réponse. Veuillez réessayer.');
+    await this.loadAndRenderHints();
+  }
+}
+
 
   // ─── Reveal Code Section ─────────────────────────────────────────────────
 

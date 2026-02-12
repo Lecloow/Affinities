@@ -130,38 +130,52 @@ private adjustServerTime(dateInput: string | Date): Date {
   }
 
   private async loadAndRenderHints(): Promise<void> {
-    const user = StorageService.getUser();
-    if (!user) return;
+  const user = StorageService.getUser();
+  if (!user) return;
 
-    try {
-      // Load hints, user stats, and candidates in parallel
-      const [hintsData, userStats, candidates] = await Promise.all([
-        ApiService.getHints(user.id),
-        ApiService.getUserStats(user.id).catch((error) => {
-          console.warn('Failed to load user stats:', error);
-          return { user_id: user.id, total_points: 0, code_exchange_bonus: 0, guesses: [] };
-        }),
-        ApiService.getCandidates(user.id).catch((error) => {
-          console.warn('Failed to load candidates:', error);
-          return { candidates: [] };
-        })
-      ]);
-      
-      this.hintsData = hintsData;
-      this.userStats = userStats;
-      this.candidates = candidates;
-      
-      this.renderHints();
-    } catch (error) {
-      console.error('Error loading hints:', error);
-      const hintsSection = document.getElementById('hints-section');
-      if (hintsSection) {
-        hintsSection.innerHTML = `
-          <div class="error-state">Impossible de charger les indices.<br>Les âmes soeurs n'ont peut-être pas encore été créés.</div>
-        `;
-      }
+  try {
+    const [hintsData, userStats, candidates] = await Promise.all([
+      ApiService.getHints(user.id),
+      ApiService.getUserStats(user.id).catch((error) => {
+        console.warn('Failed to load user stats:', error);
+        return { user_id: user.id, total_points: 0, code_exchange_bonus: 0, guesses: [] };
+      }),
+      ApiService.getCandidates(user.id).catch((error) => {
+        console.warn('Failed to load candidates:', error);
+        return { candidates: [] };
+      })
+    ]);
+    
+    this.hintsData = hintsData;
+    this.userStats = userStats;
+    this.candidates = candidates;
+
+    // 👇 AJOUT IMPORTANT ICI
+    if (Array.isArray(this.hintsData)) {
+      const unlockedHints = this.hintsData.filter(h => h.is_unlocked);
+      this.currentHintNumber = unlockedHints.length;
+    } else {
+      this.currentHintNumber = 0;
+    }
+
+    console.log("Current hint number updated:", this.currentHintNumber);
+
+    this.renderHints();
+
+  } catch (error) {
+    console.error('Error loading hints:', error);
+    const hintsSection = document.getElementById('hints-section');
+    if (hintsSection) {
+      hintsSection.innerHTML = `
+        <div class="error-state">
+          Impossible de charger les indices.<br>
+          Les âmes soeurs n'ont peut-être pas encore été créés.
+        </div>
+      `;
     }
   }
+}
+
 
   private renderHints(): void {
     if (!this.hintsData || !this.contentEl) return;

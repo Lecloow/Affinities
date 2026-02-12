@@ -669,17 +669,17 @@ def generate_hints_for_all_users():
     hint_schedules = [
         # Thursday Feb 12
         {
-            'hint1_time': datetime.datetime(2026, 2, 12, 10, 0, 0),
-            'hint2_time': datetime.datetime(2026, 2, 12, 12, 0, 0),
-            'hint3_time': datetime.datetime(2026, 2, 12, 13, 0, 0),
-            'reveal_time': datetime.datetime(2026, 2, 12, 15, 15, 0),
+            'hint1_time': datetime.datetime(2026, 2, 12, 9, 0, 0),
+            'hint2_time': datetime.datetime(2026, 2, 12, 11, 0, 0),
+            'hint3_time': datetime.datetime(2026, 2, 12, 12, 0, 0),
+            'reveal_time': datetime.datetime(2026, 2, 12, 14, 15, 0),
         },
         # Friday Feb 13
         {
-            'hint1_time': datetime.datetime(2026, 2, 13, 10, 0, 0),
-            'hint2_time': datetime.datetime(2026, 2, 13, 12, 0, 0),
-            'hint3_time': datetime.datetime(2026, 2, 13, 13, 0, 0),
-            'reveal_time': datetime.datetime(2026, 2, 13, 15, 15, 0),
+            'hint1_time': datetime.datetime(2026, 2, 13, 9, 0, 0),
+            'hint2_time': datetime.datetime(2026, 2, 13, 11, 0, 0),
+            'hint3_time': datetime.datetime(2026, 2, 13, 12, 0, 0),
+            'reveal_time': datetime.datetime(2026, 2, 13, 14, 15, 0),
         }
     ]
     

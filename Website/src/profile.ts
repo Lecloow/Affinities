@@ -629,13 +629,13 @@ private adjustServerTime(dateInput: string | Date): Date {
     
     if (hint1Revealed && !guess1Made) {
       availableHintNumber = 1;
-      potentialPoints = 75;
+      potentialPoints = 100;
     } else if (hint2Revealed && !guess2Made) {
       availableHintNumber = 2;
-      potentialPoints = 50;
+      potentialPoints = 75;
     } else if (hint3Revealed && !guess3Made) {
       availableHintNumber = 3;
-      potentialPoints = 25;
+      potentialPoints = 50;
     }
     
     // Build guess history
@@ -711,7 +711,7 @@ private adjustServerTime(dateInput: string | Date): Date {
     const pointsMap: { [key: number]: number } = {
       1: 100,
       2: 75,
-      3: 60
+      3: 50
     };
     return pointsMap[hintNumber] || 0;
   }

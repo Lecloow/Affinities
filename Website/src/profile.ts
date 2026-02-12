@@ -129,7 +129,7 @@ private adjustServerTime(dateInput: string | Date): Date {
     await this.loadAndRenderHints();
   }
 
-  private async loadAndRenderHints(): Promise<void> {
+private async loadAndRenderHints(): Promise<void> {
   const user = StorageService.getUser();
   if (!user) return;
 
@@ -736,9 +736,9 @@ private adjustServerTime(dateInput: string | Date): Date {
   const user = StorageService.getUser();
   if (!user) return;
 
-  const hintNumber = this.currentHintNumber;
+  const hintNumber = this.currentHintNumber + 1; // On devine le prochain hint à deviner
 
-  if (!hintNumber || hintNumber <= 0) {
+  if (!hintNumber || hintNumber <= 0 || hintNumber > 3) {
     alert('Erreur: numéro d\'indice invalide');
     return;
   }
@@ -746,19 +746,15 @@ private adjustServerTime(dateInput: string | Date): Date {
   try {
     const guessForm = document.querySelector('.guess-form');
     const submitBtn = guessForm?.querySelector('.guess-submit-btn') as HTMLButtonElement;
-
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Envoi en cours...';
     }
 
-    const result = await ApiService.submitGuess(
-      user.id,
-      day,
-      hintNumber,
-      guessedUserId
-    );
+    // 🔥 Envoi du guess au backend
+    const result = await ApiService.submitGuess(user.id, day, hintNumber, guessedUserId);
 
+    // Recharge les hints pour mettre à jour l'état
     await this.loadAndRenderHints();
 
     if (result.is_correct) {
@@ -771,6 +767,14 @@ private adjustServerTime(dateInput: string | Date): Date {
     console.error('Error submitting guess:', error);
     alert(error.message || 'Erreur lors de l\'envoi de ta réponse. Veuillez réessayer.');
     await this.loadAndRenderHints();
+  } finally {
+    // Reset button
+    const guessForm = document.querySelector('.guess-form');
+    const submitBtn = guessForm?.querySelector('.guess-submit-btn') as HTMLButtonElement;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Envoyer';
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 # RoadMap:
-Meme si l'event est fini je continuerais d'ameliorer le code en ajoutant de la securite, simplifiant le code et faisant un vrai readme explicatif.
-Si vous voyez des ameliorations a faire ou avez des idees de fonctionnalites n'hesitz pas a ouvrir une issue ou meme faire une PR.
+
+### Meme si l'event est fini je continuerais d'ameliorer le code en ajoutant de la securite, simplifiant le code et faisant un vrai readme explicatif.
+### Si vous voyez des ameliorations a faire ou avez des idees de fonctionnalites n'hesitz pas a ouvrir une issue ou meme faire une PR.
  
 
 Security:

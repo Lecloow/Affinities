@@ -5,30 +5,41 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export class ApiService {
   // helper centralisé pour fetch + gestion d'erreur
   private static async request(url: string, options?: RequestInit) {
-    try {
-      const response = await fetch(url, options);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      credentials: 'include',
+    });
 
-      if (response.ok) {
-        return await response.json(); // ✅ succès
-      }
+    const text = await response.text();
 
-      // erreur : on essaye de parser JSON sinon texte
-      let message: string;
+    if (response.ok) {
       try {
-        const data = await response.json();
-        message = data?.detail || data?.message || `Erreur ${response.status}`;
+        return JSON.parse(text);
       } catch {
-        message = await response.text() || `Erreur ${response.status}`;
+        return text;
       }
-
-      throw { status: response.status, message } as ApiError;
-    } catch (err: any) {
-      if (err instanceof Error) {
-        throw { status: 0, message: err.message } as ApiError;
-      }
-      throw err;
     }
+
+    // erreur
+    let message: string;
+    try {
+      const data = JSON.parse(text);
+      message = data?.detail || data?.message || `Erreur ${response.status}`;
+    } catch {
+      message = text || `Erreur ${response.status}`;
+    }
+
+    throw { status: response.status, message } as ApiError;
+
+  } catch (err: any) {
+    if (err instanceof Error) {
+      throw { status: 0, message: err.message } as ApiError;
+    }
+    throw err;
   }
+}
+
 
   static async login(password: string): Promise<LoginResponse> {
     const formData = new FormData();
@@ -88,4 +99,3 @@ export class ApiService {
     return this.request(`${API_BASE_URL}/user-stats/${userId}`);
   }
 }
-

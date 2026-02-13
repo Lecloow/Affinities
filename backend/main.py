@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Header, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Header, Request, Response, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
@@ -21,6 +21,7 @@ import psycopg
 from io import BytesIO
 import socket
 import requests
+from typing import Optional
 
 load_dotenv()
 
@@ -29,7 +30,11 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://comitedepromo2026.com"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -75,6 +80,15 @@ cursor.execute("""
                (
                    password TEXT PRIMARY KEY,
                    user_id INTEGER
+               )
+               """)
+
+cursor.execute("""
+               CREATE TABLE IF NOT EXISTS sessions
+               (
+                    token VARCHAR(255) PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                )
                """)
 
@@ -617,7 +631,7 @@ async def import_xlsx(
 
 
 @app.post("/login")
-def check_code(password: str = Form(...)):
+def check_code(password: str = Form(...), response: Response = None):
     row = cursor.execute(
         "SELECT * FROM passwords WHERE password = %s",
         (password,)
@@ -633,6 +647,25 @@ def check_code(password: str = Form(...)):
     ).fetchone()
 
     if user_row:
+        # Créer un token de session sécurisé
+        session_token = secrets.token_urlsafe(32)
+
+        # Stocker en DB
+        cursor.execute(
+            "INSERT INTO sessions (token, user_id) VALUES (%s, %s)",
+            (session_token, user_id)
+        )
+        db.commit()
+
+        # Envoyer le cookie au client
+        response.set_cookie(
+            key="session_token",
+            value=session_token,
+            httponly=True,
+            secure=False,  # Mettre False si tu es en local sans HTTPS
+            samesite="lax"
+        )
+
         return {
             "id": user_row[0],
             "first_name": user_row[1],
@@ -1560,9 +1593,53 @@ def get_candidates(user_id: str):
         raise HTTPException(500, f"Error getting candidates: {str(e)}")
 
 
+def get_current_user(session_token: Optional[str] = Cookie(None)):
+    print(f"🔍 DEBUG: session_token reçu = {session_token}")
+
+    if not session_token:
+        print("❌ Pas de session_token dans le cookie")
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # Vérifier le token en DB
+    cursor.execute(
+        "SELECT user_id FROM sessions WHERE token = %s",
+        (session_token,)
+    )
+
+    result = cursor.fetchone()
+    print(f"🔍 DEBUG: result DB = {result}")
+
+    if not result:
+        print("❌ Token non trouvé en DB")
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    user_id = result[0]
+
+    # Récupérer les infos user
+    cursor.execute(
+        "SELECT id, first_name, last_name, email, currentClass FROM users WHERE id = %s",
+        (str(user_id),)
+    )
+    user = cursor.fetchone()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    return {
+        "id": user[0],
+        "first_name": user[1],
+        "last_name": user[2],
+        "email": user[3],
+        "currentClass": user[4]
+    }
+
 @app.post("/guess")
-def submit_guess(request: GuessRequest):
-    """Submit a guess about soulmate identity."""
+#def submit_guess(request: GuessRequest):
+def guess(request: GuessRequest, current_user: dict = Depends(get_current_user)):
+    # Vérification : l'user connecté doit correspondre à l'user_id de la requête
+    if current_user["id"] != request.user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
     try:
         user_id = request.user_id
         day = request.day

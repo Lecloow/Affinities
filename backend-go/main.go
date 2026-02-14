@@ -2,23 +2,21 @@ package main
 
 import (
 	"backend/Handlers"
-	"database/sql"
+	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
 )
 
 type user struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	LastName string `json:"lastName"`
+	ID        string `json:"id"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+	Class     string `json:"class"`
 }
-
-var db *sql.DB // global db variable
 
 func main() {
 	initdb()
@@ -38,18 +36,19 @@ func main() {
 
 	handler := &Handlers.Handler{DB: db}
 
-	router.GET("/users", getUsers)
+	router.GET("/users", getAllUsers)
 	router.GET("/user/:id", getUserByID)
-	router.POST("/albums", createUser)
+	router.POST("/createUser", createUser)
 	router.POST("/login", handler.Login)
 
 	router.Run("localhost:8080")
 }
 
-func getUsers(c *gin.Context) {
-	rows, err := db.Query("SELECT id, name, lastName FROM users")
+func getAllUsers(c *gin.Context) {
+	ctx := context.Background()
+	rows, err := db.Query(ctx, "SELECT id, name, last_name FROM users")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 	defer rows.Close()
@@ -57,44 +56,51 @@ func getUsers(c *gin.Context) {
 	var users []user
 	for rows.Next() {
 		var u user
-		if err := rows.Scan(&u.ID, &u.Name, &u.LastName); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		var id int
+		if err := rows.Scan(&id, &u.FirstName, &u.LastName); err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
+		u.ID = fmt.Sprintf("%d", id)
 		users = append(users, u)
 	}
-	c.IndentedJSON(http.StatusOK, users)
+	c.IndentedJSON(200, users)
 }
 
 func createUser(c *gin.Context) {
+	ctx := context.Background()
 	var newUser user
 	if err := c.BindJSON(&newUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
+
 	var id int
-	err := db.QueryRow(
-		"INSERT INTO users (name, lastName) VALUES ($1, $2) RETURNING id",
-		newUser.Name, newUser.LastName).Scan(&id)
+	err := db.QueryRow(ctx,
+		"INSERT INTO users (first_name, last_name, email, class) VALUES ($1, $2, $3, $4) RETURNING id",
+		newUser.FirstName, newUser.LastName, newUser.Email, newUser.Class).Scan(&id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
+
 	newUser.ID = fmt.Sprintf("%d", id)
-	c.IndentedJSON(http.StatusCreated, newUser)
+	c.IndentedJSON(201, newUser)
 }
 
 func getUserByID(c *gin.Context) {
+	ctx := context.Background()
 	id := c.Param("id")
 
 	var u user
-	err := db.QueryRow("SELECT id, name, lastName FROM users WHERE id = $1", id).Scan(&u.ID, &u.Name, &u.LastName)
-	if err == sql.ErrNoRows {
-		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "user not found"})
-		return
-	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	var intID int
+	err := db.QueryRow(ctx, "SELECT id, first_name, last_name FROM users WHERE id = $1", id).
+		Scan(&intID, &u.FirstName, &u.LastName)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, u)
+	u.ID = fmt.Sprintf("%d", intID)
+
+	c.IndentedJSON(200, u)
 }

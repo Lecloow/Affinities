@@ -1,14 +1,16 @@
 package Handlers
 
 import (
-	"database/sql"
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Handler struct {
-	DB *sql.DB
+	DB *pgxpool.Pool
 }
 
 func (h *Handler) Login(c *gin.Context) {
@@ -18,9 +20,10 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	var id string
-	err := h.DB.QueryRow("SELECT id FROM passwords WHERE password = $1", password).Scan(&id)
-	if err == sql.ErrNoRows {
+	ctx := context.Background()
+	var id int
+	err := h.DB.QueryRow(ctx, "SELECT id FROM passwords WHERE password = $1", password).Scan(&id)
+	if err == pgx.ErrNoRows {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	} else if err != nil {
@@ -29,8 +32,8 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 
 	var name string
-	err = h.DB.QueryRow("SELECT name FROM users WHERE id = $1", id).Scan(&name)
-	if err == sql.ErrNoRows {
+	err = h.DB.QueryRow(ctx, "SELECT name FROM users WHERE id = $1", id).Scan(&name)
+	if err == pgx.ErrNoRows {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "This user doesn't exist"})
 		return
 	} else if err != nil {

@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"backend/db"
+	"backend/old/db"
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		var userID string
+		var userID int
 		err = db.DB.QueryRow(context.Background(),
 			"SELECT user_id FROM sessions WHERE token=$1",
 			sessionToken,
@@ -27,7 +28,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user_id", userID)
+		c.Set("user_id", fmt.Sprintf("%d", userID))
 		c.Next()
 	}
 }

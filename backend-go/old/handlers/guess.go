@@ -1,15 +1,16 @@
 package handlers
 
 import (
-	"backend/db"
-	"backend/utils"
+	"backend/old/db"
+	utils2 "backend/old/utils"
 	"context"
+	"time"
+
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func GuessHandler(c *gin.Context) {
-	var req utils.GuessRequest
+	var req utils2.GuessRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid request"})
 		return
@@ -22,11 +23,11 @@ func GuessHandler(c *gin.Context) {
 		return
 	}
 
-	var revealTime string
+	var revealTime time.Time
 	var matchID string
 	var h1, h2, h3 bool
 
-	err := DB.QueryRow(context.Background(),
+	err := db.DB.QueryRow(context.Background(),
 		`SELECT reveal_time, match_id, hint1_revealed, hint2_revealed, hint3_revealed
 		 FROM hints WHERE user_id=$1 AND day=$2`,
 		req.UserID, req.Day,
@@ -52,9 +53,11 @@ func GuessHandler(c *gin.Context) {
 			revealed++
 		}
 
-		points = CalculatePoints(revealed)
+		points = utils2.CalculatePoints(revealed)
+	}
 
-		DB.Exec(context.Background(),
+	if isCorrect {
+		_, err = db.DB.Exec(context.Background(),
 			`INSERT INTO scores(user_id,total_points)
 			 VALUES($1,$2)
 			 ON CONFLICT(user_id)
@@ -63,7 +66,7 @@ func GuessHandler(c *gin.Context) {
 		)
 	}
 
-	DB.Exec(context.Background(),
+	_, err = db.DB.Exec(context.Background(),
 		`INSERT INTO guesses(user_id,day,hint_number,guessed_user_id,hints_revealed,points_earned,is_correct)
 		 VALUES($1,$2,$3,$4,$5,$6,$7)`,
 		req.UserID, req.Day, req.HintNumber,

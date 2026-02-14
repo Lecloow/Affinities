@@ -1636,8 +1636,12 @@ def get_current_user(session_token: Optional[str] = Cookie(None)):
 @app.post("/guess")
 #def submit_guess(request: GuessRequest):
 def guess(request: GuessRequest, current_user: dict = Depends(get_current_user)):
-    # Vérification : l'user connecté doit correspondre à l'user_id de la requête
-    if current_user["id"] != request.user_id:
+    # Vérification robuste: normalise le type/format des IDs (str/int/espaces)
+    current_user_id = str(current_user.get("id", "")).strip()
+    request_user_id = str(request.user_id).strip()
+
+    # L'user connecté doit correspondre à l'user_id de la requête
+    if current_user_id != request_user_id:
         raise HTTPException(status_code=403, detail="Unauthorized")
 
     try:
@@ -1968,4 +1972,3 @@ def get_user_stats(user_id: str):
     except Exception as e:
         logging.exception(f"Error getting user stats: {e}")
         raise HTTPException(500, f"Error getting user stats: {str(e)}")
-

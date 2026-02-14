@@ -662,7 +662,7 @@ def check_code(password: str = Form(...), response: Response = None):
             key="session_token",
             value=session_token,
             httponly=True,
-            secure=False,  # Mettre False si tu es en local sans HTTPS
+            secure=True,  # Mettre False si tu es en local sans HTTPS
             samesite="lax"
         )
 

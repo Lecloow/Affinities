@@ -1,23 +1,16 @@
 package main
 
 import (
+	"backend/Handlers"
 	"database/sql"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
-
-const (
-	host     = "localhost"
-	port     = 5432
-	dbuser   = "thomasconchon"
-	password = ""
-	dbname   = "thomasconchon"
-)
-
-const dbURL = "postgres://thomasconchon:@localhost:5432/thomasconchon?sslmode=disable"
 
 type user struct {
 	ID       string `json:"id"`
@@ -28,46 +21,27 @@ type user struct {
 var db *sql.DB // global db variable
 
 func main() {
-	//psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-	//	"password=%s dbname=%s sslmode=disable",
-	//	host, port, dbuser, password, dbname)
-	var err error
-	//db, err = sql.Open("postgres", psqlInfo)
-	db, err = sql.Open("postgres", dbURL)
-	if err != nil {
-		panic(err)
-	}
+	initdb()
 	defer db.Close()
 
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	// Create table if not exists
-
-	//createTable := `CREATE TABLE IF NOT EXISTS users (
-	//	id SERIAL PRIMARY KEY,
-	//	name TEXT NOT NULL,
-	//	lastName TEXT NOT NULL
-	//)`
-
-	createTable := `CREATE TABLE IF NOT EXISTS passwords (
-		id SERIAL PRIMARY KEY,
-		password TEXT NOT NULL
-	)`
-
-	_, err = db.Exec(createTable)
-	if err != nil {
-		panic(err)
-	}
-
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:5173", "https://comitedepromo2026.com"},
+		//AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		//AllowHeaders:     []string{"Origin", "Content-Type"},
+		//ExposeHeaders:    []string{"Content-Length"},
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"*"},
+		AllowCredentials: true,
+		MaxAge:           24 * time.Hour, // So 24 hours
+	}))
+
+	handler := &Handlers.Handler{DB: db}
 
 	router.GET("/users", getUsers)
 	router.GET("/user/:id", getUserByID)
-	router.POST("/albums", postAlbums)
-	router.POST("/login", login)
+	router.POST("/albums", createUser)
+	router.POST("/login", handler.Login)
 
 	router.Run("localhost:8080")
 }
@@ -92,7 +66,7 @@ func getUsers(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, users)
 }
 
-func postAlbums(c *gin.Context) {
+func createUser(c *gin.Context) {
 	var newUser user
 	if err := c.BindJSON(&newUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

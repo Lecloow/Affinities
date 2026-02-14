@@ -1,4 +1,21 @@
-# SaintValentin
+# RoadMap:
+
+### Meme si l'event est fini je continuerais d'ameliorer le code en ajoutant de la securite, simplifiant le code et faisant un vrai readme explicatif.
+### Si vous voyez des ameliorations a faire ou avez des idees de fonctionnalites n'hesitz pas a ouvrir une issue ou meme faire une PR.
+ 
+
+Security:
+[x] Add Cookies to login
+[x] Add cookies to guess func
+[ ] Add cookies in every "sensitive" funcs
+
+Very important:
+[ ] Clean up the code
+[ ] Separate files for the main
+[ ] Create a real readme
+
+Features:
+[ ] Idk
 
 Run Frontend (sans le back):
 

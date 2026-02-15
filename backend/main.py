@@ -79,7 +79,7 @@ cursor.execute("""
                CREATE TABLE IF NOT EXISTS passwords
                (
                    password TEXT PRIMARY KEY,
-                   user_id INTEGER
+                   id INTEGER
                )
                """)
 
@@ -99,7 +99,7 @@ cursor.execute("""
                    first_name TEXT,
                    last_name TEXT,
                    email TEXT,
-                   currentClass TEXT,
+                   class TEXT,
                    q3 INTEGER,
                    q4 INTEGER,
                    q5 INTEGER,
@@ -642,7 +642,7 @@ def check_code(password: str = Form(...), response: Response = None):
 
     user_id = row[1]
     user_row = cursor.execute(
-        "SELECT id, first_name, last_name, email, currentClass FROM users WHERE id = %s",
+        "SELECT id, first_name, last_name, email, class FROM users WHERE id = %s",
         (str(user_id),),
     ).fetchone()
 
@@ -652,7 +652,7 @@ def check_code(password: str = Form(...), response: Response = None):
 
         # Stocker en DB
         cursor.execute(
-            "INSERT INTO sessions (token, user_id) VALUES (%s, %s)",
+            "INSERT INTO sessions (token, id) VALUES (%s, %s)",
             (session_token, user_id)
         )
         db.commit()
@@ -1544,7 +1544,7 @@ def get_candidates(user_id: str):
     try:
         # Get user's class to extract the level
         cursor.execute("""
-                       SELECT currentClass
+                       SELECT class
                        FROM users
                        WHERE id = %s
                        """, (user_id,))

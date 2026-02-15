@@ -3,16 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var db *pgxpool.Pool
 
-const dbURL = "postgres://thomasconchon:@localhost:5432/thomasconchon?sslmode=disable"
-
-func initdb() {
+func initDB() {
+	dbURL := os.Getenv("DATABASE_URL")
 	var err error
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

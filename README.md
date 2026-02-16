@@ -53,3 +53,6 @@ uvicorn main:app --reload
 ```
 
 Enfin, ouvrir un navigateur et acceder a http://127.0.0.1:8000/docs
+
+
+Merci a @Maximaxx d'avoir DDOS le site plusieurs fois sans lui ce projet aurait pu etre possible 

@@ -652,7 +652,7 @@ def check_code(password: str = Form(...), response: Response = None):
 
         # Stocker en DB
         cursor.execute(
-            "INSERT INTO sessions (token, id) VALUES (%s, %s)",
+            "INSERT INTO sessions (token, user_id) VALUES (%s, %s)",
             (session_token, user_id)
         )
         db.commit()

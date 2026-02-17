@@ -1,6 +1,6 @@
 import { User } from './types';
 
-const USER_STORAGE_KEY = 'user';
+const USER_STORAGE_KEY = 'saint_valentin_user'; // Nom plus unique
 
 /**
  * Service pour gérer le stockage de l'utilisateur
@@ -10,14 +10,14 @@ export class StorageService {
    * Sauvegarde l'utilisateur connecté
    */
   static setUser(user: User): void {
-    sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
   }
 
   /**
    * Récupère l'utilisateur connecté
    */
   static getUser(): User | null {
-    const raw = sessionStorage.getItem(USER_STORAGE_KEY);
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
     if (!raw) return null;
 
     try {
@@ -32,7 +32,7 @@ export class StorageService {
    * Supprime l'utilisateur connecté
    */
   static clearUser(): void {
-    sessionStorage.removeItem(USER_STORAGE_KEY);
+    localStorage.removeItem(USER_STORAGE_KEY);
   }
 
   /**

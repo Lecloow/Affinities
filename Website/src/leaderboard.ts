@@ -178,7 +178,7 @@ export class LeaderboardPage {
 
 (window as any).logout = function () {
   StorageService.clearUser();
-  window.location.href = './index.html';
+  window.location.href = '../index.html';
 };
 
 (window as any).goBack = function () {

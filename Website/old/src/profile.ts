@@ -35,14 +35,6 @@ private adjustServerTime(dateInput: string | Date): Date {
 
   private init(): void {
     this.contentEl = document.getElementById('content');
-
-    // Si on arrive en mode demo, reset le state pour un départ propre
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('demo') === '1') {
-      // Déclenche un reset côté API (le login demo fait déjà ça, mais au cas où)
-      ApiService.login('demo').catch(() => {});
-    }
-
     this.render();
 
     // Refresh hints every 30 seconds to check for new available hints
@@ -57,25 +49,17 @@ private adjustServerTime(dateInput: string | Date): Date {
   }
 
   private async render(): Promise<void> {
-  console.log('🔥🔥🔥 PROFILE RENDER START');
+    if (!this.contentEl) return;
 
-  if (!this.contentEl) return;
+    const user = StorageService.getUser();
 
-  const raw = localStorage.getItem('saint_valentin_user');
-  console.log('🔥🔥🔥 RAW STORAGE:', raw);
+    if (!user) {
+      this.renderNotConnected();
+      return;
+    }
 
-  const user = StorageService.getUser();
-  console.log('🔥🔥🔥 USER:', user);
-
-  if (!user) {
-    console.log('🔥🔥🔥 NO USER FOUND');
-    this.renderNotConnected();
-    return;
+    await this.renderProfile(user);
   }
-
-  console.log('🔥🔥🔥 USER OK, RENDERING PROFILE');
-  await this.renderProfile(user);
-}
 
   private renderNotConnected(): void {
     if (!this.contentEl) return;
@@ -87,7 +71,7 @@ private adjustServerTime(dateInput: string | Date): Date {
     `;
 
     setTimeout(() => {
-      window.location.href = '../index.html';
+      window.location.href = './index.html';
     }, 2000);
   }
 
@@ -326,35 +310,20 @@ private async loadAndRenderHints(): Promise<void> {
 
   private renderRevealButton(day: DayHints): string {
     const availableUnrevealed = day.hints.filter(h => h.available && !h.revealed).length;
-    const allHintsRevealed = day.hints.every(h => h.revealed);
 
-    // Tous révélés mais match pas encore → bouton "Révéler l'identité"
-    if (allHintsRevealed && !day.match_revealed) {
-      return `
-      <div class="reveal-btn-container">
-        <button class="global-reveal-btn" data-day="${day.day}">💝 Révéler l'identité</button>
-      </div>
-    `;
-    }
-
-    // Match déjà révélé → bouton désactivé
-    if (day.match_revealed) {
-      return `
-      <div class="reveal-btn-container">
-        <button class="global-reveal-btn" disabled>Identité révélée ✓</button>
-      </div>
-    `;
-    }
-
-    const label = availableUnrevealed === 1
-        ? "Révéler l'indice disponible"
+    const label = availableUnrevealed === 0
+      ? 'Révéler un indice'
+      : availableUnrevealed === 1
+        ? 'Révéler l\'indice disponible'
         : `Révéler les ${availableUnrevealed} indices disponibles`;
 
+    const disabled = availableUnrevealed === 0 ? 'disabled' : '';
+
     return `
-    <div class="reveal-btn-container">
-      <button class="global-reveal-btn" data-day="${day.day}" ${availableUnrevealed === 0 ? 'disabled' : ''}>${label}</button>
-    </div>
-  `;
+      <div class="reveal-btn-container">
+        <button class="global-reveal-btn" data-day="${day.day}" ${disabled}>${label}</button>
+      </div>
+    `;
   }
 
   private async handleRevealAllHints(day: number): Promise<void> {
@@ -934,7 +903,7 @@ private async handleSubmitGuess(day: number, guessedUserId: string): Promise<voi
 
 (window as any).logout = function () {
   StorageService.clearUser();
-  window.location.href = '../index.html';
+  window.location.href = './index.html';
 };
 
 // ─── Bootstrap ─────────────────────────────────────────────────────────────

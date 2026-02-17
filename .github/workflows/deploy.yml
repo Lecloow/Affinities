@@ -19,10 +19,10 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: cd Website && npm install
+        run: cd Website/Demo && npm install
 
       - name: Build
-        working-directory: ./Website
+        working-directory: ./Website/Demo
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
         run: npm run build

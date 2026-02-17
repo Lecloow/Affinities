@@ -78,8 +78,8 @@ cursor = db.cursor()
 cursor.execute("""
                CREATE TABLE IF NOT EXISTS passwords
                (
-                   password TEXT PRIMARY KEY,
-                   id INTEGER
+                   id INTEGER,
+                   password TEXT PRIMARY KEY
                )
                """)
 
@@ -95,7 +95,7 @@ cursor.execute("""
 cursor.execute("""
                CREATE TABLE IF NOT EXISTS users
                (
-                   id TEXT PRIMARY KEY,
+                   id INTEGER PRIMARY KEY,
                    first_name TEXT,
                    last_name TEXT,
                    email TEXT,
@@ -662,7 +662,7 @@ def check_code(password: str = Form(...), response: Response = None):
             key="session_token",
             value=session_token,
             httponly=True,
-            secure=True,  # Mettre False si tu es en local sans HTTPS
+            secure=False,  # Mettre False si tu es en local sans HTTPS
             samesite="lax"
         )
 

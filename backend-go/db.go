@@ -14,40 +14,99 @@ var db *pgxpool.Pool
 
 func initDB() {
 	dbURL := os.Getenv("DATABASE_URL")
-	var err error
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	var err error
 	db, err = pgxpool.New(ctx, dbURL)
 	if err != nil {
-		panic(fmt.Errorf("unable to connect to DB: %v", err))
+		panic(fmt.Errorf("unable to connect to DB: %w", err))
 	}
 
-	err = db.Ping(ctx)
-	if err != nil {
-		panic(fmt.Errorf("cannot ping DB: %v", err))
+	if err := db.Ping(ctx); err != nil {
+		panic(fmt.Errorf("cannot ping DB: %w", err))
 	}
 
-	createPasswords := `
-    CREATE TABLE IF NOT EXISTS passwords (
-        id SERIAL PRIMARY KEY,
-        password TEXT NOT NULL
-    )`
-	_, err = db.Exec(ctx, createPasswords)
-	if err != nil {
-		panic(fmt.Errorf("cannot create table passwords: %v", err))
-	}
-
-	createUsers := `CREATE TABLE IF NOT EXISTS users (
-		id SERIAL PRIMARY KEY,
+	schema := `
+	CREATE TABLE IF NOT EXISTS users (
+		id BIGSERIAL PRIMARY KEY,
 		first_name TEXT NOT NULL,
 		last_name TEXT NOT NULL,
-		email TEXT NOT NULL,
-		class TEXT NOT NULL
-	)`
-	_, err = db.Exec(ctx, createUsers)
-	if err != nil {
-		panic(fmt.Errorf("cannot create table users: %v", err))
-	}
+		email TEXT NOT NULL UNIQUE,
+		class TEXT NOT NULL,
+		password_hash TEXT NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
 
+	CREATE TABLE IF NOT EXISTS sessions (
+		token TEXT PRIMARY KEY,
+		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		expires_at TIMESTAMP NOT NULL
+	);
+
+	CREATE TABLE IF NOT EXISTS matches (
+		id BIGSERIAL PRIMARY KEY,
+		user1_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		user2_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		day INTEGER NOT NULL CHECK (day > 0),
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		CHECK (user1_id <> user2_id),
+		UNIQUE(user1_id, user2_id, day)
+	);
+
+	CREATE TABLE IF NOT EXISTS hints (
+		id BIGSERIAL PRIMARY KEY,
+		match_id BIGINT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		hint_number INTEGER NOT NULL CHECK (hint_number > 0),
+		type TEXT NOT NULL,
+		content TEXT NOT NULL,
+		reveal_time TIMESTAMP,
+		revealed BOOLEAN DEFAULT FALSE,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(match_id, user_id, hint_number)
+	);
+
+	CREATE TABLE IF NOT EXISTS guesses (
+		id BIGSERIAL PRIMARY KEY,
+		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		match_id BIGINT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+		hint_number INTEGER NOT NULL CHECK (hint_number > 0),
+		guessed_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		points_earned INTEGER NOT NULL CHECK (points_earned >= 0),
+		is_correct BOOLEAN NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(user_id, match_id, hint_number)
+	);
+
+	CREATE TABLE IF NOT EXISTS scores (
+		user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+		total_points INTEGER DEFAULT 0 CHECK (total_points >= 0),
+		code_exchange_bonus INTEGER DEFAULT 0 CHECK (code_exchange_bonus >= 0),
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+
+	CREATE TABLE IF NOT EXISTS reveal_codes (
+		id BIGSERIAL PRIMARY KEY,
+		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		match_id BIGINT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+		day INTEGER NOT NULL CHECK (day > 0),
+		code TEXT NOT NULL,
+		exchanged BOOLEAN DEFAULT FALSE,
+		exchanged_with BIGINT REFERENCES users(id),
+		exchanged_at TIMESTAMP,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(user_id, day)
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+	CREATE INDEX IF NOT EXISTS idx_matches_day ON matches(day);
+	CREATE INDEX IF NOT EXISTS idx_hints_match_id ON hints(match_id);
+	CREATE INDEX IF NOT EXISTS idx_guesses_user_id ON guesses(user_id);
+	`
+
+	if _, err := db.Exec(ctx, schema); err != nil {
+		panic(fmt.Errorf("cannot initialize schema: %w", err))
+	}
 }

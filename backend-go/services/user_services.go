@@ -59,15 +59,10 @@ func (s *UserService) AddUser(ctx context.Context, user *models.User) (*models.U
 }
 
 func (s *UserService) Login(ctx context.Context, password string) (*models.User, error) {
+
 	var user models.User
 
-	var id int
-	err := s.DB.QueryRow(ctx, "SELECT id FROM passwords WHERE password = $1", password).Scan(&id)
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.DB.QueryRow(ctx, "SELECT id, first_name, last_name, email, class FROM users WHERE id = $1", id).
+	err := s.DB.QueryRow(ctx, "SELECT id, first_name, last_name, email, class FROM users WHERE password_hash = $1", password).
 		Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Class)
 	if err != nil {
 		return nil, err
@@ -75,6 +70,32 @@ func (s *UserService) Login(ctx context.Context, password string) (*models.User,
 
 	return &user, nil
 }
+
+// Hashed version -- In progress
+//func (s *UserService) Login(ctx context.Context, password string) (*models.User, error) {
+//	var user models.User
+//	var hashedToken string
+//
+//	rows, err := s.DB.Query(ctx, `
+//		SELECT id, first_name, last_name, class, password_hash
+//		FROM users
+//	`)
+//	if err != nil {
+//		return nil, fmt.Errorf("query error: %w", err)
+//	}
+//	defer rows.Close()
+//
+//	for rows.Next() {
+//		if err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Class, &hashedToken); err != nil {
+//			continue
+//		}
+//		if bcrypt.CompareHashAndPassword([]byte(hashedToken), []byte(password)) == nil {
+//			return &user, nil
+//		}
+//	}
+//
+//	return nil, fmt.Errorf("invalid credentials")
+//}
 
 func (s *UserService) GetCandidates(ctx context.Context, id int) ([]*models.User, error) {
 	var class string

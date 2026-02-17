@@ -13,7 +13,7 @@ import (
 func main() {
 	initDB()
 	defer db.Close()
-
+	//runMigrations()
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"http://localhost:5173", "https://comitedepromo2026.com"},

@@ -25,3 +25,20 @@ func (h *UserHandler) Candidates(c *gin.Context) {
 	c.JSON(http.StatusOK, candidates)
 
 }
+
+func (h *UserHandler) Stats(c *gin.Context) {
+	ctx := c.Request.Context()
+	ID := c.Param("id")
+	id, err := strconv.Atoi(ID)
+	if err != nil {
+		log.Fatal("failed to convert string to integer", err)
+	}
+
+	stats, err := h.Service.GetStats(ctx, id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, stats)
+}

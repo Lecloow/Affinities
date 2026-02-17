@@ -33,6 +33,7 @@ func main() {
 	router.GET("/users/:id", userHandler.GetUserByID)
 	router.POST("/login", userHandler.Login)
 	router.GET("/candidates/:id", userHandler.Candidates)
+	router.GET("/user-stats/:id", userHandler.Stats)
 
 	// Need Admin perms
 	router.POST("/users", userHandler.CreateUser)

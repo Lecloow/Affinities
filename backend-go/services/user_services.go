@@ -130,3 +130,33 @@ func (s *UserService) GetCandidates(ctx context.Context, id int) ([]*models.User
 
 	return candidates, nil
 }
+
+func (s *UserService) GetStats(ctx context.Context, id int) (*models.UserStats, error) {
+
+	stats := &models.UserStats{ID: id}
+
+	err := s.DB.QueryRow(ctx, "SELECT total_points, code_exchange_bonus FROM scores WHERE user_id = $1", id).Scan(&stats.TotalPoints, &stats.BonusPoints)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.DB.Query(ctx, `
+		SELECT id, user_id, day, hint_number, guessed_user_id, is_correct, created_at 
+		FROM guesses 
+		WHERE user_id = $1
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var g models.Guess
+		if err := rows.Scan(&g.ID, &g.UserID, &g.Day, &g.HintNumber, &g.GuessedUserId, &g.IsCorrect, &g.CreatedAt); err != nil {
+			continue
+		}
+		stats.Guesses = append(stats.Guesses, &g)
+	}
+
+	return stats, nil
+}

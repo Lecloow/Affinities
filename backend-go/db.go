@@ -71,13 +71,12 @@ func initDB() {
 	CREATE TABLE IF NOT EXISTS guesses (
 		id BIGSERIAL PRIMARY KEY,
 		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		match_id BIGINT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+		day INTEGER NOT NULL CHECK (day > 0),
 		hint_number INTEGER NOT NULL CHECK (hint_number > 0),
 		guessed_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		points_earned INTEGER NOT NULL CHECK (points_earned >= 0),
 		is_correct BOOLEAN NOT NULL,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		UNIQUE(user_id, match_id, hint_number)
+		UNIQUE(user_id, hint_number)
 	);
 
 	CREATE TABLE IF NOT EXISTS scores (

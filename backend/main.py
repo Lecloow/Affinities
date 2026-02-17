@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Hea
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
-from pathlib3 import Path
+from pathlib import Path  # FIX 1: pathlib3 -> pathlib
 import json
 import datetime
 import random
@@ -546,15 +546,15 @@ def import_xlsx_df(df_raw: pd.DataFrame, passwd_len: int = 8) -> dict:
                         logging.warning(
                             f"Could not parse answer for user {user_id}, question: {question_text}, answer: {answer_text}")
 
-            # Insert or update user with basic info
+            # FIX 2: column is 'class' not 'currentClass' in the users table
             cursor.execute(
-                """INSERT INTO users (id, first_name, last_name, email, currentClass)
+                """INSERT INTO users (id, first_name, last_name, email, class)
                    VALUES (%s, %s, %s, %s, %s) ON CONFLICT (id) DO
                 UPDATE SET
                     first_name = EXCLUDED.first_name,
                     last_name = EXCLUDED.last_name,
                     email = EXCLUDED.email,
-                    currentClass = EXCLUDED.currentClass""",
+                    class = EXCLUDED.class""",
                 (str(user_id), first_name, last_name, email, currentClass)
             )
 
@@ -572,15 +572,15 @@ def import_xlsx_df(df_raw: pd.DataFrame, passwd_len: int = 8) -> dict:
                     update_query = f"UPDATE users SET {', '.join(set_clauses)} WHERE id = %s"
                     cursor.execute(update_query, values)
 
-            # generate and insert a unique password
+            # FIX 3: passwords table column is 'id' not 'user_id'
             try_count = 0
             while try_count < 5:
                 code = generate_unique_password(passwd_len, cursor)
                 try:
                     cursor.execute(
-                        """INSERT INTO passwords (password, user_id)
+                        """INSERT INTO passwords (id, password)
                            VALUES (%s, %s) ON CONFLICT (password) DO NOTHING""",
-                        (code, user_id)
+                        (user_id, code)
                     )
                     # Check if the insert was successful
                     if cursor.rowcount > 0:
@@ -640,7 +640,8 @@ def check_code(password: str = Form(...), response: Response = None):
     if not row:
         raise HTTPException(403, "Code invalide")
 
-    user_id = row[1]
+    # FIX 4: table is (id INTEGER, password TEXT), so user_id is row[0] not row[1]
+    user_id = row[0]
     user_row = cursor.execute(
         "SELECT id, first_name, last_name, email, class FROM users WHERE id = %s",
         (str(user_id),),
@@ -698,7 +699,6 @@ def count_vowels(text):
 def generate_hints_for_all_users():
     """Generate personalized hints for all users based on their matches."""
     # Define hint times for Thursday Feb 12 and Friday Feb 13, 2026
-    # Hints at 10:00, 12:00, 13:00 on both days, reveal at 15:15
     hint_schedules = [
         # Thursday Feb 12
         {
@@ -715,84 +715,75 @@ def generate_hints_for_all_users():
             'reveal_time': datetime.datetime(2026, 2, 13, 14, 15, 0),
         }
     ]
-    
+
     # Get all matches
     cursor.execute("SELECT id, day1, day2 FROM matches")
     matches = cursor.fetchall()
-    
+
     if not matches:
         logging.warning("No matches found to generate hints for")
         return 0
-    
+
     # Clear existing hints
     cursor.execute("DELETE FROM hints")
-    
+
     hints_created = 0
-    
+
     for match_row in matches:
         user_id = match_row[0]
         day1_match_id = match_row[1]
         day2_match_id = match_row[2]
-        
+
         # Generate hints for each day
-        for day_idx, (match_id, schedule) in enumerate([(day1_match_id, hint_schedules[0]), 
+        for day_idx, (match_id, schedule) in enumerate([(day1_match_id, hint_schedules[0]),
                                                           (day2_match_id, hint_schedules[1])]):
             if not match_id:
                 continue
-                
-            # Get match user info
+
+            # FIX 2: column is 'class' not 'currentClass'
             match_user_row = cursor.execute(
-                "SELECT first_name, last_name, currentClass FROM users WHERE id = %s",
+                "SELECT first_name, last_name, class FROM users WHERE id = %s",
                 (match_id,)
             ).fetchone()
-            
+
             if not match_user_row:
                 continue
-            
+
             match_first_name = match_user_row[0]
             match_last_name = match_user_row[1]
             match_class = match_user_row[2]
-            
+
             # Generate three hints with FIXED difficulty order:
             # hint1 = HARD, hint2 = MEDIUM, hint3 = EASY
-            
+
             # HARD hints (pick one randomly)
             hard_hints = [
-                # Length of first name
                 f"Son prénom contient {len(match_first_name) if match_first_name else 0} lettres",
-                # Length of last name
                 f"Son nom contient {len(match_last_name) if match_last_name else 0} lettres",
-                # Number of vowels in first name
                 f"Son prénom contient {count_vowels(match_first_name)} voyelles"
             ]
             hard_hint = random.choice(hard_hints)
-            
+
             # MEDIUM hints (pick one randomly)
             medium_hints = [
-                # First letter of first name
                 f"Son prénom commence par: {match_first_name[0].upper() if match_first_name else '?'}",
-                # First letter of last name
                 f"Son nom commence par: {match_last_name[0].upper() if match_last_name else '?'}"
             ]
             medium_hint = random.choice(medium_hints)
-            
+
             # EASY hints (pick one randomly)
             easy_hints = [
-                # Class
                 f"Il/Elle est dans la classe: {match_class}",
-                # First name
                 f"Son prénom est: {match_first_name}"
             ]
             easy_hint = random.choice(easy_hints)
-            
-            # Create hints in fixed order: hard, medium, easy
+
             hints = [
                 ('hard', hard_hint),
                 ('medium', medium_hint),
                 ('easy', easy_hint)
             ]
-            
-            # Insert hints into database
+
             hint_id = f"{user_id}_day{day_idx+1}"
             cursor.execute(
                 """INSERT INTO hints (id, user_id, day, hint1_type, hint1_content, hint1_time,
@@ -819,7 +810,7 @@ def generate_hints_for_all_users():
                  schedule['reveal_time'], match_id)
             )
             hints_created += 1
-    
+
     db.commit()
     return hints_created
 
@@ -836,17 +827,16 @@ def createMatches(
     if not expected_token:
         raise HTTPException(500, "Token expected")
 
-    # Against timing attacks, use secure comparison
     if not secrets.compare_digest(token, expected_token):
         logging.warning(f"Tentative de calcul des matchs avec mauvais token depuis {client_ip}")
         raise HTTPException(401, "Non autorisé")
     try:
-        # Fetch all users with their answers from the users table directly
+        # FIX 2: column is 'class' not 'currentClass'
         cursor.execute("""
                        SELECT id,
                               first_name,
                               last_name,
-                              currentClass,
+                              class,
                               q3,
                               q4,
                               q5,
@@ -870,20 +860,17 @@ def createMatches(
         if not rows:
             raise HTTPException(400, "No users with answers found")
 
-        # Build a list of users with their data
         users = []
         for row in rows:
             user_id = row[0]
             first_name = row[1]
             last_name = row[2]
             current_class = row[3]
-            # Create answers dict from q3-q17 columns
             answers = {
                 'q3': row[4], 'q4': row[5], 'q5': row[6], 'q6': row[7], 'q7': row[8],
                 'q8': row[9], 'q9': row[10], 'q10': row[11], 'q11': row[12], 'q12': row[13],
                 'q13': row[14], 'q14': row[15], 'q15': row[16], 'q16': row[17], 'q17': row[18]
             }
-            # Extract level from currentClass (e.g., "Terminale F" -> "Terminale")
             level = current_class.split()[0] if current_class and current_class.strip() else ""
             users.append({
                 "id": user_id,
@@ -893,7 +880,6 @@ def createMatches(
                 "answers": answers
             })
 
-        # Group users by level
         users_by_level = {}
         for user in users:
             level = user["level"]
@@ -901,10 +887,8 @@ def createMatches(
                 users_by_level[level] = []
             users_by_level[level].append(user)
 
-        # Clear existing matches
         cursor.execute("DELETE FROM matches")
 
-        # Create matches for each level
         matches_created = 0
         for level, level_users in users_by_level.items():
             if not level_users:
@@ -912,22 +896,14 @@ def createMatches(
 
             logging.info(f"Creating matches for level {level} with {len(level_users)} users")
 
-            # Calculate compatibility scores between all pairs
             n = len(level_users)
 
-            # Special case: exactly 3 users
-            # For 3 users, we form a trio on both days but with different primary matches
             if n == 3:
-                # For 3 users, arrange them in a circular pattern on each day
-                # Day 1: 0→1, 1→2, 2→0
-                # Day 2: 0→2, 2→1, 1→0 (reversed)
-                # This ensures each person has a different match on each day
                 day1_matches = {0: 1, 1: 2, 2: 0}
                 day2_matches = {0: 2, 2: 1, 1: 0}
 
                 logging.info(f"Special case - 3 users: circular matching day1=(0→1→2→0), day2=(0→2→1→0)")
 
-                # Insert matches into database
                 for idx, user in enumerate(level_users):
                     day1_id = level_users[day1_matches[idx]]["id"]
                     day2_id = level_users[day2_matches[idx]]["id"]
@@ -941,7 +917,7 @@ def createMatches(
                     )
                     matches_created += 1
 
-                continue  # Skip to next level
+                continue
 
             scores = {}
             for i in range(n):
@@ -951,15 +927,12 @@ def createMatches(
                     compatibility = score(user_a["answers"], user_b["answers"])
                     scores[(i, j)] = compatibility
 
-            # Sort pairs by compatibility score (highest first)
             sorted_pairs = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
-            # Create matches ensuring each person gets 2 different matches
-            day1_matches = {}  # user_index -> matched_user_index
+            day1_matches = {}
             day2_matches = {}
-            day1_trio_members = set()  # Track who is in a trio on day 1
+            day1_trio_members = set()
 
-            # For day 1: greedy matching
             used = set()
             for (i, j), score_val in sorted_pairs:
                 if i not in used and j not in used:
@@ -968,15 +941,10 @@ def createMatches(
                     used.add(i)
                     used.add(j)
 
-            # Handle odd number: create a group of 3 for day 1
             if len(used) < n:
                 unmatched = [idx for idx in range(n) if idx not in used]
                 if len(unmatched) == 1:
-                    # Find an existing pair and add this person to form a trio
-                    # The unmatched person will be matched with one person from a pair,
-                    # creating an indirect trio relationship
                     if day1_matches:
-                        # Find the best match for the unmatched person among those already matched
                         best_match_idx = None
                         best_score = -1
                         for idx in range(n):
@@ -990,21 +958,14 @@ def createMatches(
                             day1_matches[unmatched[0]] = best_match_idx
                             used.add(unmatched[0])
                             partner = day1_matches.get(best_match_idx, "unknown")
-                            # Mark all three people as being in a trio
                             day1_trio_members.add(unmatched[0])
                             day1_trio_members.add(best_match_idx)
                             day1_trio_members.add(partner)
                             logging.info(f"Formed trio on day 1: {unmatched[0]}, {best_match_idx}, {partner}")
 
-            # For day 2: match differently, being strategic about who might end up in trios
-            # If we had a trio on day 1 and will likely have one on day 2, try to ensure
-            # different people are in the day 2 trio
             used2 = set()
 
-            # If there was a day 1 trio and we expect a day 2 trio (odd number of users)
-            # prioritize matching day 1 trio members first to avoid them being unmatched again
             if day1_trio_members and n % 2 == 1:
-                # Sort pairs prioritizing matches involving day 1 trio members
                 pairs_with_trio = []
                 pairs_without_trio = []
                 for (i, j), score_val in sorted_pairs:
@@ -1015,7 +976,6 @@ def createMatches(
                     else:
                         pairs_without_trio.append(((i, j), score_val))
 
-                # Process trio members first
                 for (i, j), score_val in pairs_with_trio:
                     if i not in used2 and j not in used2:
                         day2_matches[i] = j
@@ -1023,7 +983,6 @@ def createMatches(
                         used2.add(i)
                         used2.add(j)
 
-                # Then process others
                 for (i, j), score_val in pairs_without_trio:
                     if i not in used2 and j not in used2:
                         day2_matches[i] = j
@@ -1031,7 +990,6 @@ def createMatches(
                         used2.add(i)
                         used2.add(j)
             else:
-                # Normal matching for day 2
                 for (i, j), score_val in sorted_pairs:
                     if day1_matches.get(i) == j or day1_matches.get(j) == i:
                         continue
@@ -1041,13 +999,9 @@ def createMatches(
                         used2.add(i)
                         used2.add(j)
 
-            # Handle remaining unmatched for day 2
             unmatched2 = [idx for idx in range(n) if idx not in used2]
             if len(unmatched2) == 1:
-                # Add to an existing pair to form a trio
-                # IMPORTANT: Prefer matching with someone who was NOT in a trio on day 1
                 if day2_matches:
-                    # Find best match for unmatched person, avoiding day 1 trio members if possible
                     best_match_idx = None
                     best_score = -1
                     best_non_trio_match_idx = None
@@ -1059,12 +1013,10 @@ def createMatches(
                             if score_val > best_score:
                                 best_score = score_val
                                 best_match_idx = idx
-                            # Track best match among non-trio members from day 1
                             if idx not in day1_trio_members and score_val > best_non_trio_score:
                                 best_non_trio_score = score_val
                                 best_non_trio_match_idx = idx
 
-                    # If unmatched person was in day 1 trio, prioritize matching with non-trio member
                     if unmatched2[0] in day1_trio_members and best_non_trio_match_idx is not None:
                         day2_matches[unmatched2[0]] = best_non_trio_match_idx
                         used2.add(unmatched2[0])
@@ -1078,27 +1030,21 @@ def createMatches(
                         logging.info(
                             f"Formed trio on day 2: {unmatched2[0]} matched with {best_match_idx}, who is matched with {partner}")
             elif len(unmatched2) == 2:
-                # Match the remaining two
                 day2_matches[unmatched2[0]] = unmatched2[1]
                 day2_matches[unmatched2[1]] = unmatched2[0]
             elif len(unmatched2) == 3:
-                # Create matches for three people - each gets one match
-                # Form pairs with best compatibility among the three
                 scores_trio = [
                     (0, 1, score(level_users[unmatched2[0]]["answers"], level_users[unmatched2[1]]["answers"])),
                     (0, 2, score(level_users[unmatched2[0]]["answers"], level_users[unmatched2[2]]["answers"])),
                     (1, 2, score(level_users[unmatched2[1]]["answers"], level_users[unmatched2[2]]["answers"]))
                 ]
                 scores_trio.sort(key=lambda x: x[2], reverse=True)
-                # Use the best pair and match third person with one of them
                 best_i, best_j, _ = scores_trio[0]
                 day2_matches[unmatched2[best_i]] = unmatched2[best_j]
                 day2_matches[unmatched2[best_j]] = unmatched2[best_i]
-                # Match third person with one from the pair
                 third = [x for x in [0, 1, 2] if x not in [best_i, best_j]][0]
                 day2_matches[unmatched2[third]] = unmatched2[best_i]
 
-            # Insert matches into database
             for idx, user in enumerate(level_users):
                 day1_match_idx = day1_matches.get(idx)
                 day2_match_idx = day2_matches.get(idx)
@@ -1117,15 +1063,13 @@ def createMatches(
 
         db.commit()
         logging.info(f"Created {matches_created} matches")
-        
-        # Generate hints after creating matches
+
         try:
             hints_generated = generate_hints_for_all_users()
             logging.info(f"Generated hints for {hints_generated} users")
         except Exception as e:
             logging.exception(f"Error generating hints: {e}")
-            # Don't fail the whole request if hints generation fails
-        
+
         return {"created": matches_created}
 
     except Exception as e:
@@ -1137,10 +1081,8 @@ def createMatches(
 def get_user_hints(user_id: str):
     """Get all hints for a user with their availability status."""
     try:
-        # Get current time
         now = datetime.datetime.now()
 
-        # Query hints for both days
         cursor.execute("""
                        SELECT id,
                               user_id, day, hint1_type, hint1_content, hint1_time, hint1_revealed, hint2_type, hint2_content, hint2_time, hint2_revealed, hint3_type, hint3_content, hint3_time, hint3_revealed, reveal_time, match_id
@@ -1175,10 +1117,8 @@ def get_user_hints(user_id: str):
             reveal_time = row[15]
             match_id = row[16]
 
-            # Determine which hints are available
             hints = []
 
-            # Hint 1
             if now >= hint1_time:
                 hints.append({
                     "id": f"{hint_id}_hint1",
@@ -1198,7 +1138,6 @@ def get_user_hints(user_id: str):
                     "drop_time": hint1_time.isoformat()
                 })
 
-            # Hint 2
             if now >= hint2_time:
                 hints.append({
                     "id": f"{hint_id}_hint2",
@@ -1218,7 +1157,6 @@ def get_user_hints(user_id: str):
                     "drop_time": hint2_time.isoformat()
                 })
 
-            # Hint 3
             if now >= hint3_time:
                 hints.append({
                     "id": f"{hint_id}_hint3",
@@ -1238,15 +1176,14 @@ def get_user_hints(user_id: str):
                     "drop_time": hint3_time.isoformat()
                 })
 
-            # Check if reveal time has passed
             match_revealed = now >= reveal_time
             match_info = None
 
             if match_revealed and match_id:
-                # Get match user info
                 try:
+                    # FIX 2: column is 'class' not 'currentClass'
                     cursor.execute(
-                        "SELECT first_name, last_name, currentClass FROM users WHERE id = %s",
+                        "SELECT first_name, last_name, class FROM users WHERE id = %s",
                         (match_id,)
                     )
                     match_user_row = cursor.fetchone()
@@ -1259,7 +1196,6 @@ def get_user_hints(user_id: str):
                         }
                 except Exception as match_error:
                     logging.error(f"Error fetching match user info for match_id {match_id}: {match_error}")
-                    # Continue without match info instead of failing
 
             days_data.append({
                 "day": day_num,
@@ -1274,9 +1210,9 @@ def get_user_hints(user_id: str):
 
     except Exception as e:
         logging.exception(f"Error getting hints: {e}")
-        # CORRECTION CRITIQUE : Rollback de la transaction en cas d'erreur
+        # FIX 5: 'conn' doesn't exist, rollback on 'db'
         try:
-            conn.rollback()
+            db.rollback()
         except Exception as rollback_error:
             logging.error(f"Error during rollback: {rollback_error}")
 
@@ -1296,40 +1232,32 @@ class RevealHintRequest(BaseModel):
 def reveal_hint(request: RevealHintRequest):
     """Reveal a specific hint for a user."""
     try:
-        # Validate hint number
         if request.hint_number not in [1, 2, 3]:
             raise HTTPException(400, "Invalid hint number. Must be 1, 2, or 3.")
-        
-        # Get current time
+
         now = datetime.datetime.now()
-        
-        # Get hint data
+
         hint_id = f"{request.user_id}_day{request.day}"
         cursor.execute("""
             SELECT hint1_time, hint2_time, hint3_time, hint1_revealed, hint2_revealed, hint3_revealed
             FROM hints
             WHERE id = %s
         """, (hint_id,))
-        
+
         row = cursor.fetchone()
         if not row:
             raise HTTPException(404, "Hint not found")
-        
+
         hint_times = [row[0], row[1], row[2]]
         hint_revealed_states = [row[3], row[4], row[5]]
-        
-        # Check if the hint time has passed
+
         hint_time = hint_times[request.hint_number - 1]
         if now < hint_time:
             raise HTTPException(403, "Hint is not yet available")
-        
-        # Check if already revealed
+
         if hint_revealed_states[request.hint_number - 1]:
             return {"success": True, "message": "Hint already revealed"}
-        
-        # Update the revealed status using explicit conditions to avoid SQL injection
-        # We use separate if-elif blocks instead of dynamic column names to prevent
-        # potential SQL injection vulnerabilities from string interpolation in SQL
+
         if request.hint_number == 1:
             cursor.execute("""
                 UPDATE hints
@@ -1348,11 +1276,11 @@ def reveal_hint(request: RevealHintRequest):
                 SET hint3_revealed = TRUE
                 WHERE id = %s
             """, (hint_id,))
-        
+
         db.commit()
-        
+
         return {"success": True, "message": "Hint revealed successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -1369,38 +1297,31 @@ class RevealAllHintsRequest(BaseModel):
 def reveal_all_hints(request: RevealAllHintsRequest):
     """Reveal all available hints for a user on a specific day."""
     try:
-        # Get current time
         now = datetime.datetime.now()
-        
-        # Get hint data
+
         hint_id = f"{request.user_id}_day{request.day}"
         cursor.execute("""
-            SELECT hint1_time, hint2_time, hint3_time, 
+            SELECT hint1_time, hint2_time, hint3_time,
                    hint1_revealed, hint2_revealed, hint3_revealed
             FROM hints
             WHERE id = %s
         """, (hint_id,))
-        
+
         row = cursor.fetchone()
         if not row:
             raise HTTPException(404, "Hint not found")
-        
+
         hint_times = [row[0], row[1], row[2]]
         hint_revealed_states = [row[3], row[4], row[5]]
-        
-        # Determine which hints are available and not yet revealed
+
         hints_to_reveal = []
         for i in range(3):
             if now >= hint_times[i] and not hint_revealed_states[i]:
                 hints_to_reveal.append(i + 1)
-        
+
         if not hints_to_reveal:
             return {"success": True, "message": "No hints to reveal", "revealed_count": 0}
-        
-        # Update all available hints to revealed using safe explicit updates
-        # We use explicit conditions to avoid SQL injection from dynamic column names
-        # While this creates code duplication, it's a security best practice to avoid
-        # constructing SQL statements dynamically, even with validated input
+
         if 1 in hints_to_reveal and 2 in hints_to_reveal and 3 in hints_to_reveal:
             cursor.execute("""
                 UPDATE hints
@@ -1443,15 +1364,15 @@ def reveal_all_hints(request: RevealAllHintsRequest):
                 SET hint3_revealed = TRUE
                 WHERE id = %s
             """, (hint_id,))
-        
+
         db.commit()
-        
+
         return {
-            "success": True, 
+            "success": True,
             "message": f"{len(hints_to_reveal)} hint(s) revealed successfully",
             "revealed_count": len(hints_to_reveal)
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -1476,11 +1397,11 @@ def get_hints_revealed_count(user_id: str, day: int) -> int:
         FROM hints
         WHERE user_id = %s AND day = %s
     """, (user_id, day))
-    
+
     row = cursor.fetchone()
     if not row:
         return 0
-    
+
     return sum([1 for revealed in row if revealed])
 
 
@@ -1516,17 +1437,16 @@ def ensure_reveal_codes_exist():
         SELECT DISTINCT h.user_id, h.day, h.reveal_time
         FROM hints h
         WHERE NOT EXISTS (
-            SELECT 1 FROM reveal_codes rc 
+            SELECT 1 FROM reveal_codes rc
             WHERE rc.user_id = h.user_id AND rc.day = h.day
         )
     """)
-    
+
     rows = cursor.fetchall()
     now = datetime.datetime.now()
-    
+
     for row in rows:
         user_id, day, reveal_time = row
-        # Only create code if reveal time has passed
         if now >= reveal_time:
             code = generate_reveal_code(user_id, day)
             cursor.execute("""
@@ -1534,7 +1454,7 @@ def ensure_reveal_codes_exist():
                 VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
                 ON CONFLICT (user_id, day) DO NOTHING
             """, (f"{user_id}_day{day}", user_id, day, code))
-    
+
     db.commit()
 
 
@@ -1542,7 +1462,7 @@ def ensure_reveal_codes_exist():
 def get_candidates(user_id: str):
     """Get list of possible candidates (same LEVEL, not same class) for a user to guess."""
     try:
-        # Get user's class to extract the level
+        # FIX 2: column is 'class' not 'currentClass'
         cursor.execute("""
                        SELECT class
                        FROM users
@@ -1554,23 +1474,16 @@ def get_candidates(user_id: str):
             raise HTTPException(404, "User not found")
 
         user_class = user_row[0]
-        # Extract level from currentClass (e.g., "Terminale F" -> "Terminale")
         user_level = user_class.split()[0] if user_class and user_class.strip() else ""
 
         if not user_level:
             raise HTTPException(400, "User level could not be determined")
 
-        # Get all users in the same LEVEL (excluding self)
-        user_level = user_class.split()[0] if user_class and user_class.strip() else ""
-
-        if not user_level:
-            raise HTTPException(400, "User level could not be determined")
-
-        # Get all users in the same LEVEL (excluding self)
+        # FIX 2: column is 'class' not 'currentClass'
         cursor.execute("""
-                       SELECT id, first_name, last_name, currentClass
+                       SELECT id, first_name, last_name, class
                        FROM users
-                       WHERE currentClass LIKE %s
+                       WHERE class LIKE %s
                          AND id != %s
                        ORDER BY first_name, last_name
                        """, (f"{user_level}%", user_id))
@@ -1600,7 +1513,6 @@ def get_current_user(session_token: Optional[str] = Cookie(None)):
         print("❌ Pas de session_token dans le cookie")
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    # Vérifier le token en DB
     cursor.execute(
         "SELECT user_id FROM sessions WHERE token = %s",
         (session_token,)
@@ -1615,9 +1527,9 @@ def get_current_user(session_token: Optional[str] = Cookie(None)):
 
     user_id = result[0]
 
-    # Récupérer les infos user
+    # FIX 2: column is 'class' not 'currentClass'
     cursor.execute(
-        "SELECT id, first_name, last_name, email, currentClass FROM users WHERE id = %s",
+        "SELECT id, first_name, last_name, email, class FROM users WHERE id = %s",
         (str(user_id),)
     )
     user = cursor.fetchone()
@@ -1634,13 +1546,10 @@ def get_current_user(session_token: Optional[str] = Cookie(None)):
     }
 
 @app.post("/guess")
-#def submit_guess(request: GuessRequest):
 def guess(request: GuessRequest, current_user: dict = Depends(get_current_user)):
-    # Vérification robuste: normalise le type/format des IDs (str/int/espaces)
     current_user_id = str(current_user.get("id", "")).strip()
     request_user_id = str(request.user_id).strip()
 
-    # L'user connecté doit correspondre à l'user_id de la requête
     if current_user_id != request_user_id:
         raise HTTPException(status_code=403, detail="Unauthorized")
 
@@ -1650,11 +1559,9 @@ def guess(request: GuessRequest, current_user: dict = Depends(get_current_user))
         hint_number = request.hint_number
         guessed_user_id = request.guessed_user_id
 
-        # Validate hint_number
         if hint_number not in [1, 2, 3]:
             raise HTTPException(400, "Hint number must be 1, 2, or 3")
 
-        # Check if user has already guessed for this hint
         cursor.execute("""
             SELECT id
             FROM guesses
@@ -1664,7 +1571,6 @@ def guess(request: GuessRequest, current_user: dict = Depends(get_current_user))
         if cursor.fetchone():
             raise HTTPException(400, f"You have already submitted a guess for hint {hint_number}")
 
-        # Check if the reveal time has passed
         cursor.execute("""
             SELECT reveal_time, match_id, hint1_revealed, hint2_revealed, hint3_revealed
             FROM hints
@@ -1681,18 +1587,14 @@ def guess(request: GuessRequest, current_user: dict = Depends(get_current_user))
         if now >= reveal_time:
             raise HTTPException(400, "Cannot guess after reveal time has passed")
 
-        # Check if the specified hint is revealed
         hints_revealed_map = {1: hint1_revealed, 2: hint2_revealed, 3: hint3_revealed}
         if not hints_revealed_map.get(hint_number):
             raise HTTPException(400, f"Hint {hint_number} must be revealed before you can guess")
 
-        # Calculate number of hints revealed at time of guess (for DB record)
         hints_revealed = sum([hint1_revealed, hint2_revealed, hint3_revealed])
 
-        # Check if guess is correct
         is_correct = (guessed_user_id == match_id)
 
-        # Check if user has already guessed correctly for this day
         cursor.execute("""
                        SELECT id
                        FROM guesses
@@ -1703,13 +1605,11 @@ def guess(request: GuessRequest, current_user: dict = Depends(get_current_user))
         if cursor.fetchone():
             raise HTTPException(400, "Tu as déjà deviné correctement ton âme sœur pour ce jour !")
 
-        # Calculate points based on number of hints revealed (not hint_number)
         points_earned = 0
         if is_correct:
-            points_earned = calculate_guess_points(hints_revealed)  # hints_revealed au lieu de hint_number
+            points_earned = calculate_guess_points(hints_revealed)
             update_user_score(user_id, points_earned)
 
-        # Record the guess
         cursor.execute("""
                        INSERT INTO guesses (user_id, day, hint_number, guessed_user_id, hints_revealed, points_earned,
                                             is_correct)
@@ -1740,11 +1640,11 @@ def get_leaderboard():
     """Get the leaderboard with all users ranked by total points."""
     try:
         cursor.execute("""
-            SELECT 
+            SELECT
                 s.user_id,
                 u.first_name,
                 u.last_name,
-                u.currentClass,
+                u.class,
                 s.total_points,
                 s.code_exchange_bonus,
                 s.updated_at
@@ -1752,7 +1652,7 @@ def get_leaderboard():
             JOIN users u ON s.user_id = u.id
             ORDER BY s.total_points DESC, s.updated_at ASC
         """)
-        
+
         leaderboard = []
         rank = 1
         for row in cursor.fetchall():
@@ -1767,9 +1667,9 @@ def get_leaderboard():
                 "updated_at": row[6].isoformat() if row[6] else None
             })
             rank += 1
-        
+
         return {"leaderboard": leaderboard}
-        
+
     except Exception as e:
         logging.exception(f"Error getting leaderboard: {e}")
         raise HTTPException(500, f"Error getting leaderboard: {str(e)}")
@@ -1779,10 +1679,8 @@ def get_leaderboard():
 def get_reveal_code(user_id: str, day: int):
     """Get the reveal code for a user on a specific day (only if reveal time has passed)."""
     try:
-        # Ensure codes exist for all revealed matches
         ensure_reveal_codes_exist()
 
-        # Check if reveal time has passed
         cursor.execute("""
                        SELECT reveal_time
                        FROM hints
@@ -1802,7 +1700,6 @@ def get_reveal_code(user_id: str, day: int):
                 "message": "Reveal code will be available after reveal time"
             }
 
-        # Get the reveal code
         cursor.execute("""
                        SELECT code, exchanged, exchanged_with
                        FROM reveal_codes
@@ -1815,7 +1712,6 @@ def get_reveal_code(user_id: str, day: int):
 
         code, exchanged, exchanged_with = code_row
 
-        # Check if partner has also exchanged
         partner_exchanged = False
         if exchanged and exchanged_with:
             cursor.execute("""
@@ -1849,60 +1745,53 @@ def exchange_code(request: ExchangeCodeRequest):
         user_id = request.user_id
         day = request.day
         partner_code = request.partner_code
-        
-        # Get user's match for this day
+
         cursor.execute("""
             SELECT match_id FROM hints WHERE user_id = %s AND day = %s
         """, (user_id, day))
-        
+
         hint_row = cursor.fetchone()
         if not hint_row:
             raise HTTPException(404, "Match not found for this day")
-        
+
         match_id = hint_row[0]
-        
-        # Verify the partner's code
+
         cursor.execute("""
             SELECT user_id, exchanged FROM reveal_codes
             WHERE code = %s AND day = %s
         """, (partner_code, day))
-        
+
         partner_row = cursor.fetchone()
         if not partner_row:
             raise HTTPException(400, "Ce code ne correspond pas à celui de ton âme sœur.")
-        
+
         partner_id, partner_exchanged = partner_row
-        
-        # Verify that the partner is the actual match
+
         if partner_id != match_id:
             raise HTTPException(400, "Ce code ne correspond pas à celui de ton âme sœur.")
-        
-        # Check if user has already exchanged their code
+
         cursor.execute("""
             SELECT exchanged FROM reveal_codes
             WHERE user_id = %s AND day = %s
         """, (user_id, day))
-        
+
         user_code_row = cursor.fetchone()
         if not user_code_row:
             raise HTTPException(404, "Your reveal code not found")
-        
+
         user_exchanged = user_code_row[0]
-        
+
         if user_exchanged:
             raise HTTPException(400, "Tu as déjà échangé ton code pour aujourd'hui !")
-        
-        # Award bonus points (50 points for code exchange)
+
         bonus_points = 100
-        
-        # Update user's code as exchanged
+
         cursor.execute("""
             UPDATE reveal_codes
             SET exchanged = TRUE, exchanged_with = %s, exchanged_at = CURRENT_TIMESTAMP
             WHERE user_id = %s AND day = %s
         """, (partner_id, user_id, day))
-        
-        # Update user's score
+
         cursor.execute("""
             INSERT INTO scores (user_id, total_points, code_exchange_bonus)
             VALUES (%s, %s, %s)
@@ -1911,15 +1800,15 @@ def exchange_code(request: ExchangeCodeRequest):
                           code_exchange_bonus = scores.code_exchange_bonus + %s,
                           updated_at = CURRENT_TIMESTAMP
         """, (user_id, bonus_points, bonus_points, bonus_points, bonus_points))
-        
+
         db.commit()
-        
+
         return {
             "success": True,
             "points_earned": bonus_points,
             "message": "Le code a été échangé avec succès !"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -1931,7 +1820,6 @@ def exchange_code(request: ExchangeCodeRequest):
 def get_user_stats(user_id: str):
     """Get user statistics including guesses and score."""
     try:
-        # Get user's score
         cursor.execute("""
                        SELECT total_points, code_exchange_bonus
                        FROM scores
@@ -1942,7 +1830,6 @@ def get_user_stats(user_id: str):
         total_points = score_row[0] if score_row else 0
         code_exchange_bonus = score_row[1] if score_row else 0
 
-        # Get user's guesses - AJOUTE hint_number ici !
         cursor.execute("""
                        SELECT day, hint_number, guessed_user_id, hints_revealed, points_earned, is_correct, created_at
                        FROM guesses

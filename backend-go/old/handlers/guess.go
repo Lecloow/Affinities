@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/old/db"
 	utils2 "backend/old/utils"
+	"backend/utils"
 	"context"
 	"time"
 
@@ -53,7 +54,7 @@ func GuessHandler(c *gin.Context) {
 			revealed++
 		}
 
-		points = utils2.CalculatePoints(revealed)
+		points = utils.CalculatePoints(revealed)
 	}
 
 	if isCorrect {

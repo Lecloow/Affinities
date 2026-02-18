@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/old/db"
 	utils2 "backend/old/utils"
+	"backend/utils"
 	"context"
 	"net/http"
 
@@ -33,7 +34,7 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	sessionToken := utils2.GenerateSecureToken()
+	sessionToken := utils.GenerateSecureToken()
 
 	_, err = db.DB.Exec(context.Background(),
 		"INSERT INTO sessions(token, user_id) VALUES($1, CAST($2 AS INTEGER))",

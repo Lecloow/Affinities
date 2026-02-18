@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -42,6 +43,17 @@ func (h *UserHandler) Guess(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Update the score
+
+	if isCorrect {
+		points := utils.CalculatePoints(createdGuess.HintNumber)
+		err = h.Service.AddPoints(ctx, guess.UserId, points)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	c.JSON(200, createdGuess)

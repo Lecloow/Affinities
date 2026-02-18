@@ -43,3 +43,14 @@ type GuessRequest struct {
 	HintNumber    int    `json:"hintNumber"`
 	GuessedUserId UserID `json:"guessedUserId"`
 }
+
+type LeaderboardEntry struct {
+	Rank        int       `json:"rank"`
+	UserID      UserID    `json:"userId"`
+	FirstName   string    `json:"firstName"`
+	LastName    string    `json:"lastName"`
+	Class       string    `json:"class"`
+	TotalPoints int       `json:"totalPoints"`
+	BonusPoints int       `json:"bonusPoints"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}

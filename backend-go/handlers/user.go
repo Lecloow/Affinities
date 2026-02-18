@@ -1,19 +1,27 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *UserHandler) Candidates(c *gin.Context) {
-	ctx := c.Request.Context()
+func getIDParam(c *gin.Context) (int, bool) {
 	ID := c.Param("id")
 	id, err := strconv.Atoi(ID)
 	if err != nil {
-		log.Fatal("failed to convert string to integer", err)
+		c.JSON(400, gin.H{"error": "invalid id"})
+		return 0, false
+	}
+	return id, true
+}
+
+func (h *UserHandler) Candidates(c *gin.Context) {
+	ctx := c.Request.Context()
+	id, ok := getIDParam(c)
+	if !ok {
+		return
 	}
 
 	candidates, err := h.Service.GetCandidates(ctx, id)
@@ -23,15 +31,13 @@ func (h *UserHandler) Candidates(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, candidates)
-
 }
 
 func (h *UserHandler) Stats(c *gin.Context) {
 	ctx := c.Request.Context()
-	ID := c.Param("id")
-	id, err := strconv.Atoi(ID)
-	if err != nil {
-		log.Fatal("failed to convert string to integer", err)
+	id, ok := getIDParam(c)
+	if !ok {
+		return
 	}
 
 	stats, err := h.Service.GetStats(ctx, id)

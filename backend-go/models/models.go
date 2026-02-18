@@ -10,6 +10,14 @@ type User struct {
 	Class     string `json:"class"`
 }
 
+type CreateUserRequest struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+	Class     string `json:"class"`
+	Password  string `json:"password"`
+}
+
 type UserStats struct {
 	ID          int      `json:"id"`
 	TotalPoints int      `json:"totalPoints"`

@@ -23,13 +23,28 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	var newUser models.User
-	if err := c.BindJSON(&newUser); err != nil {
+	var req models.CreateUserRequest
+	if err := c.BindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	createdUser, err := h.Service.AddUser(ctx, &newUser)
+	newUser := &models.User{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Email:     req.Email,
+		Class:     req.Class,
+	}
+
+	//hashedPassword, err := adminUtils.HashPassword(req.Password)
+	//if err != nil {
+	//	c.JSON(500, gin.H{"error": "failed to hash password"})
+	//	return
+	//}
+
+	hashedPassword := req.Password //DEBUG: Store the password in plain text
+
+	createdUser, err := h.Service.AddUser(ctx, newUser, hashedPassword)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

@@ -28,7 +28,7 @@ func (s *UserService) GetByID(ctx context.Context, id int) (*models.User, error)
 }
 
 func (s *UserService) GetAll(ctx context.Context) ([]*models.User, error) {
-	rows, err := s.DB.Query(ctx, "SELECT id, first_name, last_name, email, class FROM users ORDER BY id ASC")
+	rows, err := s.DB.Query(ctx, "SELECT id, first_name, last_name, email, class FROM users ORDER BY id")
 	if err != nil {
 		return nil, err
 	}
@@ -46,10 +46,10 @@ func (s *UserService) GetAll(ctx context.Context) ([]*models.User, error) {
 	return users, nil
 }
 
-func (s *UserService) AddUser(ctx context.Context, user *models.User) (*models.User, error) {
+func (s *UserService) AddUser(ctx context.Context, user *models.User, hashedPassword string) (*models.User, error) {
 	err := s.DB.QueryRow(ctx,
-		"INSERT INTO users (first_name, last_name, email, class) VALUES ($1, $2, $3, $4) RETURNING id",
-		user.FirstName, user.LastName, user.Email, user.Class).Scan(&user.ID)
+		"INSERT INTO users (first_name, last_name, email, class, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		user.FirstName, user.LastName, user.Email, user.Class, hashedPassword).Scan(&user.ID)
 
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (s *UserService) AddUser(ctx context.Context, user *models.User) (*models.U
 }
 
 func (s *UserService) Login(ctx context.Context, password string) (*models.User, error) {
-
+	
 	var user models.User
 
 	err := s.DB.QueryRow(ctx, "SELECT id, first_name, last_name, email, class FROM users WHERE password_hash = $1", password).

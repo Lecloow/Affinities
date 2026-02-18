@@ -34,6 +34,7 @@ func main() {
 	router.POST("/login", userHandler.Login)
 	router.GET("/candidates/:id", userHandler.Candidates)
 	router.GET("/user-stats/:id", userHandler.Stats)
+	router.GET("/guess", userHandler.Guess)
 
 	// Need Admin perms
 	router.POST("/users", userHandler.CreateUser)

@@ -45,14 +45,13 @@ func initDB() {
 		expires_at TIMESTAMP NOT NULL
 	);
 
+
 	CREATE TABLE IF NOT EXISTS matches (
 		id BIGSERIAL PRIMARY KEY,
-		user1_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		user2_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		match_id BIGINT NOT NULL, 
 		day INTEGER NOT NULL CHECK (day > 0),
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		CHECK (user1_id <> user2_id),
-		UNIQUE(user1_id, user2_id, day)
+		UNIQUE(user_id, match_id)
 	);
 
 	CREATE TABLE IF NOT EXISTS hints (

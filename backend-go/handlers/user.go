@@ -1,20 +1,21 @@
 package handlers
 
 import (
+	"backend/models"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func getIDParam(c *gin.Context) (int, bool) {
+func getIDParam(c *gin.Context) (models.UserID, bool) {
 	ID := c.Param("id")
 	id, err := strconv.Atoi(ID)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "invalid id"})
 		return 0, false
 	}
-	return id, true
+	return models.UserID(id), true
 }
 
 func (h *UserHandler) Candidates(c *gin.Context) {

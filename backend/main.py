@@ -1515,7 +1515,7 @@ def get_current_user(session_token: Optional[str] = Cookie(None)):
 
     cursor.execute(
         "SELECT user_id FROM sessions WHERE token = %s",
-        (session_token,)
+        (session_token)
     )
 
     result = cursor.fetchone()

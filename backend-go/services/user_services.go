@@ -59,7 +59,7 @@ func (s *UserService) AddUser(ctx context.Context, user *models.User, hashedPass
 }
 
 func (s *UserService) Login(ctx context.Context, password string) (*models.User, error) {
-	
+
 	var user models.User
 
 	err := s.DB.QueryRow(ctx, "SELECT id, first_name, last_name, email, class FROM users WHERE password_hash = $1", password).

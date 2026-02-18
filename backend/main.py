@@ -1089,7 +1089,7 @@ def get_user_hints(user_id: str):
                        FROM hints
                        WHERE user_id = %s
                        ORDER BY day
-                       """, (user_id,))
+                       """, (user_id))
 
         rows = cursor.fetchall()
 
@@ -1824,7 +1824,7 @@ def get_user_stats(user_id: str):
                        SELECT total_points, code_exchange_bonus
                        FROM scores
                        WHERE user_id = %s
-                       """, (user_id,))
+                       """, (user_id))
 
         score_row = cursor.fetchone()
         total_points = score_row[0] if score_row else 0

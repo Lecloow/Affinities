@@ -3,45 +3,27 @@ package handlers
 import (
 	"backend/models"
 	"backend/utils"
-	"strings"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *UserHandler) Guess(c *gin.Context) {
-	ctx := c.Request.Context()
-	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" {
-		c.JSON(401, gin.H{"error": "Missing Authorization header"})
-		return
-	}
-
-	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		c.JSON(401, gin.H{"error": "Invalid Authorization header"})
-		return
-	}
-	token := parts[1]
-
+func (h *UserHandler) Guess(ctx *gin.Context) {
+	log.Println("Handler /guess appelé")
 	var guess models.GuessRequest
-	if err := c.BindJSON(&guess); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := ctx.BindJSON(&guess); err != nil {
+		ctx.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	userId, err := h.Service.ValidateToken(ctx, token)
-	if err != nil {
-		c.JSON(401, token)
-		return
-	}
-
-	guess.UserId = *userId
+	userID := ctx.MustGet("userID").(models.UserID)
+	guess.UserId = userID
 
 	isCorrect, err := h.Service.CheckGuess(ctx, guess)
 
 	createdGuess, err := h.Service.CreateGuess(ctx, guess, isCorrect)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -51,10 +33,21 @@ func (h *UserHandler) Guess(c *gin.Context) {
 		points := utils.CalculatePoints(createdGuess.HintNumber)
 		err = h.Service.AddPoints(ctx, guess.UserId, points)
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+			ctx.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 	}
 
-	c.JSON(200, createdGuess)
+	ctx.JSON(200, createdGuess)
+	//createdGuess, err := h.Service.ProcessGuess(c, guess)
+	//if err != nil {
+	//	if err == services.ErrAlreadyGuessed {
+	//		c.JSON(http.StatusConflict, gin.H{"error": "Guess already submitted"})
+	//		return
+	//	}
+	//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	//	return
+	//}
+	//
+	//c.JSON(http.StatusOK, createdGuess)
 }

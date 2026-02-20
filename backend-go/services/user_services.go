@@ -5,6 +5,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -47,11 +48,38 @@ func (s *UserService) GetAll(ctx context.Context) ([]*models.User, error) {
 }
 
 func (s *UserService) AddUser(ctx context.Context, user *models.User, hashedPassword string) (*models.User, error) {
-	err := s.DB.QueryRow(ctx,
-		"INSERT INTO users (first_name, last_name, email, class, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-		user.FirstName, user.LastName, user.Email, user.Class, hashedPassword).Scan(&user.ID)
-
+	tx, err := s.DB.Begin(ctx)
 	if err != nil {
+		return nil, err
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		err := tx.Rollback(ctx)
+		if err != nil {
+			// Log the error, but don't return it since we might have already committed
+			// and we don't want to override any error that might have occurred in the main function
+			// log.Printf("failed to rollback transaction: %v", err)
+			return
+		}
+	}(tx, ctx)
+
+	err = tx.QueryRow(ctx,
+		"INSERT INTO users (first_name, last_name, email, class) VALUES ($1, $2, $3, $4) RETURNING id",
+		user.FirstName, user.LastName, user.Email, user.Class,
+	).Scan(&user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO: Hashed Version
+	_, err = tx.Exec(ctx,
+		"INSERT INTO credentials (user_id, password_hash) VALUES ($1, $2)",
+		user.ID, hashedPassword,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -62,8 +90,14 @@ func (s *UserService) Login(ctx context.Context, password string) (*models.User,
 
 	var user models.User
 
-	err := s.DB.QueryRow(ctx, "SELECT id, first_name, last_name, email, class FROM users WHERE password_hash = $1", password).
-		Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Class)
+	err := s.DB.QueryRow(ctx, "SELECT user_id FROM credentials WHERE password_hash = $1", password).
+		Scan(&user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.DB.QueryRow(ctx, "SELECT first_name, last_name, email, class FROM users WHERE id = $1", user.ID).
+		Scan(&user.FirstName, &user.LastName, &user.Email, &user.Class)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +105,7 @@ func (s *UserService) Login(ctx context.Context, password string) (*models.User,
 	return &user, nil
 }
 
-// Hashed version -- In progress
+//TODO: Hashed version -- In progress
 //func (s *UserService) Login(ctx context.Context, password string) (*models.User, error) {
 //	var user models.User
 //	var hashedToken string

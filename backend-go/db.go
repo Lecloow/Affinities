@@ -34,8 +34,12 @@ func initDB() {
 		last_name TEXT NOT NULL,
 		email TEXT NOT NULL UNIQUE,
 		class TEXT NOT NULL,
-		password_hash TEXT NOT NULL,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+	
+	CREATE TABLE IF NOT EXISTS credentials (
+		user_id BIGSERIAL PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		password_hash TEXT NOT NULL
 	);
 
 	CREATE TABLE IF NOT EXISTS sessions (

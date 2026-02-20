@@ -12,6 +12,12 @@ type User struct {
 	Class     string `json:"class"`
 }
 
+type Candidates struct {
+	ID        UserID `json:"id"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+}
+
 type CreateUserRequest struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`

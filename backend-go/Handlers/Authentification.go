@@ -2,14 +2,12 @@ package handlers
 
 import (
 	"backend/services"
-	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func AuthMiddleware(service *services.UserService) gin.HandlerFunc {
-	log.Printf("AuthMiddleware initialized with service: %v", service)
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {

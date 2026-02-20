@@ -131,7 +131,7 @@ func (s *UserService) Login(ctx context.Context, password string) (*models.User,
 //	return nil, fmt.Errorf("invalid credentials")
 //}
 
-func (s *UserService) GetCandidates(ctx context.Context, id models.UserID) ([]*models.User, error) {
+func (s *UserService) GetCandidates(ctx context.Context, id models.UserID) ([]*models.Candidates, error) {
 	var class string
 	err := s.DB.QueryRow(ctx, "SELECT class FROM users WHERE id = $1", id).Scan(&class)
 	if err != nil {
@@ -140,7 +140,7 @@ func (s *UserService) GetCandidates(ctx context.Context, id models.UserID) ([]*m
 
 	level := strings.Split(class, " ")[0]
 
-	var candidates []*models.User
+	var candidates []*models.Candidates
 
 	rows, err := s.DB.Query(ctx, "SELECT id, first_name, last_name FROM users WHERE class LIKE $1", level+"%")
 	if err != nil {
@@ -149,7 +149,7 @@ func (s *UserService) GetCandidates(ctx context.Context, id models.UserID) ([]*m
 	defer rows.Close()
 
 	for rows.Next() {
-		u := &models.User{}
+		u := &models.Candidates{}
 		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName); err != nil {
 			return nil, err
 		}

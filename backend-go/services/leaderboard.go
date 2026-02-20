@@ -6,7 +6,6 @@ import (
 )
 
 func (s *UserService) GetLeaderboard(ctx context.Context) ([]*models.LeaderboardEntry, error) {
-
 	rows, err := s.DB.Query(ctx, `
 				SELECT
 					ROW_NUMBER() OVER (ORDER BY s.total_points DESC, s.updated_at ASC) AS rank,
@@ -43,6 +42,5 @@ func (s *UserService) GetLeaderboard(ctx context.Context) ([]*models.Leaderboard
 		}
 		leaderboard = append(leaderboard, entry)
 	}
-
 	return leaderboard, rows.Err()
 }

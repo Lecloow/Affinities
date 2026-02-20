@@ -42,9 +42,9 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	//	return
 	//}
 
-	hashedPassword := req.Password //DEBUG: Store the password in plain text
+	hashedPassword := req.Password //TODO: Hash the password before storing it in the database
 
-	createdUser, err := h.Service.AddUser(ctx, newUser, hashedPassword)
+	createdUser, err := h.Service.AddUser(ctx, newUser, hashedPassword) //TODO: Handle errors with different status codes (e.g. 409 for duplicate email)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

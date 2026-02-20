@@ -38,25 +38,20 @@ func main() {
 	auth.Use(handlers.AuthMiddleware(userService))
 	{
 		auth.POST("/guess", userHandler.Guess)
-		//auth.GET("/candidates/:id", userHandler.Candidates)
-		//auth.GET("/user-stats/:id", userHandler.Stats)
-		//auth.GET("/leaderboard", userHandler.Leaderboard)
-		//auth.GET("/hints/:id", userHandler.GetHints)
+		auth.GET("/candidates/:id", userHandler.Candidates)
+		auth.GET("/user-stats/:id", userHandler.Stats)
+		auth.GET("/leaderboard", userHandler.Leaderboard)
+		auth.GET("/hints/:id", userHandler.GetHints)
 	}
 
 	router.POST("/login", userHandler.Login)
-	router.GET("/candidates/:id", userHandler.Candidates)
-	router.GET("/user-stats/:id", userHandler.Stats)
-	//router.POST("/guess", userHandler.Guess)
-	router.GET("/leaderboard", userHandler.Leaderboard)
-	router.GET("/hints/:id", userHandler.GetHints)
 
 	// Need Admin perms
 	router.POST("/users", userHandler.CreateUser)
 	router.GET("/users", userHandler.GetAllUsers)
 	router.GET("/users/:id", userHandler.GetUserByID)
 
-	//router.Run(":8080") // Perhaps :10000
+	//router.Run(":8080")
 	if err := router.Run("localhost:8080"); err != nil {
 		panic(fmt.Errorf("failed to run server: %v", err))
 	}

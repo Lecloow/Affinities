@@ -3,42 +3,42 @@ package handlers
 import (
 	"backend/models"
 	"backend/utils"
-	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *UserHandler) Guess(ctx *gin.Context) {
-	log.Println("Handler /guess appelé")
+func (h *UserHandler) Guess(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var guess models.GuessRequest
-	if err := ctx.BindJSON(&guess); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+	if err := c.BindJSON(&guess); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	userID := ctx.MustGet("userID").(models.UserID)
+	userID := c.MustGet("userID").(models.UserID)
 	guess.UserId = userID
 
 	isCorrect, err := h.Service.CheckGuess(ctx, guess)
 
 	createdGuess, err := h.Service.CreateGuess(ctx, guess, isCorrect)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Update the score
-
 	if isCorrect {
 		points := utils.CalculatePoints(createdGuess.HintNumber)
 		err = h.Service.AddPoints(ctx, guess.UserId, points)
 		if err != nil {
-			ctx.JSON(500, gin.H{"error": err.Error()})
+			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 	}
 
-	ctx.JSON(200, createdGuess)
+	c.JSON(http.StatusOK, createdGuess)
 	//createdGuess, err := h.Service.ProcessGuess(c, guess)
 	//if err != nil {
 	//	if err == services.ErrAlreadyGuessed {

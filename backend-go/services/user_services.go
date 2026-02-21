@@ -3,6 +3,8 @@ package services
 import (
 	"backend/models"
 	"context"
+	"database/sql"
+	"errors"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -169,16 +171,23 @@ func (s *UserService) GetStats(ctx context.Context, id models.UserID) (*models.U
 
 	stats := &models.UserStats{ID: id}
 
-	err := s.DB.QueryRow(ctx, "SELECT total_points, code_exchange_bonus FROM scores WHERE user_id = $1", id).Scan(&stats.TotalPoints, &stats.BonusPoints)
-	if err != nil {
+	err := s.DB.QueryRow(ctx, `SELECT total_points, code_exchange_bonus FROM scores WHERE user_id = $1`, id).
+		Scan(&stats.TotalPoints, &stats.BonusPoints)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		stats.TotalPoints = 0
+		stats.BonusPoints = 0
+	} else if err != nil {
 		return nil, err
 	}
 
-	rows, err := s.DB.Query(ctx, `
-		SELECT id, user_id, day, hint_number, guessed_user_id, is_correct, created_at 
-		FROM guesses 
-		WHERE user_id = $1
-	`, id)
+	rows, err := s.DB.Query(ctx,
+		`SELECT id, user_id, day, hint_number, guessed_user_id, is_correct, created_at
+		 FROM guesses
+		 WHERE user_id = $1
+		 ORDER BY id`,
+		id,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -186,10 +195,23 @@ func (s *UserService) GetStats(ctx context.Context, id models.UserID) (*models.U
 
 	for rows.Next() {
 		var g models.Guess
-		if err := rows.Scan(&g.ID, &g.UserID, &g.Day, &g.HintNumber, &g.GuessedUserId, &g.IsCorrect, &g.CreatedAt); err != nil {
-			continue
+		if err := rows.Scan(
+			&g.ID,
+			&g.UserID,
+			&g.Day,
+			&g.HintNumber,
+			&g.GuessedUserId,
+			&g.IsCorrect,
+			&g.CreatedAt,
+		); err != nil {
+			return nil, err
 		}
+
 		stats.Guesses = append(stats.Guesses, &g)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return stats, nil

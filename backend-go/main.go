@@ -38,14 +38,21 @@ func main() {
 	auth.Use(handlers.AuthMiddleware(userService))
 	{
 		auth.POST("/guess", userHandler.Guess)
-		auth.GET("/candidates/:id", userHandler.Candidates)
-		auth.GET("/user-stats/:id", userHandler.Stats)
 		auth.GET("/leaderboard", userHandler.Leaderboard)
-		auth.GET("/hints/:id", userHandler.GetHints)
+		auth.GET("/me/candidates", userHandler.Candidates)
+		auth.GET("/me/stats", userHandler.Stats)
+		auth.GET("/me/hints", userHandler.GetHints)
 	}
 
 	router.POST("/login", userHandler.Login)
 
+	//auth := router.Group("/admin/")
+	//auth.Use(handlers.AuthMiddleware(adminService))
+	//{
+	//	auth.POST("/users", userHandler.CreateUser)
+	//	auth.GET("/users", userHandler.GetAllUsers)
+	//	auth.GET("/users/:id", userHandler.GetUserByID)
+	//}
 	// Need Admin perms
 	router.POST("/users", userHandler.CreateUser)
 	router.GET("/users", userHandler.GetAllUsers)

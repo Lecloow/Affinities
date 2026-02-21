@@ -3,29 +3,15 @@ package handlers
 import (
 	"backend/models"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func getIDParam(c *gin.Context) (models.UserID, bool) {
-	ID := c.Param("id")
-	id, err := strconv.Atoi(ID)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "invalid id"})
-		return 0, false
-	}
-	return models.UserID(id), true
-}
-
 func (h *UserHandler) Candidates(c *gin.Context) {
 	ctx := c.Request.Context()
-	id, ok := getIDParam(c)
-	if !ok {
-		return
-	}
+	userID := c.MustGet("userID").(models.UserID)
 
-	candidates, err := h.Service.GetCandidates(ctx, id)
+	candidates, err := h.Service.GetCandidates(ctx, userID)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -36,12 +22,9 @@ func (h *UserHandler) Candidates(c *gin.Context) {
 
 func (h *UserHandler) Stats(c *gin.Context) {
 	ctx := c.Request.Context()
-	id, ok := getIDParam(c)
-	if !ok {
-		return
-	}
+	userID := c.MustGet("userID").(models.UserID)
 
-	stats, err := h.Service.GetStats(ctx, id)
+	stats, err := h.Service.GetStats(ctx, userID)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

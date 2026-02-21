@@ -11,8 +11,8 @@ func (s *UserService) ValidateToken(ctx context.Context, token string) (*models.
 
 	var userId models.UserID
 	var expiresAt time.Time
-	err := s.DB.QueryRow(ctx, "SELECT user_id, expires_at FROM sessions WHERE token = $1", token).
-		Scan(&userId, &expiresAt)
+	err := s.DB.QueryRow(ctx, "SELECT user_id, expires_at FROM sessions WHERE token = $1", token). //TODO: Hash token for security
+													Scan(&userId, &expiresAt)
 	if err != nil {
 		return nil, err
 	}

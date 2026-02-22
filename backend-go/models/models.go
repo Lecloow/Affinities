@@ -60,3 +60,14 @@ type LeaderboardEntry struct {
 	BonusPoints int       `json:"bonusPoints"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
+
+type Hint struct {
+	ID         int       `json:"id"`
+	UserID     UserID    `json:"userId"`
+	Day        int       `json:"day"`
+	HintNumber int       `json:"hintNumber"`
+	Difficulty string    `json:"difficulty"`
+	Content    string    `json:"content"`
+	RevealTime time.Time `json:"revealTime"`
+	Revealed   bool      `json:"revealed"`
+}

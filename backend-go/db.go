@@ -60,15 +60,14 @@ func initDB() {
 
 	CREATE TABLE IF NOT EXISTS hints (
 		id BIGSERIAL PRIMARY KEY,
-		match_id BIGINT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
 		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		day INTEGER NOT NULL CHECK (day > 0),
 		hint_number INTEGER NOT NULL CHECK (hint_number > 0),
-		type TEXT NOT NULL,
+		difficulty TEXT NOT NULL,
 		content TEXT NOT NULL,
 		reveal_time TIMESTAMP,
 		revealed BOOLEAN DEFAULT FALSE,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		UNIQUE(match_id, user_id, hint_number)
+		UNIQUE(user_id, day, hint_number)
 	);
 
 	CREATE TABLE IF NOT EXISTS guesses (
@@ -104,7 +103,7 @@ func initDB() {
 
 	CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 	CREATE INDEX IF NOT EXISTS idx_matches_day ON matches(day);
-	CREATE INDEX IF NOT EXISTS idx_hints_match_id ON hints(match_id);
+	CREATE INDEX IF NOT EXISTS idx_hints_user_id ON hints(user_id);
 	CREATE INDEX IF NOT EXISTS idx_guesses_user_id ON guesses(user_id);
 	`
 

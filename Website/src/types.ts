@@ -1,13 +1,13 @@
 export interface User {
-  id: number;  // ✅ INTEGER PRIMARY KEY dans table users
+  id: number;
   first_name: string;
   last_name: string;
   email: string;
-  currentClass: string;  // correspond à "class" dans la DB
+  currentClass: string;
 }
 
 export interface Hint {
-  id: string;  // ✅ TEXT PRIMARY KEY
+  id: string;
   type: string;
   content: string | null;
   available: boolean;
@@ -16,7 +16,7 @@ export interface Hint {
 }
 
 export interface Candidate {
-  id: string;  // ✅ Probablement TEXT aussi
+  id: string;
   first_name: string;
   last_name: string;
   currentClass: string;
@@ -25,7 +25,7 @@ export interface Candidate {
 export interface UserGuess {
   day: number;
   hint_number: number;
-  guessed_user_id: string;  // ✅ TEXT dans guesses.guessed_user_id
+  guessed_user_id: string;
   hints_revealed: number;
   points_earned: number;
   is_correct: boolean;
@@ -33,7 +33,7 @@ export interface UserGuess {
 }
 
 export interface UserStatsResponse {
-  user_id: string;  // ✅ TEXT dans scores.user_id
+  user_id: string;
   total_points: number;
   code_exchange_bonus: number;
   guesses: UserGuess[];

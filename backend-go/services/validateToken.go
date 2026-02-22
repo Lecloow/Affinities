@@ -17,7 +17,7 @@ func (s *UserService) ValidateToken(ctx context.Context, token string) (*models.
 		return nil, err
 	}
 
-	if time.Now().After(expiresAt) {
+	if time.Now().UTC().After(expiresAt) {
 		_, err := s.DB.Exec(ctx, "DELETE FROM sessions WHERE token = $1", token)
 		if err != nil {
 			return nil, err

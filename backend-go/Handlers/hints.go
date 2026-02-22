@@ -1,8 +1,47 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"backend/models"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
 
 func (h *UserHandler) GetHints(c *gin.Context) {
-	//ctx := c.Request.Context()
-	c.JSON(200, gin.H{"message": "GetHints endpoint is working!"})
+	ctx := c.Request.Context()
+	userID := c.MustGet("userID").(models.UserID)
+
+	hints, err := h.Service.GetHints(ctx, userID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, hints)
+}
+
+func (h *UserHandler) RevealHint(c *gin.Context) {
+	ctx := c.Request.Context()
+	userID := c.MustGet("userID").(models.UserID)
+	dayStr := c.Param("day")
+	hintStr := c.Param("hintNumber")
+
+	day, err := strconv.Atoi(dayStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid day"})
+		return
+	}
+
+	hintNumber, err := strconv.Atoi(hintStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hintNumber"})
+		return
+	}
+	_, err = h.Service.RevealHint(ctx, userID, day, hintNumber)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Hint revealed"})
 }

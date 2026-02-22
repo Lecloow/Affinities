@@ -43,6 +43,7 @@ func main() {
 		auth.GET("/me/stats", userHandler.Stats)
 		auth.GET("/me/hints", userHandler.GetHints)
 		auth.POST("/me/hints/:day/:hintNumber/reveal", userHandler.RevealHint)
+		auth.POST("/me/hints/:day/revealAll", userHandler.RevealAllHints)
 	}
 
 	router.POST("/login", userHandler.Login)

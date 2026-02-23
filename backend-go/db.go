@@ -91,11 +91,10 @@ func initDB() {
 	CREATE TABLE IF NOT EXISTS reveal_codes (
 		id BIGSERIAL PRIMARY KEY,
 		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		match_id BIGINT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+		match_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		day INTEGER NOT NULL CHECK (day > 0),
 		code TEXT NOT NULL,
 		exchanged BOOLEAN DEFAULT FALSE,
-		exchanged_with BIGINT REFERENCES users(id),
 		exchanged_at TIMESTAMP,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		UNIQUE(user_id, day)

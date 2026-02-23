@@ -44,6 +44,7 @@ func main() {
 		auth.GET("/me/hints", userHandler.GetHints)
 		auth.POST("/me/hints/:day/:hintNumber/reveal", userHandler.RevealHint)
 		auth.POST("/me/hints/:day/revealAll", userHandler.RevealAllHints)
+		auth.GET("/me/codes/:day", userHandler.GetRevealCode)
 	}
 
 	router.POST("/login", userHandler.Login)

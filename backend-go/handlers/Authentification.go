@@ -9,20 +9,29 @@ import (
 
 func AuthMiddleware(service *services.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
+		var token string
+
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(401, gin.H{"error": "missing Authorization header"})
-			c.Abort()
-			return
+		if authHeader != "" {
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+				token = parts[1]
+			}
 		}
 
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			c.JSON(401, gin.H{"error": "invalid Authorization header"})
+		if token == "" {
+			cookieToken, err := c.Cookie("token")
+			if err == nil {
+				token = cookieToken
+			}
+		}
+
+		if token == "" {
+			c.JSON(401, gin.H{"error": "missing Authentication token or Authorization header"})
 			c.Abort()
 			return
 		}
-		token := parts[1]
 
 		userID, err := service.ValidateToken(c.Request.Context(), token)
 		if err != nil {

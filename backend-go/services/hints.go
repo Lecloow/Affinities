@@ -3,6 +3,7 @@ package services
 import (
 	"backend/models"
 	"context"
+	"errors"
 	"time"
 )
 
@@ -56,26 +57,26 @@ func (s *UserService) GetHints(ctx context.Context, userId models.UserID) ([]*mo
 	return hints, nil
 }
 
-func (s *UserService) RevealHint(ctx context.Context, userId models.UserID, day int, hintNumber int) (int, error) {
+func (s *UserService) RevealHint(ctx context.Context, userId models.UserID, day int, hintNumber int) (*int, error) {
 
 	var hint models.Hint
 	err := s.DB.QueryRow(ctx, "SELECT id, reveal_time, revealed FROM hints WHERE user_id = $1 AND day = $2 AND hint_number = $3", userId, day, hintNumber).
 		Scan(&hint.ID, &hint.RevealTime, &hint.Revealed)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	if hint.Revealed {
-		return hint.ID, nil
+		return &hint.ID, errors.New("hint is already revealed")
 	}
 	if hint.RevealTime.After(time.Now().UTC()) {
-		return 0, nil
+		return nil, errors.New("hint not revealable yet")
 	}
 	_, err = s.DB.Exec(ctx, "UPDATE hints SET revealed = $1 WHERE id = $2 ", true, hint.ID)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return hint.ID, nil
+	return &hint.ID, nil
 }
 
 func (s *UserService) RevealAllHints(ctx context.Context, userId models.UserID, day int) ([]int, error) {
@@ -95,7 +96,9 @@ func (s *UserService) RevealAllHints(ctx context.Context, userId models.UserID, 
 
 	var hintsRevealed []int
 	for rows.Next() {
-		hint := &models.Hint{UserID: userId}
+		var hint models.Hint
+		hint.UserID = userId
+
 		err := rows.Scan(
 			&hint.ID,
 			&hint.RevealTime,

@@ -71,3 +71,10 @@ type Hint struct {
 	RevealTime time.Time `json:"revealTime"`
 	Revealed   bool      `json:"revealed"`
 }
+
+type RevealCode struct {
+	Code             string `json:"code"`
+	Exchanged        bool   `json:"exchanged"`
+	PartnerExchanged bool   `json:"partnerExchanged"`
+	BothExchanged    bool   `json:"bothExchanged"`
+}

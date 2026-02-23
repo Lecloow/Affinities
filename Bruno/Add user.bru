@@ -1,0 +1,30 @@
+meta {
+  name: Add user
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/users
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "firstName": "Test",
+    "lastName": "ThisIsATest",
+    "email": "test@test.com",
+    "class": "Terminale Z",
+    "password": "02"
+  }
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+}

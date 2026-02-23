@@ -1,0 +1,20 @@
+meta {
+  name: Login
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/login
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  password: 01
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+}

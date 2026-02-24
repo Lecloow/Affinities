@@ -1,0 +1,20 @@
+meta {
+  name: Exchange code
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/me/codes/1/exchange
+  body: formUrlEncoded
+  auth: inherit
+}
+
+body:form-urlencoded {
+  code: yIylsW
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

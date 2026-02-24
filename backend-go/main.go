@@ -15,7 +15,15 @@ func main() {
 	initDB()
 	defer db.Close()
 	//runMigrations()
+
+	// For prod
+	//gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	//err := router.SetTrustedProxies([]string{"127.0.0.1"})
+	//if err != nil {
+	//	return
+	//}
+
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"http://localhost:5173", "https://comitedepromo2026.com"},
 		//AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
@@ -24,14 +32,14 @@ func main() {
 		AllowMethods:     []string{"*"},
 		AllowHeaders:     []string{"*"},
 		AllowCredentials: true,
-		MaxAge:           24 * time.Hour, // So 24 hours
+		MaxAge:           24 * time.Hour,
 	}))
 
 	userService := &services.UserService{DB: db}
 	userHandler := &handlers.UserHandler{Service: userService}
 
 	router.Use(func(c *gin.Context) {
-		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 1<<20) // Limit to 1MB
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 1<<20) // Limit to 1MB to avoid DDoS attacks
 	})
 
 	auth := router.Group("/")
@@ -45,24 +53,22 @@ func main() {
 		auth.POST("/me/hints/:day/:hintNumber/reveal", userHandler.RevealHint)
 		auth.POST("/me/hints/:day/revealAll", userHandler.RevealAllHints)
 		auth.GET("/me/codes/:day", userHandler.GetRevealCode)
+		auth.POST("/me/codes/:day/exchange", userHandler.ExchangeCode)
 	}
 
+	// The only router that doesn't require auth is the login one, which returns a JWT token
 	router.POST("/login", userHandler.Login)
 
-	//auth := router.Group("/admin/")
-	//auth.Use(handlers.AuthMiddleware(adminService))
-	//{
-	//	auth.POST("/users", userHandler.CreateUser)
-	//	auth.GET("/users", userHandler.GetAllUsers)
-	//	auth.GET("/users/:id", userHandler.GetUserByID)
-	//}
-	// Need Admin perms
-	router.POST("/users", userHandler.CreateUser)
-	router.GET("/users", userHandler.GetAllUsers)
-	router.GET("/users/:id", userHandler.GetUserByID)
+	// Need admin perms
+	authAdmin := router.Group("/admin/")
+	authAdmin.Use(handlers.AdminAuth())
+	{
+		authAdmin.POST("/users", userHandler.CreateUser)
+		authAdmin.GET("/users", userHandler.GetAllUsers)
+		authAdmin.GET("/users/:id", userHandler.GetUserByID)
+	}
 
-	//router.Run(":8080")
-	if err := router.Run("localhost:8080"); err != nil {
+	if err := router.Run(":8080"); err != nil {
 		panic(fmt.Errorf("failed to run server: %v", err))
 	}
 

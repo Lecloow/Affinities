@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"backend/models"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -70,4 +73,28 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+func AdminAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		var token string
+
+		authHeader := c.GetHeader("Authorization")
+		if authHeader != "" {
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+				token = parts[1]
+			}
+		}
+
+		if token != os.Getenv("ADMIN_TOKEN") {
+			c.JSON(401, gin.H{"error": "invalid token"})
+			c.Abort()
+			return
+		}
+		log.Print("Admin token: ", token)
+		log.Print("Admin token: ", os.Getenv("ADMIN_TOKEN"))
+		c.Next()
+	}
 }

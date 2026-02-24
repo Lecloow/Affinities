@@ -1,0 +1,43 @@
+# Exported from Render on 2026-02-24T15:01:39Z
+version: "1"
+projects:
+- name: SaintValentin
+  environments:
+  - name: Production
+    services:
+    - type: web
+      name: saint-valentin-backend
+      runtime: python
+      repo: https://github.com/Lecloow/SaintValentin_Event
+      plan: standard
+      envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saint-valentin-db
+          property: connectionString
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: VITE_API_BASE_URL
+        sync: false
+      - key: MAILGUN_API_KEY
+        sync: false
+      - key: MAILGUN_DOMAIN
+        sync: false
+      - key: PASSWORD
+        sync: false
+      - key: EMAIL
+        sync: false
+      region: frankfurt
+      buildCommand: go build -o server .
+      startCommand: ./server
+      autoDeployTrigger: commit
+    databases:
+    - name: saint-valentin-db
+      databaseName: saintvalen_db
+      user: saintvalen_user
+      plan: free
+      region: frankfurt
+      ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
+      postgresMajorVersion: "18"

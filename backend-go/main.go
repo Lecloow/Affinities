@@ -3,6 +3,7 @@ package main
 import (
 	"backend/handlers"
 	"backend/services"
+	"backend/utils"
 	"fmt"
 	"net/http"
 	"time"
@@ -17,12 +18,20 @@ func main() {
 	//runMigrations()
 
 	// For prod
-	//gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
-	//err := router.SetTrustedProxies([]string{"127.0.0.1"})
-	//if err != nil {
-	//	return
-	//}
+
+	var router *gin.Engine
+
+	if utils.IsProduction {
+		gin.SetMode(gin.ReleaseMode)
+		router = gin.Default()
+		err := router.SetTrustedProxies([]string{"127.0.0.1"})
+		if err != nil {
+			return
+		}
+	} else {
+		gin.SetMode(gin.DebugMode)
+		router = gin.Default()
+	}
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"http://localhost:5173", "https://comitedepromo2026.com"},
@@ -71,5 +80,4 @@ func main() {
 	if err := router.Run(":8080"); err != nil {
 		panic(fmt.Errorf("failed to run server: %v", err))
 	}
-
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"backend/utils"
 	"errors"
 	"net/http"
 
@@ -24,5 +25,14 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
+	var sessionToken string
+
+	sessionToken, err = h.Service.CreateSession(c.Request.Context(), user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.SetCookie("session_token", sessionToken, 3600*48, "/", "", utils.IsProduction, true)
 	c.JSON(http.StatusOK, user)
 }

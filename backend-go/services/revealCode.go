@@ -5,7 +5,6 @@ import (
 	"backend/utils"
 	"context"
 	"errors"
-	"log"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -32,11 +31,17 @@ func (s *UserService) GetRevealCode(ctx context.Context, userId models.UserID, d
 		}
 		return nil, err
 	}
+
+	matchId, err := s.GetMatchId(ctx, userId, day)
+	if err != nil {
+		return nil, err
+	}
+
 	err = s.DB.QueryRow(ctx, `
 		SELECT exchanged
 		FROM reveal_codes 
-		WHERE match_id = $1 AND day = $2
-	`, userId, day).Scan(&revealCode.Exchanged)
+		WHERE user_id = $1 AND day = $2
+	`, matchId, day).Scan(&revealCode.Exchanged)
 
 	if revealCode.PartnerExchanged && revealCode.Exchanged {
 		revealCode.BothExchanged = true
@@ -47,23 +52,14 @@ func (s *UserService) GetRevealCode(ctx context.Context, userId models.UserID, d
 
 func (s *UserService) CreateRevealCode(ctx context.Context, userId models.UserID, day int) (string, error) {
 	newCode, err := utils.GenerateRevealCode()
-
-	var matchId int
-
-	err = s.DB.QueryRow(ctx, `
-		SELECT match_id
-		FROM matches 
-		WHERE user_id = $1 AND day = $2
-	`, userId, day).Scan(&matchId)
 	if err != nil {
 		return "", err
 	}
-	log.Print(matchId)
 
 	_, insertErr := s.DB.Exec(ctx, `
-				INSERT INTO reveal_codes (user_id, match_id, day, code)
-				VALUES ($1, $2, $3, $4)
-			`, userId, matchId, day, newCode)
+				INSERT INTO reveal_codes (user_id, day, code)
+				VALUES ($1, $2, $3)
+			`, userId, day, newCode)
 	if insertErr != nil {
 		return "", insertErr
 	}
@@ -79,7 +75,12 @@ func (s *UserService) ExchangeCode(ctx context.Context, userId models.UserID, da
 	codeAlreadyExchanged := "code already exchanged"
 	codeExchanged := "code exchanged successfully"
 
-	err := s.DB.QueryRow(ctx, `SELECT id, code, exchanged FROM reveal_codes WHERE match_id = $1 AND day = $2`, userId, day).Scan(&id, &realCode, &exchanged)
+	matchId, err := s.GetMatchId(ctx, userId, day)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.DB.QueryRow(ctx, `SELECT id, code, exchanged FROM reveal_codes WHERE user_id = $1 AND day = $2`, matchId, day).Scan(&id, &realCode, &exchanged)
 
 	if code != realCode {
 		return nil, errors.New("invalid code")
@@ -98,4 +99,18 @@ func (s *UserService) ExchangeCode(ctx context.Context, userId models.UserID, da
 		return nil, err
 	}
 	return &codeExchanged, nil
+}
+
+func (s *UserService) GetMatchId(ctx context.Context, userId models.UserID, day int) (*models.UserID, error) {
+	var matchId models.UserID
+	err := s.DB.QueryRow(ctx, `
+		SELECT match_id
+		FROM matches 
+		WHERE user_id = $1 AND day = $2
+	`, userId, day).Scan(&matchId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &matchId, nil
 }

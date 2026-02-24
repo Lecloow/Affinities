@@ -21,7 +21,7 @@ func AuthMiddleware(service *services.UserService) gin.HandlerFunc {
 		}
 
 		if token == "" {
-			cookieToken, err := c.Cookie("token")
+			cookieToken, err := c.Cookie("session_token")
 			if err == nil {
 				token = cookieToken
 			}

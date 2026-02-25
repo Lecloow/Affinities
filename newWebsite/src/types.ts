@@ -35,7 +35,7 @@ export interface UserGuess {
   createdAt: string;
 }
 
-export interface UserStatsResponse {
+export interface UserStats {
   userId: UserID;
   totalPoints: number;
   bonusPoints: number;
@@ -51,4 +51,10 @@ export interface LeaderboardEntry {
   totalPoints: number;
   bonusPoints: number;
   updatedAt: string | null;
+}
+
+export interface RevealCode {
+  code: string;
+  exchanged: boolean;
+  partnerExchanged: boolean;
 }

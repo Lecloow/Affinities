@@ -76,5 +76,4 @@ type RevealCode struct {
 	Code             string `json:"code"`
 	Exchanged        bool   `json:"exchanged"`
 	PartnerExchanged bool   `json:"partnerExchanged"`
-	BothExchanged    bool   `json:"bothExchanged"`
 }

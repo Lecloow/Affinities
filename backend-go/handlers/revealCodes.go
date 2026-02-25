@@ -24,7 +24,7 @@ func (h *UserHandler) GetRevealCode(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"reveal code": revealCode})
+	c.JSON(http.StatusOK, revealCode)
 }
 
 func (h *UserHandler) ExchangeCode(c *gin.Context) {

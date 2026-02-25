@@ -38,12 +38,12 @@ func (h *UserHandler) RevealHint(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hintNumber"})
 		return
 	}
-	hintRevealed, err := h.Service.RevealHint(ctx, userID, day, hintNumber)
+	success, err := h.Service.RevealHint(ctx, userID, day, hintNumber)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"hint revealed": hintRevealed})
+	c.JSON(http.StatusOK, gin.H{"success": success})
 }
 
 func (h *UserHandler) RevealAllHints(c *gin.Context) {

@@ -43,10 +43,6 @@ func (s *UserService) GetRevealCode(ctx context.Context, userId models.UserID, d
 		WHERE user_id = $1 AND day = $2
 	`, matchId, day).Scan(&revealCode.Exchanged)
 
-	if revealCode.PartnerExchanged && revealCode.Exchanged {
-		revealCode.BothExchanged = true
-	}
-
 	return &revealCode, nil
 }
 

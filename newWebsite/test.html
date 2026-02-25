@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script type="module">
+    import { ApiService } from './src/api.ts';
+
+    const hints = await ApiService.getHints();
+    console.log(hints);
+</script>
+</body>
+</html>

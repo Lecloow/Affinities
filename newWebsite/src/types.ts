@@ -25,7 +25,7 @@ export interface Candidate {
   lastName: string;
 }
 
-export interface UserGuess {
+export interface Guess {
   id: number;
   userId: UserID;
   day: number;

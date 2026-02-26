@@ -1,5 +1,7 @@
-# RoadMap:
+# WIP:
 
+
+## I am currently rewritting the code in Go 
 # Je suis entrain de faire un rewrite du code en Go/Rust car plus perfommants et securiser, le code python va donc etre abandonne petit a petit. 
 # Un rewrite du front avec React est prevu
 
@@ -7,17 +9,7 @@
 ### Si vous voyez des ameliorations a faire ou avez des idees de fonctionnalites n'hesitz pas a ouvrir une issue ou meme faire une PR.
  
 
-Security:
-- [x] Add Cookies to login
-- [x] Add cookies to guess func
-- [ ] Add cookies in every "sensitive" funcs
 
-Very important:
-- [ ] Clean up the code
-- [ ] Separate files for the main
-- [ ] Create a real readme
-
-Features:
 
 Run Frontend (sans le back):
 

@@ -39,7 +39,7 @@ export interface UserStats {
   userId: UserID;
   totalPoints: number;
   bonusPoints: number;
-  guesses: UserGuess[];
+  guesses: Guess[];
 }
 
 export interface LeaderboardEntry {

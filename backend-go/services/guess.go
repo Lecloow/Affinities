@@ -56,9 +56,7 @@ func (s *UserService) CreateGuess(ctx context.Context, guess models.GuessRequest
 
 	if isCorrect {
 		points := utils.CalculatePoints(guess.HintNumber)
-		_, err = tx.Exec(ctx,
-			"UPDATE scores SET total_points = total_points + $1 WHERE user_id=$2",
-			points, guess.UserId)
+		err = s.AddPoints(ctx, guess.UserId, points)
 		if err != nil {
 			return nil, err
 		}

@@ -1,4 +1,4 @@
-import { User, Hint, LeaderboardEntry, Guess,  UserStats, Candidate, RevealCode} from './types';
+import {User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID} from './types';
 
 const API_BASE_URL = "http://localhost:8080".replace(/\/$/, '') //import.meta.env.VITE_API_BASE_URL;
 
@@ -24,7 +24,7 @@ export class ApiService {
   static async login(password: string): Promise<User> {
     return this.request(`/login`, {
       method: 'POST',
-      body: new URLSearchParams({ password }).toString(),
+      body: JSON.stringify({ password }),
     })
   }
 
@@ -63,21 +63,14 @@ export class ApiService {
   static async exchangeRevealCode(day: number, code: string): Promise<{ success: boolean }> {
     return this.request(`/me/code/${day}/exchange`, {
       method: 'POST',
-      body: new URLSearchParams({ code }).toString(),
+      body: JSON.stringify({ code }),
     });
   }
 
-  // static async guess(): Promise<Guess> {
-  //   return this.request(`/me/guess`, {
-  //     method: 'POST',
-  //     body: JSON
-  //   });
-  // }
-  //
-  // static async guess(): Promise<Guess> {
-  //   return this.request(`/me/guess/${day}/${hintNumber}`, {
-  //     method: 'POST',
-  //     body: new URLSearchParams({ guessedUser }).toString(),
-  //   });
-  // }
+  static async guess(day: number, hintNumber: number, guessedUser: UserID): Promise<Guess> {
+    return this.request(`/me/guess`, {
+      method: 'POST',
+      body: JSON.stringify({ day, hintNumber, guessedUserId: guessedUser }),
+    });
+  }
 }

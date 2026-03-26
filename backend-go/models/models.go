@@ -77,3 +77,9 @@ type RevealCode struct {
 	Exchanged        bool   `json:"exchanged"`
 	PartnerExchanged bool   `json:"partnerExchanged"`
 }
+
+type EmailUser struct {
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}

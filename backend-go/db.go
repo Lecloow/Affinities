@@ -42,6 +42,8 @@ func initDB() {
 		password_hash TEXT NOT NULL
 	);
 
+	CREATE UNIQUE INDEX IF NOT EXISTS unique_password_idx ON credentials(password_hash);
+
 	CREATE TABLE IF NOT EXISTS sessions (
 		token TEXT PRIMARY KEY,
 		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

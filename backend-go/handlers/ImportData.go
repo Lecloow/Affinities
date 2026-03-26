@@ -2,7 +2,8 @@ package handlers
 
 import (
 	"backend/models"
-	"log"
+	"context"
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +11,6 @@ import (
 )
 
 func (h *UserHandler) ImportXlsx(c *gin.Context) {
-	ctx := c.Request.Context()
 	passwordLength := 8
 
 	file, _, err := c.Request.FormFile("file")
@@ -26,22 +26,61 @@ func (h *UserHandler) ImportXlsx(c *gin.Context) {
 		return
 	}
 
+	importedUsers, err := importUsersFromFile(xf, h, passwordLength, c.Request.Context())
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"imported_users": importedUsers})
+}
+
+func importUsersFromFile(
+	xf *excelize.File,
+	h *UserHandler,
+	passwordLength int,
+	ctx context.Context,
+) ([]*models.EmailUser, error) {
+
 	sheetName := xf.GetSheetName(0)
 	rows, err := xf.GetRows(sheetName)
+	if err != nil {
+		return nil, fmt.Errorf("could not read rows: %w", err)
+	}
+	if len(rows) < 2 {
+		return nil, fmt.Errorf("no data")
+	}
 
 	colIndex := map[string]int{}
-	for i, h := range rows[0] {
-		colIndex[h] = i
+	for i, col := range rows[0] {
+		colIndex[col] = i
+	}
+	requiredColumns := []string{FormResponse.Name, FormResponse.Email, FormResponse.Level, FormResponse.Letter}
+	for _, key := range requiredColumns {
+		if _, ok := colIndex[key]; !ok {
+			return nil, fmt.Errorf("missing column: %s", key)
+		}
+	}
+
+	importedUsers := []*models.EmailUser{}
+
+	get := func(row []string, key string) string {
+		idx := colIndex[key]
+		if idx >= len(row) {
+			return ""
+		}
+		return row[idx]
 	}
 
 	for _, row := range rows[1:] {
-		if len(row) < 2 {
-			continue
-		}
-		name := row[colIndex[FormResponse.Name]]
-		email := row[colIndex[FormResponse.Email]]
-		level := row[colIndex[FormResponse.Level]]
-		classLetter := row[colIndex[FormResponse.Letter]]
+		name := get(row, FormResponse.Name)
+		email := get(row, FormResponse.Email)
+		level := get(row, FormResponse.Level)
+		classLetter := get(row, FormResponse.Letter)
+
+		//if name == "" || email == "" || level == "" || classLetter == "" {
+		//	continue
+		//}
 
 		firstName, lastName := splitName(name)
 
@@ -52,16 +91,21 @@ func (h *UserHandler) ImportXlsx(c *gin.Context) {
 			Class:     level + " " + classLetter,
 		}
 
-		createdUser, err := h.Service.ImportUser(ctx, newUser, passwordLen)
+		password, err := h.Service.ImportUser(ctx, newUser, passwordLength)
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
+			continue
 		}
 
-		log.Printf("firstName: %s, lastName: %s, email: %s, class: %s, end", firstName, lastName, email, class)
+		emailUser := &models.EmailUser{
+			Email:    newUser.Email,
+			Name:     firstName,
+			Password: password,
+		}
+
+		importedUsers = append(importedUsers, emailUser)
 	}
 
-	c.JSON(200, gin.H{"imported": len(rows) - 1})
+	return importedUsers, nil
 }
 
 func splitName(full string) (firstName, lastName string) {

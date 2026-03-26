@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"backend/models"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -93,8 +92,6 @@ func AdminAuth() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		log.Print("Admin token: ", token)
-		log.Print("Admin token: ", os.Getenv("ADMIN_TOKEN"))
 		c.Next()
 	}
 }

@@ -1,0 +1,24 @@
+meta {
+  name: ImportData
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/admin/importData
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file(/Users/thomasconchon/Documents/short.xlsx)
+}
+
+body:file {
+  file: @file(/Users/thomasconchon/Documents/short.xlsx) @contentType(file)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -6,12 +6,14 @@ meta {
 
 post {
   url: {{baseUrl}}/login
-  body: formUrlEncoded
+  body: json
   auth: none
 }
 
-body:form-urlencoded {
-  password: 01
+body:json {
+  {
+    "password": "01"
+  }
 }
 
 settings {

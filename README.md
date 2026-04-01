@@ -8,7 +8,6 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Render](https://img.shields.io/badge/Deployed%20on-Render-46E3B7?style=flat&logo=render&logoColor=white)](https://comitedepromo2026.fr)
 
----
 
 ## What is this?
 
@@ -16,11 +15,10 @@ My school committee (Comite de promo) wanted to organize a Valentine's Day match
 
 Deployed under real constraints — actual deadline, actual users, actual consequences if it broke.
 
----
 
 ## Architecture
 
-\```
+```
 ┌─────────────────┐        ┌──────────────────────┐
 │  React Frontend  │ ──────▶│   Go Backend (v2)    │
 │  (TypeScript)    │        │   Gin + PostgreSQL   │
@@ -30,7 +28,7 @@ Deployed under real constraints — actual deadline, actual users, actual conseq
                               │   PostgreSQL   │
                               │  (production)  │
                               └────────────────┘
-\```
+```
 
 - **Frontend:** React + TypeScript, deployed on Render
 - **Backend v1:** Python (FastAPI) — shipped fast for the initial event
@@ -38,7 +36,6 @@ Deployed under real constraints — actual deadline, actual users, actual conseq
 - **CI/CD:** GitHub Actions
 - **API Testing:** Bruno
 
----
 
 ## Why the Go Rewrite?
 
@@ -55,7 +52,6 @@ I'm not interested in deploying AI spaghetti code, I am here to learn.
 
 Same logic on the frontend: original HTML/CSS → React + TypeScript rewrite, currently in progress.
 
----
 
 ## Tech Stack
 
@@ -68,24 +64,23 @@ Same logic on the frontend: original HTML/CSS → React + TypeScript rewrite, cu
 | Deployment | Render |
 | API Testing | Bruno |
 
----
 
 ## Running Locally
 
 ### Backend (Go)
 
 Dev:
-\```bash
+```bash
 cd backend-go
 cp ../.env.example .env   # fill in your DB credentials
 go run .
-\```
+```
 
 Prod:
-\```bash
+```bash
 cd backend-go && go build
 ./backend
-\```
+```
 
 A Bruno collection covering all API endpoints is available in the `/bruno` folder — import it directly to test the API without setup. (You may need to fill the baseUrl)
 
@@ -93,14 +88,12 @@ A Bruno collection covering all API endpoints is available in the `/bruno` folde
 
 Rewrite in progress.
 
----
 
 ## Impact
 
 - **330 students** participated
 - Live at [comitedepromo2026.fr](https://comitedepromo2026.fr)
 
----
 
 ## What I Learned
 
@@ -110,7 +103,6 @@ Rewrite in progress.
 - Debugging in production when real users are affected (I don't recommend it)
 - CI/CD, environment management, cloud deployment
 
----
 
 ## License
 

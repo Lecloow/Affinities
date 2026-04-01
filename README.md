@@ -77,9 +77,13 @@ go run .
 ```
 
 Prod:
+Build command
 ```bash
 cd backend-go && go build
-./backend
+```
+Start command
+```bash
+cd backend-go && ./backend
 ```
 
 A Bruno collection covering all API endpoints is available in the `/bruno` folder — import it directly to test the API without setup. (You may need to fill the baseUrl)

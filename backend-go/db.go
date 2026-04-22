@@ -102,6 +102,25 @@ func initDB() {
 		UNIQUE(user_id, day)
 	);
 
+	CREATE TABLE IF NOT EXISTS answers (
+		user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+		q1  SMALLINT,
+		q2  SMALLINT,
+		q3  SMALLINT,
+		q4  SMALLINT,
+		q5  SMALLINT,
+		q6  SMALLINT,
+		q7  SMALLINT,
+		q8  SMALLINT,
+		q9  SMALLINT,
+		q10 SMALLINT,
+		q11 SMALLINT,
+		q12 SMALLINT,
+		q13 SMALLINT,
+		q14 SMALLINT,
+		q15 SMALLINT
+	);
+
 	CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 	CREATE INDEX IF NOT EXISTS idx_matches_day ON matches(day);
 	CREATE INDEX IF NOT EXISTS idx_hints_user_id ON hints(user_id);

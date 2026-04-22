@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"context"
 	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -18,13 +20,15 @@ func (h *UserHandler) ImportXlsx(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "no file"})
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	xf, err := excelize.OpenReader(file)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "invalid xlsx"})
 		return
 	}
+
+	defer func() { _ = xf.Close() }()
 
 	importedUsers, err := importUsersFromFile(xf, h, passwordLength, c.Request.Context())
 	if err != nil {
@@ -55,14 +59,14 @@ func importUsersFromFile(
 	for i, col := range rows[0] {
 		colIndex[col] = i
 	}
-	requiredColumns := []string{FormResponse.Name, FormResponse.Email, FormResponse.Level, FormResponse.Letter}
+	requiredColumns := []string{utils.FormResponse.Name, utils.FormResponse.Email, utils.FormResponse.Level, utils.FormResponse.Letter}
 	for _, key := range requiredColumns {
 		if _, ok := colIndex[key]; !ok {
 			return nil, fmt.Errorf("missing column: %s", key)
 		}
 	}
 
-	importedUsers := []*models.EmailUser{}
+	var importedUsers []*models.EmailUser
 
 	get := func(row []string, key string) string {
 		idx := colIndex[key]
@@ -73,16 +77,12 @@ func importUsersFromFile(
 	}
 
 	for _, row := range rows[1:] {
-		name := get(row, FormResponse.Name)
-		email := get(row, FormResponse.Email)
-		level := get(row, FormResponse.Level)
-		classLetter := get(row, FormResponse.Letter)
+		name := get(row, utils.FormResponse.Name)
+		email := get(row, utils.FormResponse.Email)
+		level := get(row, utils.FormResponse.Level)
+		classLetter := get(row, utils.FormResponse.Letter)
 
-		//if name == "" || email == "" || level == "" || classLetter == "" {
-		//	continue
-		//}
-
-		firstName, lastName := splitName(name)
+		firstName, lastName := utils.SplitName(name)
 
 		newUser := &models.User{
 			FirstName: firstName,
@@ -101,6 +101,10 @@ func importUsersFromFile(
 			Name:     firstName,
 			Password: password,
 		}
+		err = importUserAnswers(ctx, h.Service.DB, newUser.ID, row, colIndex)
+		if err != nil {
+			return nil, err
+		}
 
 		importedUsers = append(importedUsers, emailUser)
 	}
@@ -108,29 +112,43 @@ func importUsersFromFile(
 	return importedUsers, nil
 }
 
-func splitName(full string) (firstName, lastName string) {
-	parts := strings.Fields(full)
-	for _, p := range parts {
-		if p == strings.ToUpper(p) {
-			lastName = p
-		} else {
-			firstName += p + " "
+func importUserAnswers(ctx context.Context, db *pgxpool.Pool, userID models.UserID, row []string, colIndex map[string]int) error {
+	columns := []string{"user_id"}
+	placeholders := []string{"$1"}
+	values := []any{userID}
+
+	for rawHeader, idx := range colIndex {
+		cfg, ok := utils.GetQuestion(rawHeader)
+		if !ok || idx >= len(row) {
+			continue
 		}
+		val, ok := utils.GetAnswerValue(rawHeader, row[idx])
+		if !ok {
+			continue
+		}
+		columns = append(columns, cfg.Column)
+		placeholders = append(placeholders, fmt.Sprintf("$%d", len(values)+1))
+		values = append(values, val)
 	}
-	firstName = strings.TrimSpace(firstName)
-	return
-}
 
-type tFormResponse struct {
-	Name   string
-	Email  string
-	Level  string
-	Letter string
-}
+	if len(columns) == 1 {
+		return fmt.Errorf("no valid answers")
+	}
 
-var FormResponse = tFormResponse{
-	Name:   "Name",
-	Email:  "Email",
-	Level:  "Dans quelle unité es-tu ?",
-	Letter: "Dans quelle classe es-tu ?",
+	var setClauses []string
+
+	for _, col := range columns[1:] {
+		setClauses = append(setClauses, fmt.Sprintf("%s = EXCLUDED.%s", col, col))
+	}
+
+	query := fmt.Sprintf(
+		"INSERT INTO answers (%s) VALUES (%s) ON CONFLICT (user_id) DO UPDATE SET %s",
+		strings.Join(columns, ", "),
+		strings.Join(placeholders, ", "),
+		strings.Join(setClauses, ", "),
+	)
+	if _, err := db.Exec(ctx, query, values...); err != nil {
+		return err
+	}
+	return nil
 }

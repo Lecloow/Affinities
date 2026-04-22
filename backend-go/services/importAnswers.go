@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// Don't worry if you IDE throw you errors, there is no. Idk why but Golang just don't know the postgreSQL syntax
 func (s *UserService) ImportUserAnswers(ctx context.Context, userID models.UserID, answers map[string]int) error {
 	if len(answers) == 0 {
 		return fmt.Errorf("no valid answers")

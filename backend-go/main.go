@@ -15,9 +15,6 @@ import (
 func main() {
 	initDB()
 	defer db.Close()
-	//runMigrations()
-
-	// For prod
 
 	var router *gin.Engine
 
@@ -76,8 +73,8 @@ func main() {
 		authAdmin.GET("/users", userHandler.GetAllUsers)
 		authAdmin.GET("/users/:id", userHandler.GetUserByID)
 		authAdmin.POST("/importData", userHandler.ImportXlsx)
-
-	}
+		authAdmin.GET("/createMatches:day", userHandler.CreateMatches)
+	} //TODO: shoudl be adminHandler nah ??
 
 	if err := router.Run(":8080"); err != nil {
 		panic(fmt.Errorf("failed to run server: %v", err))

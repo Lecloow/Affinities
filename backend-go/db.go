@@ -55,9 +55,9 @@ func initDB() {
 	CREATE TABLE IF NOT EXISTS matches (
 		id BIGSERIAL PRIMARY KEY,
 		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		match_id BIGINT NOT NULL, 
+		match_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		day INTEGER NOT NULL CHECK (day > 0),
-		UNIQUE(user_id, match_id)
+		UNIQUE(user_id, day)
 	);
 
 	CREATE TABLE IF NOT EXISTS hints (

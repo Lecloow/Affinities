@@ -1,6 +1,6 @@
 # Affinities — comitedepromo2026.fr
 
-> Full-stack matchmaking platform built for my high school's Valentine's Day event — **300+ students** participated.
+> Full-stack matchmaking platform built for my high school's Valentine's Day event — **330+ students** participated.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Go](https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white)](https://golang.org/)

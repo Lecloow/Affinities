@@ -1,8 +1,8 @@
 {
-  "header": "Discover your soulmate",
-  "caption": "An event by the Comité de Promo 2026",
+  "header": "Find your soulmate",
+  "caption": "An event organized by the Comité de Promo 2026",
   "login": {
     "button": "Sign in",
-    "placeholder": "Enter your email address"
+    "placeholder": "Enter the code you received by email here"
   }
 }

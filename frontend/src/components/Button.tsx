@@ -4,18 +4,28 @@ type ButtonProps = {
   text: string;
   backgroundColor: string;
   onClick?: () => void;
-  minWidthClass?: string;
+  width?: string;
   leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 };
 
-export default function Button({ text, backgroundColor, onClick, minWidthClass = "", leftIcon}: ButtonProps) {
+export default function Button({
+                                 text,
+                                 backgroundColor,
+                                 onClick,
+                                 width = "",
+                                 leftIcon,
+                                 rightIcon,
+                               }: ButtonProps) {
   return (
       <button
-          className="p-[12px] rounded-[8px] border-0 inline-flex text-[16px] items-center justify-center cursor-pointer"
+          className="h-[40px] rounded-[8px] border-0 inline-flex text-[16px] items-center justify-center gap-[10px] cursor-pointer"
           onClick={onClick}
-          style={{ backgroundColor: backgroundColor, color: "#F5F5F5", minWidth: minWidthClass }}
+          style={{ backgroundColor, color: "#F5F5F5", width: width }}
       >
+        {leftIcon}
         {text}
+        {rightIcon}
       </button>
   );
 }

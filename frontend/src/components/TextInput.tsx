@@ -2,6 +2,7 @@ import React from "react";
 
 type TextInputProps = {
   value: string;
+  width?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   className?: string;
@@ -9,18 +10,18 @@ type TextInputProps = {
 
 export default function TextInput({
                                     value,
+                                    width = "",
                                     onChange,
                                     placeholder = "",
-                                    className = "",
                                   }: TextInputProps) {
   return (
-      <div className={`relative w-full ${className}`}>
         <input
             value={value}
             onChange={onChange}
             placeholder={placeholder}
+            style={{ width: width }}
             className={`
-          w-full px-4 py-3 min-w-[120px]
+          box-border p-[8px]
           text-base text-gray-900
           placeholder-[#b3b3b3]
           bg-white border border-[#d9d9d9] rounded-[8px]
@@ -28,6 +29,5 @@ export default function TextInput({
           transition duration-150 ease-in-out
         `}
         />
-      </div>
   );
 }

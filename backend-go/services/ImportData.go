@@ -128,4 +128,4 @@ func (s *UserService) ImportUser(ctx context.Context, user *models.User, passwor
 	return "", fmt.Errorf("failed to generate a unique password after multiple attempts")
 }
 
-//TODO: hash
+//TODO: hashPassword

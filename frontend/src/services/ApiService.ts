@@ -1,4 +1,5 @@
-import {User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID} from './types';
+import type {User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID} from './types';
+
 
 const API_BASE_URL = "http://localhost:8080".replace(/\/$/, '') //import.meta.env.VITE_API_BASE_URL;
 

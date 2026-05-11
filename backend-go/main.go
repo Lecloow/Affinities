@@ -30,13 +30,22 @@ func main() {
 		router = gin.Default()
 	}
 
+// 	router.Use(cors.New(cors.Config{
+// 	//AllowOrigins: []string{"https://comitedepromo2026.com"}
+// 		AllowOrigins: []string{"http://localhost:5173"},
+// 		//AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+// 		//AllowHeaders:     []string{"Origin", "Content-Type"},
+// 		//ExposeHeaders:    []string{"Content-Length"},
+// 		AllowMethods:     []string{"*"},
+// 		AllowHeaders:     []string{"*"},
+// 		AllowCredentials: true,
+// 		MaxAge:           24 * time.Hour,
+// 	}))
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:5173", "https://comitedepromo2026.com"},
-		//AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		//AllowHeaders:     []string{"Origin", "Content-Type"},
-		//ExposeHeaders:    []string{"Content-Length"},
-		AllowMethods:     []string{"*"},
-		AllowHeaders:     []string{"*"},
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           24 * time.Hour,
 	}))

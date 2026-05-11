@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *UserHandler) CreatMatches(c *gin.Context) {
-	ctx := c.Request.Context()
+func (h *UserHandler) CreateMatches(c *gin.Context) {
+	//ctx := c.Request.Context()
 }
 
 //TODO:

@@ -8,6 +8,13 @@ export interface User {
   class: string;
 }
 
+export interface UserStats {
+  userId: UserID;
+  totalPoints: number;
+  bonusPoints: number;
+  guesses: Guess[];
+}
+
 export interface Hint {
   id: string;
   userId: UserID;

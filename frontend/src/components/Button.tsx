@@ -9,7 +9,6 @@ type ButtonProps = {
 };
 
 export default function Button({ text, backgroundColor, onClick, minWidthClass = "", leftIcon}: ButtonProps) {
-  console.log(leftIcon);
   return (
       <button
           className="p-[12px] rounded-[8px] border-0 inline-flex text-[16px] items-center justify-center cursor-pointer"

@@ -2,6 +2,7 @@
   "header": "Discover your soulmate",
   "caption": "An event by the Comité de Promo 2026",
   "login": {
-    "button": "Sign in"
+    "button": "Sign in",
+    "placeholder": "Enter your email address"
   }
 }

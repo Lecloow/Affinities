@@ -22,6 +22,12 @@ export class ApiService {
     return response.json();
   }
 
+  static async logout(): Promise<void> {
+    return this.request(`/logout`, {
+      method: 'POST',
+    })
+  }
+
   static async login(password: string): Promise<User> {
     return this.request(`/login`, {
       method: 'POST',

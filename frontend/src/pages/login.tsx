@@ -7,6 +7,7 @@ import TextInput from "../components/TextInput";
 import { ApiService } from "../services/ApiService";
 import logoImg from "../assets/logo.png";
 import branchImg from "../assets/branch.png";
+import { useEffect } from "react";
 
 const imgDivider = "https://www.figma.com/api/mcp/asset/a1f30848-4934-4b88-b8d8-bdb3a417fb4c";
 
@@ -33,11 +34,23 @@ export default function LoginPage() {
     try {
       const user = await ApiService.login(inputValue);
       console.log("Login successful:", user);
-      navigate("/app");
+      navigate("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     }
   };
+
+  useEffect(() => {
+    const autoLogin = async () => {
+      try {
+        await ApiService.getUserStats();
+        navigate("/home");
+      } catch (err) {
+        ApiService.logout();
+      }
+    };
+    void autoLogin();
+  }, [navigate]);
 
   return (
       <div className="">

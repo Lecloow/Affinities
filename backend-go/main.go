@@ -69,6 +69,7 @@ func main() {
 		auth.POST("/me/hints/:day/reveal-all", userHandler.RevealAllHints)
 		auth.GET("/me/codes/:day", userHandler.GetRevealCode)
 		auth.POST("/me/codes/:day/exchange", userHandler.ExchangeCode)
+		auth.POST("/logout", userHandler.Logout)
 	}
 
 	// The only router that doesn't require auth is the login one, which returns a JWT token

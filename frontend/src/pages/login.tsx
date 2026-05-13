@@ -6,16 +6,9 @@ import Button from "../components/Button";
 import TextInput from "../components/TextInput";
 import { ApiService } from "../services/ApiService";
 import logoImg from "../assets/logo.png";
+import branchImg from "../assets/branch.png";
 
-// Figma assets (valides 7 jours — à remplacer par tes assets locaux ensuite)
-const imgBranch = "https://www.figma.com/api/mcp/asset/8ce565a9-074b-46e4-be07-893182871152";
 const imgDivider = "https://www.figma.com/api/mcp/asset/a1f30848-4934-4b88-b8d8-bdb3a417fb4c";
-
-const TIMELINE = [
-  { day: "Mardi", desc: "Remplir le Forms pour participer à l'évènement" },
-  { day: "Mercredi", desc: "Résultats du concours de gateaux" },
-  { day: "Jeudi et Vendredi", desc: "Découverte des âmes soeurs" },
-];
 
 const HeartIcon = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="#F5F5F5">
@@ -29,6 +22,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState("");
+  const timeline = t('timeline', { returnObjects: true }) as Array<{ day: string; desc: string }>;
 
   const handleLogin = async () => {
     setError("");
@@ -46,72 +40,65 @@ export default function LoginPage() {
   };
 
   return (
-      <div className="bg-white flex flex-col items-center w-full min-h-screen">
-        {/* Main container — calé sur iPhone 16 Pro comme dans Figma */}
-        <div className="relative flex flex-col items-center w-full max-w-[402px] overflow-hidden">
-
-          {/* ── Branches décoratives ── */}
-          {/* Top-left */}
-          <div className="absolute top-[-101px] left-[-142px] size-[327px] flex items-center justify-center pointer-events-none">
-            <img src={imgBranch} alt="" className="size-[244px] rotate-[63.2deg] object-cover" />
-          </div>
-          {/* Top-right */}
-          <div className="absolute top-[-118px] left-[171px] size-[344px] flex items-center justify-center pointer-events-none">
-            <img src={imgBranch} alt="" className="size-[244px] rotate-[-136.61deg] object-cover" />
-          </div>
-          {/* Bottom-left */}
-          <div className="absolute top-[758px] left-[-159px] size-[330px] flex items-center justify-center pointer-events-none">
-            <img src={imgBranch} alt="" className="size-[244px] rotate-[61.62deg] object-cover" />
-          </div>
-          {/* Bottom-right */}
-          <div className="absolute top-[703px] left-[231px] size-[343px] flex items-center justify-center pointer-events-none">
-            <img src={imgBranch} alt="" className="size-[244px] rotate-[-39.38deg] object-cover" />
-          </div>
-
-          {/* ── Content ── */}
-          <div className="relative flex flex-col items-center gap-[10px] w-full px-[10px] pt-[140px] pb-[40px]">
-
-            <img src={logoImg} alt="Logo" className="h-[83px] w-[76px] object-contain shrink-0" />
-
-            <div className="flex flex-col gap-[15px] items-center w-full">
-              <h1
-                  className="text-[50px] text-[#1b2027] text-center"
-                  style={{ fontWeight: 600 }}
-              >
-                {t("header")}
-              </h1>
-
-              <img src={imgDivider} alt="" className="w-[100px]" />
-              {/*No not an image 😭*/}
-
-              <h2
-                  className="text-[16px] text-center bg-clip-text text-transparent"
-                  style={{
-                    fontWeight: 530,
-                    maxWidth: "256px",
-                    backgroundImage:
-                        "linear-gradient(93deg, #2E263A 24.76%, #796E8F 35.87%, #493B63 47.48%, #69657B 57.57%, #2E263A 75.24%)",
-                  }}
-              >
-                {t("caption")}
-              </h2>
+      <div className="">
+        <div className="bg-white flex flex-col items-center min-h-screen">
+          <div className="relative flex flex-col items-center min-h-screen w-full overflow-hidden">
+            {/*Flowers*/}
+            <div className="absolute top-[-101px] left-[-142px] size-[327px] flex items-center justify-center pointer-events-none">
+              <img src={branchImg} alt="" className="size-[244px] rotate-[63.2deg] object-cover" />
+            </div>
+            <div className="absolute top-[-118px] right-[-113px] size-[344px] flex items-center justify-center pointer-events-none">
+              <img src={branchImg} alt="" className="size-[244px] rotate-[-136.61deg] object-cover" />
+            </div>
+            <div className="absolute bottom-[-214px] left-[-159px] size-[330px] flex items-center justify-center pointer-events-none">
+              <img src={branchImg} alt="" className="size-[244px] rotate-[61.62deg] object-cover" />
+            </div>
+            <div className="absolute bottom-[-172px] right-[-172px] size-[343px] flex items-center justify-center pointer-events-none">
+              <img src={branchImg} alt="" className="size-[244px] rotate-[-39.38deg] object-cover" />
             </div>
 
-            <div className="w-full flex flex-col gap-[10px] p-[2.5rem]">
-              {TIMELINE.map(({ day, desc }) => (
-                  <div key={day} className="flex gap-[10px] items-center w-full">
-                <span
-                    className="text-[16px] font-bold text-[#1e1e1e] p-[8px] rounded-[8px] whitespace-nowrap shrink-0"
-                    style={{ backgroundColor: "#ececf6" }}
+            <div className="relative flex flex-col items-center gap-[10px] w-full px-[10px] pt-[140px] pb-[40px]">
+
+              <img src={logoImg} alt="Logo" className="h-[83px] w-[76px] object-contain shrink-0" />
+
+              <div className="flex flex-col gap-[15px] items-center w-full">
+                <h1
+                    className="text-[50px] text-[#1b2027] text-center"
+                    style={{ fontWeight: 600 }}
                 >
-                  {day}
-                </span>
-                    <p className="text-[15px] text-black leading-none">{desc}</p>
-                  </div>
-              ))}
-            </div>
+                  {t("header")}
+                </h1>
 
-            <div className="flex flex-col gap-[1.5rem] items-center justify-center pb-[60px] w-full">
+                <img src={imgDivider} alt="" className="w-[100px]" />
+                {/*TODO: No not an image 😭I will draw a line instead*/}
+
+                <h2
+                    className="text-[16px] text-center bg-clip-text text-transparent"
+                    style={{
+                      fontWeight: 530,
+                      maxWidth: "256px",
+                      backgroundImage:
+                          "linear-gradient(93deg, #2E263A 24.76%, #796E8F 35.87%, #493B63 47.48%, #69657B 57.57%, #2E263A 75.24%)",
+                    }}
+                >
+                  {t("caption")}
+                </h2>
+              </div>
+              <div className=" flex flex-col gap-[10px] p-[2.5rem]">
+                {timeline.map(({ day, desc }) => (
+                    <div key={day} className="flex px-[1.5rem] gap-[10px] items-center w-full">
+                  <span
+                      className="text-[16px] font-bold text-[#1e1e1e] p-[8px] rounded-[8px] whitespace-nowrap shrink-0"
+                      style={{ backgroundColor: "#ececf6" }}
+                  >
+                    {day}
+                  </span>
+                      <p className="text-[15px] text-black leading-none">{desc}</p>
+                    </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-[1.5rem] items-center justify-center pb-[60px] w-full">
                 <TextInput
                     value={inputValue}
                     width="19.25rem"
@@ -120,18 +107,18 @@ export default function LoginPage() {
                 />
                 {/*{error && <p className="text-red-500 text-sm mt-1">{error}</p>} TODO: show alert instead bc this suck*/}
 
-              <Button
-                  text={t("login.button")}
-                  backgroundColor="#FF6CA7"
-                  onClick={handleLogin}
-                  width="19.25rem"
-                  rightIcon={<HeartIcon/>}
-              />
-            </div>
+                <Button
+                    text={t("login.button")}
+                    backgroundColor="#FF6CA7"
+                    onClick={handleLogin}
+                    width="19.25rem"
+                    rightIcon={<HeartIcon/>}
+                />
+              </div>
 
+            </div>
           </div>
         </div>
-
         <Credits/>
       </div>
   );

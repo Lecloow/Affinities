@@ -4,5 +4,10 @@
   "login": {
     "button": "Sign in",
     "placeholder": "Enter the code you received by email here"
-  }
+  },
+  "timeline": [
+    { "day": "Tuesday", "desc": "Fill out the form to participate in the event" },
+    { "day": "Wednesday", "desc": "Results of the cake competition" },
+    { "day": "Thursday and Friday", "desc": "Discovery of soulmates" }
+  ]
 }

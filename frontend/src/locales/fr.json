@@ -9,5 +9,6 @@
     { "day": "Mardi", "desc": "Remplir le Forms pour participer à l'évènement" },
     { "day": "Mercredi", "desc": "Résultats du concours de gateaux" },
     { "day": "Jeudi et Vendredi", "desc": "Découverte des âmes soeurs" }
-  ]
+  ],
+  "hint": "Indice"
 }

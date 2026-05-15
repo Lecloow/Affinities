@@ -32,11 +32,12 @@ export default function LoginPage() {
       return;
     }
     try {
-      const user = await ApiService.login(inputValue);
-      console.log("Login successful:", user);
+      const userInfo = await ApiService.login(inputValue);
+      localStorage.setItem('userInfo', JSON.stringify(userInfo));
       navigate("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
+      console.log(err);
     }
   };
 
@@ -46,14 +47,14 @@ export default function LoginPage() {
         await ApiService.getUserStats();
         navigate("/home");
       } catch (err) {
-        ApiService.logout();
+        await ApiService.logout();
       }
     };
     void autoLogin();
   }, [navigate]);
 
   return (
-      <div className="">
+      <div>
         <div className="bg-white flex flex-col items-center min-h-screen">
           <div className="relative flex flex-col items-center min-h-screen w-full overflow-hidden">
             {/*Flowers*/}

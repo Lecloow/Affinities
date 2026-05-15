@@ -2,7 +2,8 @@ import { useTranslation } from "react-i18next";
 import Credits from "../components/Credits";
 import Button from "../components/Button.tsx";
 import {ApiService} from "../services/ApiService.ts";
-import {useState} from "react";
+import { useEffect, useState } from "react";
+import type {Hint} from "../services/types.ts";
 import {useNavigate} from "react-router-dom";
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/20/solid';
 
@@ -10,30 +11,79 @@ export default function HomePage() {
   const { t } = useTranslation();
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [hints, setHints] = useState<Hint[]>([]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+          const parsed = JSON.parse(userInfo);
+          setName(parsed.firstName);
+        }
+        const hintsData = await ApiService.getHints();
+        setHints(hintsData);
+      } catch (err) {
+        setError("Erreur lors du chargement des infos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleLogout = async () => {
     setError("");
     try {
       await ApiService.logout();
+      localStorage.removeItem('userInfo');
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     }
   };
-
+  if (loading) return <div></div>;
   return (
-      <div>
-        <h1>{t("Bienvenue dans l’app 🔥")}</h1>
-        <p>{t("Ici tu mets ton vrai contenu plus tard")}</p>
-        <Button
-            text=""
-            backgroundColor="#FF6CA7"
-            onClick={handleLogout}
-            width="19.25rem"
-            rightIcon={<ArrowLeftEndOnRectangleIcon className="w-[23rem] h-[2rem]" />}
-        />
-        <Credits/>
+    <div>
+      <div className="bg-white flex flex-col w-full items-center min-h-screen">
+        <div className="flex flex-row gap-[4.9rem]">
+          <h1 className="text-[30px]" style={{ fontWeight: 400 }}>👋 Salut {name}</h1>
+          <Button
+              text=""
+              backgroundColor="#FF6CA7"
+              onClick={handleLogout}
+              width="2.5rem"
+              rightIcon={<ArrowLeftEndOnRectangleIcon className="w-[23rem] h-[2rem]" />}
+          />
+        </div>
+        <div className=" flex flex-col gap-[10px] p-[2.5rem]">
+          {hints.map(({ hintNumber, content, revealTime, revealed }) => (
+              <div key={hintNumber} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
+                <div className="flex flex-row gap-[9.5rem] w-full">
+                  <span
+                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                      style={{ backgroundColor: revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
+                  >
+                    {t("hint")} n°{ hintNumber }
+                  </span>
+                  <span
+                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                      style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
+                  >
+                    { revealTime }
+                    {/*TODO: Wrapper for the date*/}
+                  </span>
+                </div>
+                <p className="text-[15px] text-black leading-none">{content}</p>
+              </div>
+          ))}
+        </div>
+
       </div>
+      <Credits/>
+    </div>
   );
 }

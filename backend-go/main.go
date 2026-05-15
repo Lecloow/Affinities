@@ -74,6 +74,7 @@ func main() {
 
 	// The only router that doesn't require auth is the login one, which returns a JWT token
 	router.POST("/login", userHandler.Login)
+	router.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
 
 	// Need admin perms
 	authAdmin := router.Group("/admin/")

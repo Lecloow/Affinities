@@ -43,7 +43,7 @@ func main() {
 // 	}))
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173"},
-		AllowMethods:     []string{"GET", "POST"},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
@@ -56,6 +56,9 @@ func main() {
 	router.Use(func(c *gin.Context) {
 		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 1<<20) // Limit to 1MB to avoid DDoS attacks
 	})
+    router.OPTIONS("/*path", func(c *gin.Context) {
+        c.Status(204)
+    })
 
 	auth := router.Group("/")
 	auth.Use(handlers.AuthMiddleware(userService))

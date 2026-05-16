@@ -111,7 +111,7 @@ export default function LoginPage() {
                     </div>
                 ))}
               </div>
-
+              {/*FIXME: Fix the gap between the tad and the value*/}
               <div className="flex flex-col gap-[1.5rem] items-center justify-center pb-[60px] w-full">
                 <TextInput
                     value={inputValue}
@@ -120,6 +120,7 @@ export default function LoginPage() {
                     placeholder={t("login.placeholder")}
                 />
                 {/*{error && <p className="text-red-500 text-sm mt-1">{error}</p>} TODO: show alert instead bc this suck*/}
+                {/*TODO: A littlebit too small*/}
 
                 <Button
                     text={t("login.button")}

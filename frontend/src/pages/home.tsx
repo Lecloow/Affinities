@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import Credits from "../components/Credits";
 import Button from "../components/Button.tsx";
+import {SegmentedControl} from "../components/SegmentedControl.tsx";
 import {ApiService} from "../services/ApiService.ts";
 import { useEffect, useState } from "react";
 import type {Hint} from "../services/types.ts";
@@ -14,6 +15,8 @@ export default function HomePage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
   const [hints, setHints] = useState<Hint[]>([]);
+  const [day, setDay] = useState("jeudi")
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,7 +52,7 @@ export default function HomePage() {
   return (
     <div>
       <div className="bg-white flex flex-col w-full items-center min-h-screen">
-        <div className="flex flex-row gap-[4.9rem]">
+        <div className="flex flex-row justify-center items-center gap-[4.9rem]">
           <h1 className="text-[30px]" style={{ fontWeight: 400 }}>👋 Salut {name}</h1>
           <Button
               text=""
@@ -59,6 +62,15 @@ export default function HomePage() {
               rightIcon={<ArrowLeftEndOnRectangleIcon className="w-[23rem] h-[2rem]" />}
           />
         </div>
+        <SegmentedControl
+            options={[
+              { label: "Jeudi", value: "jeudi" },
+              { label: "Vendredi", value: "vendredi" },
+            ]}
+            value={day}
+            onChange={setDay}
+        />
+        {/*TODO: a lot of lag*/}
         <div className=" flex flex-col gap-[10px] p-[2.5rem]">
           {hints.map(({ hintNumber, content, revealTime, revealed }) => (
               <div key={hintNumber} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">

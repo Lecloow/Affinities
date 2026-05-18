@@ -10,5 +10,9 @@
     { "day": "Wednesday", "desc": "Results of the cake competition" },
     { "day": "Thursday and Friday", "desc": "Discovery of soulmates" }
   ],
-  "hint": "Hint"
+  "hint": "Hint",
+  "days": {
+    "1": "Thursday",
+    "2": "Friday"
+  }
 }

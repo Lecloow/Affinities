@@ -10,5 +10,9 @@
     { "day": "Mercredi", "desc": "Résultats du concours de gateaux" },
     { "day": "Jeudi et Vendredi", "desc": "Découverte des âmes soeurs" }
   ],
-  "hint": "Indice"
+  "hint": "Indice",
+  "days": {
+    "1": "Jeudi",
+    "2": "Vendredi"
+  }
 }

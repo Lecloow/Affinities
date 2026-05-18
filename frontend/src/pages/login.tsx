@@ -71,7 +71,7 @@ export default function LoginPage() {
               <img src={branchImg} alt="" className="size-[244px] rotate-[-39.38deg] object-cover" />
             </div>
 
-            <div className="relative flex flex-col items-center gap-[10px] w-full px-[10px] pt-[140px] pb-[40px]">
+            <div className="relative flex flex-col items-center gap-[10px] px-[10px] pt-[140px] pb-[40px]">
 
               <img src={logoImg} alt="Logo" className="h-[83px] w-[76px] object-contain shrink-0" />
 
@@ -98,9 +98,9 @@ export default function LoginPage() {
                   {t("caption")}
                 </h2>
               </div>
-              <div className=" flex flex-col gap-[10px] p-[2.5rem]">
+              <div className=" flex flex-col w-full justify-between gap-[10px] p-[2.5rem]">
                 {timeline.map(({ day, desc }) => (
-                    <div key={day} className="flex px-[1.5rem] gap-[10px] items-center w-full">
+                    <div key={day} className="flex justify-between gap-[10px] items-center w-full">
                   <span
                       className="text-[16px] font-bold text-[#1e1e1e] p-[8px] rounded-[8px] whitespace-nowrap shrink-0"
                       style={{ backgroundColor: "#ececf6" }}
@@ -120,7 +120,6 @@ export default function LoginPage() {
                     placeholder={t("login.placeholder")}
                 />
                 {/*{error && <p className="text-red-500 text-sm mt-1">{error}</p>} TODO: show alert instead bc this suck*/}
-                {/*TODO: A littlebit too small*/}
 
                 <Button
                     text={t("login.button")}

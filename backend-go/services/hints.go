@@ -43,7 +43,7 @@ func (s *UserService) GetHints(ctx context.Context, userId models.UserID) ([]*mo
 			return nil, err
 		}
 
-		if hint.RevealTime.After(time.Now().UTC()) {
+		if hint.RevealTime.After(time.Now().UTC()) || !hint.Revealed {
 			hint.Content = "Locked"
 		}
 

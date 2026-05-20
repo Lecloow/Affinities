@@ -3,10 +3,11 @@ import Credits from "../components/Credits";
 import Button from "../components/Button.tsx";
 import { SegmentedControl } from "../components/SegmentedControl.tsx";
 import { ApiService } from "../services/ApiService.ts";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import type { Hint } from "../services/types.ts";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/20/solid';
+import { toRelativeTime } from "../utils/time";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -17,18 +18,20 @@ export default function HomePage() {
   const [hints, setHints] = useState<Hint[]>([]);
   const [day, setDay] = useState(1);
 
-  const uniqueDays = Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b);
-  const options = uniqueDays.length > 0 ? uniqueDays.map(d => ({ label: `Day ${d}`, value: d })) : [
-    { label: t('days.1'), value: 1 },
-    { label: t('days.2'), value: 2 },
-  ];
+  const uniqueDays = useMemo(
+      () => Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b),
+      [hints]
+  );
 
-  useEffect(() => {
-    if (uniqueDays.length > 0 && !uniqueDays.includes(day)) {
-      setDay(uniqueDays[0]);
+  const options = useMemo(() => {
+    if (uniqueDays.length > 0) {
+      return uniqueDays.map(d => ({
+        label: t(`days.${d}`),
+        value: d,
+      }));
     }
-  }, [uniqueDays, day]);
-
+    return [];
+  }, [uniqueDays, t]);
 
   const isFetchingRef = useRef(false);
   const intervalRef = useRef<number | null>(null);
@@ -41,6 +44,12 @@ export default function HomePage() {
     try {
       const hintsData = await ApiService.getHints();
       setHints(hintsData);
+      const daysFromResponse = Array.from(new Set(hintsData.map(h => h.day))).sort((a, b) => a - b);
+
+      setDay(prev => {
+        if (daysFromResponse.length === 0) return prev;
+        return daysFromResponse.includes(prev) ? prev : daysFromResponse[0];
+      });
     } catch (err) {
       console.error("fetchHints error", err);
       setError((err instanceof Error) ? err.message : "Unknown error");
@@ -82,26 +91,6 @@ export default function HomePage() {
     };
   }, []);
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const userInfo = localStorage.getItem('userInfo');
-  //       if (userInfo) {
-  //         const parsed = JSON.parse(userInfo);
-  //         setName(parsed.firstName);
-  //       }
-  //       const hintsData = await ApiService.getHints();
-  //       setHints(hintsData);
-  //     } catch (err) {
-  //       setError("Erreur lors du chargement des infos");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //
-  //   fetchData();
-  // }, []);
-
   const handleLogout = async () => {
     setError("");
     try {
@@ -126,7 +115,7 @@ export default function HomePage() {
                 backgroundColor="#FF6CA7"
                 onClick={handleLogout}
                 width="2.5rem"
-                rightIcon={<ArrowLeftEndOnRectangleIcon className="w-[23rem] h-[2rem]" />}
+                rightIcon={<ArrowLeftEndOnRectangleIcon className="w-[1.4rem] h-[1.4rem]" />}
             />
           </div>
 
@@ -146,10 +135,14 @@ export default function HomePage() {
                         className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
                         style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
                     >
-                  {revealTime}
+                  {toRelativeTime(revealTime)}
                 </span>
                   </div>
-                  <p className="text-[15px] text-black leading-none">{content}</p>
+                  {revealed && (
+                      <p className="text-[15px] text-black leading-none">
+                        {content}
+                      </p>
+                  )}
                 </div>
             ))}
           </div>

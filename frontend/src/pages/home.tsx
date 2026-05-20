@@ -17,6 +17,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [hints, setHints] = useState<Hint[]>([]);
   const [day, setDay] = useState(1);
+  const [score, setScore] = useState<number>(0);
 
   const uniqueDays = useMemo(
       () => Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b),
@@ -33,30 +34,40 @@ export default function HomePage() {
     return [];
   }, [uniqueDays, t]);
 
-  const isFetchingRef = useRef(false);
   const intervalRef = useRef<number | null>(null);
 
   const REFRESH_MS = 20000; //20s
 
-  const fetchHints = async () => {
-    if (isFetchingRef.current) return;
-    isFetchingRef.current = true;
+  const fetchScoreAndHints = async () => {
     try {
-      const hintsData = await ApiService.getHints();
+      const [hintsData, stats] = await Promise.all([
+        ApiService.getHints(),
+        ApiService.getUserStats(),
+      ]);
+
       setHints(hintsData);
       const daysFromResponse = Array.from(new Set(hintsData.map(h => h.day))).sort((a, b) => a - b);
-
       setDay(prev => {
         if (daysFromResponse.length === 0) return prev;
         return daysFromResponse.includes(prev) ? prev : daysFromResponse[0];
       });
+
+      setScore(stats.totalPoints);
     } catch (err) {
-      console.error("fetchHints error", err);
+      console.error("fetchScoreAndHints error", err);
       setError((err instanceof Error) ? err.message : "Unknown error");
-    } finally {
-      isFetchingRef.current = false;
     }
   };
+
+  const revealHint = async () => {
+    try {
+      await ApiService.revealAllHints(day);
+      await fetchScoreAndHints();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Cannot reveal hints");
+    }
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,7 +77,7 @@ export default function HomePage() {
           const parsed = JSON.parse(userInfo);
           setName(parsed.firstName);
         }
-        await fetchHints();
+        await fetchScoreAndHints();
       } catch (err) {
         console.error(err);
         setError("Unknown error");
@@ -80,7 +91,7 @@ export default function HomePage() {
 
   useEffect(() => {
     intervalRef.current = window.setInterval(() => {
-      void fetchHints();
+      void fetchScoreAndHints();
     }, REFRESH_MS);
 
     return () => {
@@ -103,6 +114,7 @@ export default function HomePage() {
   };
 
   const filteredHints = hints.filter(h => h.day === day);
+  const count = filteredHints.filter(h => new Date(h.revealTime) <= new Date() && !h.revealed).length;
 
   if (loading) return <div></div>;
   return (
@@ -119,6 +131,9 @@ export default function HomePage() {
             />
           </div>
 
+          <div className="flex flex-row justify-center items-center gap-[4.9rem]">
+            <p>Your score {score}</p>
+          </div>
           <SegmentedControl options={options} value={day} onChange={setDay} />
 
           <div className=" flex flex-col gap-[10px] p-[2.5rem]">
@@ -146,7 +161,14 @@ export default function HomePage() {
                 </div>
             ))}
           </div>
-
+          <Button
+              text={t("revealHint", { count })}
+              backgroundColor="#FF6CA7"
+              onClick={() => {
+                void revealHint();
+              }}
+              width="19.25rem"
+          />
         </div>
         <Credits />
       </div>

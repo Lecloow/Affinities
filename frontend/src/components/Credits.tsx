@@ -12,7 +12,7 @@ export default function Credits() {
               href="https://github.com/Lecloow/Affinities"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-[5px] p-[4px] rounded-[8px] text-[#dddddd] text-[15px] leading-none no-underline"
+              className="flex items-center gap-[5px] p-[5px] rounded-[8px] text-[#dddddd] text-[15px] leading-none no-underline"
               style={{ backgroundColor: "#1f1f1f", border: "1px solid #3d3d3d" }}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">

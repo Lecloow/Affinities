@@ -14,5 +14,7 @@
   "days": {
     "1": "Jeudi",
     "2": "Vendredi"
-  }
+  },
+  "revealHint_one": "Révéler l'indice",
+  "revealHint_other": "Révéler les indices"
 }

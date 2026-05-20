@@ -14,5 +14,7 @@
   "days": {
     "1": "Thursday",
     "2": "Friday"
-  }
+  },
+  "revealHint_one": "Reveal the hint",
+  "revealHint_other": "Reveal the hints"
 }

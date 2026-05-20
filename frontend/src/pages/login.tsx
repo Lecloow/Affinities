@@ -9,8 +9,6 @@ import logoImg from "../assets/logo.png";
 import branchImg from "../assets/branch.png";
 import { useEffect } from "react";
 
-const imgDivider = "https://www.figma.com/api/mcp/asset/a1f30848-4934-4b88-b8d8-bdb3a417fb4c";
-
 const HeartIcon = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="#F5F5F5">
       <path d="M8 13.7C7.7 13.5 1 9.3 1 5.5 1 3.6 2.6 2 4.5 2c1 0 2 .5 2.7 1.3L8 4.2
@@ -37,7 +35,6 @@ export default function LoginPage() {
       navigate("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
-      console.log(err);
     }
   };
 
@@ -83,8 +80,7 @@ export default function LoginPage() {
                   {t("header")}
                 </h1>
 
-                <img src={imgDivider} alt="" className="w-[100px]" />
-                {/*TODO: No not an image 😭I will draw a line instead*/}
+                <div className="w-[10rem] h-[2px]" style={{ background: "#000000" }}></div>
 
                 <h2
                     className="text-[16px] text-center bg-clip-text text-transparent"

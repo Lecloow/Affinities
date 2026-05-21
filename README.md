@@ -1,6 +1,7 @@
 # Affinities — comitedepromo2026.fr
 
-https://hackatime.hackclub.com/api/v1/badge/U0A84P8Q7JM/Lecloow/Affinities
+[![Hackatime](https://hackatime.hackclub.com/api/v1/badge/U0A84P8Q7JM/Lecloow/Affinities)](https://hackatime.hackclub.com)
+
 
 > Full-stack matchmaking platform built for my high school's Valentine's Day event — **330+ students** participated.
 

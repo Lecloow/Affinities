@@ -15,6 +15,11 @@
     "1": "Jeudi",
     "2": "Vendredi"
   },
-  "revealHint_one": "Révéler l'indice",
-  "revealHint_other": "Révéler les indices"
+  "home": {
+    "revealHint_one": "Révéler l'indice",
+    "revealHint_other": "Révéler les indices",
+    "noHintsAvailable": "Pas d'indices disponibles",
+    "leaderboardButton": "Voir le classement",
+    "leaderboardWidget": "Ton score total"
+  }
 }

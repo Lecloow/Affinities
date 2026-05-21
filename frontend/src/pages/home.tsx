@@ -8,6 +8,7 @@ import type { Hint } from "../services/types.ts";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/20/solid';
 import { toRelativeTime } from "../utils/time";
+import LeaderboardWidget from "../components/LeaderboardWidget.tsx";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -18,6 +19,8 @@ export default function HomePage() {
   const [hints, setHints] = useState<Hint[]>([]);
   const [day, setDay] = useState(1);
   const [score, setScore] = useState<number>(0);
+  const goToLeaderboard = () => navigate("/leaderboard");
+
 
   const uniqueDays = useMemo(
       () => Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b),
@@ -112,14 +115,14 @@ export default function HomePage() {
       setError(err instanceof Error ? err.message : "Login failed");
     }
   };
-
+  // TODO: Auto refresh of the token and autologout
   const filteredHints = hints.filter(h => h.day === day);
   const count = filteredHints.filter(h => new Date(h.revealTime) <= new Date() && !h.revealed).length;
 
   if (loading) return <div></div>;
   return (
       <div>
-        <div className="bg-white flex flex-col w-full items-center min-h-screen">
+        <div className="bg-white flex flex-col w-full items-center min-h-screen gap-[1em]">
           <div className="flex flex-row justify-center items-center gap-[4.9rem]">
             <h1 className="text-[30px]" style={{ fontWeight: 400 }}>👋 Salut {name}</h1>
             <Button
@@ -127,25 +130,25 @@ export default function HomePage() {
                 backgroundColor="#FF6CA7"
                 onClick={handleLogout}
                 width="2.5rem"
+                padding="0px"
                 rightIcon={<ArrowLeftEndOnRectangleIcon className="w-[1.4rem] h-[1.4rem]" />}
             />
           </div>
 
-          <div className="flex flex-row justify-center items-center gap-[4.9rem]">
-            <p>Your score {score}</p>
-          </div>
+          <LeaderboardWidget score={score} onClick={goToLeaderboard} />
+
           <SegmentedControl options={options} value={day} onChange={setDay} />
 
           <div className=" flex flex-col gap-[10px] p-[2.5rem]">
             {filteredHints.map(({ hintNumber, content, revealTime, revealed }) => (
                 <div key={hintNumber} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
-                  <div className="flex flex-row gap-[9.5rem] w-full">
-                <span
-                    className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                    style={{ backgroundColor: revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
-                >
-                  {t("hint")} n°{hintNumber}
-                </span>
+                  <div className="flex flex-row gap-[9rem] justify-between w-full">
+                    <span
+                        className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                        style={{ backgroundColor: revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
+                    >
+                      {t("hint")} n°{hintNumber}
+                    </span>
                     <span
                         className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
                         style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
@@ -162,12 +165,11 @@ export default function HomePage() {
             ))}
           </div>
           <Button
-              text={t("revealHint", { count })}
-              backgroundColor="#FF6CA7"
-              onClick={() => {
-                void revealHint();
-              }}
+              text={count > 0 ? t("revealHint", { count }) : t("home.noHintsAvailable")}
+              backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
+              onClick={() => { void revealHint(); }}
               width="19.25rem"
+              disabled={count === 0}
           />
         </div>
         <Credits />

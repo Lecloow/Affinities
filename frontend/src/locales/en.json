@@ -15,6 +15,11 @@
     "1": "Thursday",
     "2": "Friday"
   },
-  "revealHint_one": "Reveal the hint",
-  "revealHint_other": "Reveal the hints"
+  "home": {
+    "revealHint_one": "Reveal the hint",
+    "revealHint_other": "Reveal the hints",
+    "noHintsAvailable": "No hints available yet",
+    "leaderboardButton": "See the leaderboard",
+    "leaderboardWidget": "Your total score"
+  }
 }

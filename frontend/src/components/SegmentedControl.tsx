@@ -21,7 +21,7 @@ export function SegmentedControl({
               <button
                   key={opt.value}
                   onClick={() => onChange(opt.value)}
-                  className="flex justify-center items-center p-[10px] border-0 rounded-[8px] text-[15px] cursor-pointer min-w-[10rem]"
+                  className="flex justify-center items-center p-[10px] border-0 rounded-[8px] text-[16px] cursor-pointer min-w-[10rem]"
                   style={{
                     background: isActive ? activeColor : "transparent",
                     color: isActive ? "#fff" : "#aaa",

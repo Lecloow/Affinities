@@ -2,10 +2,12 @@ package services
 
 import (
 	"backend/models"
+	"backend/utils"
 	"context"
 	"database/sql"
 	"errors"
 	"strings"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -25,7 +27,7 @@ func (s *UserService) GetCandidates(ctx context.Context, id models.UserID) ([]*m
 
 	var candidates []*models.Candidates
 
-	rows, err := s.DB.Query(ctx, "SELECT id, first_name, last_name FROM users WHERE class LIKE $1", level+"%")
+	rows, err := s.DB.Query(ctx, "SELECT id, first_name, last_name FROM users WHERE class ILIKE $1", level+"%")
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +76,8 @@ func (s *UserService) GetStats(ctx context.Context, id models.UserID) (*models.U
 	}
 	defer rows.Close()
 
+	guessesPerDay := make(map[int]int)
+
 	for rows.Next() {
 		var g models.Guess
 		if err := rows.Scan(
@@ -89,11 +93,18 @@ func (s *UserService) GetStats(ctx context.Context, id models.UserID) (*models.U
 		}
 
 		stats.Guesses = append(stats.Guesses, &g)
+		guessesPerDay[g.Day]++
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return stats, nil
+    currentDay := utils.GetCurrentDay(s.DB)
+
+	guessesToday := guessesPerDay[currentDay]
+	// Add one to the number of guesses because it's the point for the next guess
+    stats.PointsForNextGuess = utils.CalculatePoints(guessesToday+1)
+
+    return stats, nil
 }

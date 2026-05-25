@@ -31,6 +31,7 @@ type UserStats struct {
 	TotalPoints int      `json:"totalPoints"`
 	BonusPoints int      `json:"bonusPoints"`
 	Guesses     []*Guess `json:"guesses"`
+	PointsForNextGuess    int     `json:"pointsForNextGuess"`
 }
 
 type Guess struct {

@@ -21,5 +21,11 @@
     "noHintsAvailable": "No hints available yet",
     "leaderboardButton": "See the leaderboard",
     "leaderboardWidget": "Your total score"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "rank": "Rank",
+    "name": "Name",
+    "score": "Score"
   }
 }

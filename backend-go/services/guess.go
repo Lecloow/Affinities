@@ -35,7 +35,7 @@ func (s *UserService) CreateGuess(ctx context.Context, guess models.GuessRequest
 		_ = tx.Rollback(ctx)
 	}()
 
-	var existingID int //TODO: Why ?
+	var existingID int
 	err = tx.QueryRow(ctx,
 		"SELECT id FROM guesses WHERE user_id=$1 AND day=$2 AND hint_number=$3",
 		guess.UserId, guess.Day, guess.HintNumber).Scan(&existingID)
@@ -45,6 +45,17 @@ func (s *UserService) CreateGuess(ctx context.Context, guess models.GuessRequest
 	if existingID != 0 {
 		return nil, errors.New("guess already exists for this hint")
 	}
+
+    var AlreadyCorrect bool
+    err = tx.QueryRow(ctx,
+        "SELECT is_correct FROM guesses WHERE user_id=$1 AND day=$2",
+        guess.UserId, guess.Day).Scan(&AlreadyCorrect)
+    if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+        return nil, err
+    }
+    if AlreadyCorrect {
+        return nil, errors.New("a correct guess already exists for this day")
+    }
 
 	var guessID int
 	err = tx.QueryRow(ctx,

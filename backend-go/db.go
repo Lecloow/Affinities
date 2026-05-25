@@ -57,6 +57,7 @@ func initDB() {
 		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		match_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		day INTEGER NOT NULL CHECK (day > 0),
+		reveal_time TIMESTAMP NOT NULL,
 		UNIQUE(user_id, day)
 	);
 
@@ -121,6 +122,12 @@ func initDB() {
 		q15 SMALLINT
 	);
 
+	CREATE TABLE IF NOT EXISTS game_config (
+    	id BIGSERIAL PRIMARY KEY,
+    	event_start_date TIMESTAMP NOT NULL,
+    	event_end_date TIMESTAMP NOT NULL
+    );
+
 	CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 	CREATE INDEX IF NOT EXISTS idx_matches_day ON matches(day);
 	CREATE INDEX IF NOT EXISTS idx_hints_user_id ON hints(user_id);
@@ -130,4 +137,13 @@ func initDB() {
 	if _, err := db.Exec(ctx, schema); err != nil {
 		panic(fmt.Errorf("cannot initialize schema: %w", err))
 	}
+    eventEndDate := time.Now().AddDate(0, 0, EventDurationDays)
+        _, err = db.Exec(ctx, `
+                INSERT INTO game_config (event_start_date, event_end_date)
+                VALUES (NOW(), $1)
+                ON CONFLICT DO NOTHING;
+            `, eventEndDate)
+        if err != nil {
+            panic(fmt.Errorf("cannot insert game_config: %w", err))
+        }
 }

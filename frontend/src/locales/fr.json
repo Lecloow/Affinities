@@ -21,5 +21,11 @@
     "noHintsAvailable": "Pas d'indices disponibles",
     "leaderboardButton": "Voir le classement",
     "leaderboardWidget": "Ton score total"
-  }
+  },
+    "leaderboard": {
+        "title": "Classement",
+        "rank": "Rang",
+        "name": "Nom",
+        "score": "Score"
+    }
 }

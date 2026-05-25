@@ -1,20 +1,113 @@
 import { useTranslation } from "react-i18next";
 import Credits from "../components/Credits";
 import Button from "../components/Button.tsx";
-import { SegmentedControl } from "../components/SegmentedControl.tsx";
 import { ApiService } from "../services/ApiService.ts";
-import { useEffect, useState, useRef, useMemo } from "react";
-import type { Hint } from "../services/types.ts";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/20/solid';
-import { toRelativeTime } from "../utils/time";
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import type {LeaderboardEntry} from "../services/types.ts";
 
 export default function LeaderboardPage() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const goBack = () => navigate("/home");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const intervalRef = useRef<number | null>(null);
+  const REFRESH_MS = 20000; //20s
+  const [currentUserId, setCurrentUserId] = useState<string>("");
+
+  const fetchLeaderboard = async () => {
+    try {
+      const leaderboard = await ApiService.getLeaderboard();
+      console.log(leaderboard);
+      setLeaderboard(leaderboard);
+    } catch (err) {
+      setError((err instanceof Error) ? err.message : "Unknown error");
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+          const parsed = JSON.parse(userInfo);
+          setCurrentUserId(parsed.id);
+        }
+        await fetchLeaderboard();
+      } catch (err) {
+        setError("Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchData();
+  }, []);
+
+  useEffect(() => {
+    intervalRef.current = window.setInterval(() => {
+      void fetchLeaderboard();
+    }, REFRESH_MS);
+
+    return () => {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, []);
+
   return (
       <div>
         <div className="bg-white flex flex-col w-full items-center min-h-screen">
           <div className="flex flex-row justify-center items-center gap-[4.9rem]">
-            <h1 className="text-[30px]" style={{ fontWeight: 400 }}>👋 Salut </h1>
+            <Button
+                text=""
+                backgroundColor="#FF6CA7"
+                onClick={goBack}
+                width="2.5rem"
+                padding="0px"
+                rightIcon={<ChevronLeftIcon className="w-[1.4rem] h-[1.4rem]" />}
+            />
+            <h1 className="text-[30px]" style={{ fontWeight: 400 }}>{t("leaderboard.title")}</h1>
+          </div>
+          <div className="flex flex-col gap-[10px] p-[2.5rem]">
+            {Array.isArray(leaderboard) && leaderboard.map(({ rank, userId, firstName, lastName, class: userClass, totalPoints }) => {
+              const isCurrentUser = userId === currentUserId;
+
+              return(
+                  <div key={rank} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
+                    <div
+                        className="flex flex-row gap-[6rem] rounded-[8px] justify-between w-full"
+                        style={{
+                          backgroundColor: isCurrentUser ? "#FFD700" : "#ffffff",
+                          fontWeight: "400",
+                          color: isCurrentUser ? "#000" : "inherit"
+                        }}>
+                      <span className="text-[16px] flex items-center px-[12px] rounded-[8px] whitespace-nowrap shrink-0" >
+                        {rank === 1 && "🥇 "}
+                        {rank === 2 && "🥈 "}
+                        {rank === 3 && "🥉 "}
+                        {rank > 3 && `${rank} `}
+                        {firstName} {lastName}
+                      </span>
+                      <span className="text-[12px] rounded-[8px] whitespace-nowrap shrink-0 flex items-center">
+                        {userClass}
+                      </span>
+                      <span
+                          className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                          style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
+                      >
+                        {totalPoints} {t("points")}
+                      </span>
+                    </div>
+
+                  </div>
+              );
+          })}
           </div>
         </div>
         <Credits />

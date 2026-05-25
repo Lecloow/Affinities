@@ -28,15 +28,4 @@ func (h *UserHandler) Guess(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, createdGuess)
-	//createdGuess, err := h.Service.ProcessGuess(c, guess)
-	//if err != nil {
-	//	if err == services.ErrAlreadyGuessed {
-	//		c.JSON(http.StatusConflict, gin.H{"error": "Guess already submitted"})
-	//		return
-	//	}
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	//	return
-	//}
-	//
-	//c.JSON(http.StatusOK, createdGuess)
 }

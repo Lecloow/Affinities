@@ -4,11 +4,13 @@ import Button from "../components/Button.tsx";
 import { SegmentedControl } from "../components/SegmentedControl.tsx";
 import { ApiService } from "../services/ApiService.ts";
 import { useEffect, useState, useRef, useMemo } from "react";
-import type { Hint } from "../services/types.ts";
+import type { Hint, Match, Candidate } from "../services/types.ts";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/20/solid';
+import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import { toRelativeTime } from "../utils/time";
 import LeaderboardWidget from "../components/LeaderboardWidget.tsx";
+import GuessWidget from "../components/GuessWidget";
+import CodeWidget from "../components/CodeWidget";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -17,10 +19,19 @@ export default function HomePage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
   const [hints, setHints] = useState<Hint[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [day, setDay] = useState(1);
   const [score, setScore] = useState<number>(0);
   const goToLeaderboard = () => navigate("/leaderboard");
+  const [inputCandidate, setInputCandidate] = useState("");
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const match = matches.length > 0 ? matches.find(m => m.day === day) : null;
+  const getPointsForDay = (day: number): number => {
+    const guessesThisDay = score.guesses?.filter(g => g.day === day).length || 0;
 
+    const pointsMap = { 0: 30, 1: 20, 2: 10, 3: 0 };
+    return pointsMap[guessesThisDay as keyof typeof pointsMap] || 0;
+  };
 
   const uniqueDays = useMemo(
       () => Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b),
@@ -38,24 +49,28 @@ export default function HomePage() {
   }, [uniqueDays, t]);
 
   const intervalRef = useRef<number | null>(null);
-
   const REFRESH_MS = 20000; //20s
 
   const fetchScoreAndHints = async () => {
     try {
-      const [hintsData, stats] = await Promise.all([
+      const [hintsData, stats, matches] = await Promise.all([
         ApiService.getHints(),
         ApiService.getUserStats(),
+        ApiService.getMatches(),
       ]);
-
       setHints(hintsData);
+
+      setMatches(matches);
       const daysFromResponse = Array.from(new Set(hintsData.map(h => h.day))).sort((a, b) => a - b);
       setDay(prev => {
         if (daysFromResponse.length === 0) return prev;
         return daysFromResponse.includes(prev) ? prev : daysFromResponse[0];
       });
-
       setScore(stats.totalPoints);
+
+
+      const candidatesData = await ApiService.getCandidates();
+      setCandidates(candidatesData);
     } catch (err) {
       console.error("fetchScoreAndHints error", err);
       setError((err instanceof Error) ? err.message : "Unknown error");
@@ -139,7 +154,7 @@ export default function HomePage() {
 
           <SegmentedControl options={options} value={day} onChange={setDay} />
 
-          <div className=" flex flex-col gap-[10px] p-[2.5rem]">
+          <div className="flex flex-col gap-[10px] p-[2.5rem]">
             {filteredHints.map(({ hintNumber, content, revealTime, revealed }) => (
                 <div key={hintNumber} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
                   <div className="flex flex-row gap-[9rem] justify-between w-full">
@@ -164,6 +179,33 @@ export default function HomePage() {
                 </div>
             ))}
           </div>
+
+          {match && (
+              <div className="flex flex-col gap-[10px] p-[2.5rem]">
+                <div className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
+                  <div className="flex flex-row gap-[9rem] justify-between w-full">
+                    <span
+                        className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                        style={{ backgroundColor: match.revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
+                    >
+                      Reveal
+                    </span>
+                    <span
+                        className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                        style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
+                    >
+                      {toRelativeTime(match.revealTime)}
+                    </span>
+                  </div>
+                  {match.revealed && (
+                      <p className="text-[15px] text-black leading-none">
+                        {t("revealMessage")} TODO :Actually a widget is better here
+                      </p>
+                  )}
+                </div>
+              </div>
+          )}
+
           <Button
               text={count > 0 ? t("revealHint", { count }) : t("home.noHintsAvailable")}
               backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
@@ -171,6 +213,13 @@ export default function HomePage() {
               width="19.25rem"
               disabled={count === 0}
           />
+
+          {match?.revealed ? (
+              <CodeWidget score={score} onClick={goToLeaderboard} />
+            ) : (
+              <GuessWidget inputCandidate={inputCandidate} setInputValue={setInputCandidate} points={getPointsForDay(day)} candidates={candidates} onClick={goToLeaderboard} />
+          )}
+
         </div>
         <Credits />
       </div>

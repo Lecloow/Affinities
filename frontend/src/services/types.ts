@@ -32,6 +32,14 @@ export interface Candidate {
   lastName: string;
 }
 
+export interface Match {
+  id: number;
+  userId: UserID;
+  day: number;
+  revealTime: string;
+  revealed: boolean;
+}
+
 export interface Guess {
   id: number;
   userId: UserID;

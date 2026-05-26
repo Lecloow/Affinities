@@ -55,6 +55,7 @@ export interface UserStats {
   totalPoints: number;
   bonusPoints: number;
   guesses: Guess[];
+  pointsForNextGuess: number;
 }
 
 export interface LeaderboardEntry {

@@ -22,16 +22,11 @@ export default function HomePage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [day, setDay] = useState(1);
   const [score, setScore] = useState<number>(0);
+  const [pointsForNextGuess, setPointsForNextGuess] = useState<number>(0);
   const goToLeaderboard = () => navigate("/leaderboard");
   const [inputCandidate, setInputCandidate] = useState("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const match = matches.length > 0 ? matches.find(m => m.day === day) : null;
-  const getPointsForDay = (day: number): number => {
-    const guessesThisDay = score.guesses?.filter(g => g.day === day).length || 0;
-
-    const pointsMap = { 0: 30, 1: 20, 2: 10, 3: 0 };
-    return pointsMap[guessesThisDay as keyof typeof pointsMap] || 0;
-  };
 
   const uniqueDays = useMemo(
       () => Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b),
@@ -67,7 +62,7 @@ export default function HomePage() {
         return daysFromResponse.includes(prev) ? prev : daysFromResponse[0];
       });
       setScore(stats.totalPoints);
-
+      setPointsForNextGuess(stats.pointsForNextGuess);
 
       const candidatesData = await ApiService.getCandidates();
       setCandidates(candidatesData);
@@ -217,7 +212,7 @@ export default function HomePage() {
           {match?.revealed ? (
               <CodeWidget score={score} onClick={goToLeaderboard} />
             ) : (
-              <GuessWidget inputCandidate={inputCandidate} setInputValue={setInputCandidate} points={getPointsForDay(day)} candidates={candidates} onClick={goToLeaderboard} />
+              <GuessWidget inputCandidate={inputCandidate} setInputValue={setInputCandidate} points={pointsForNextGuess} candidates={candidates} onClick={goToLeaderboard} />
           )}
 
         </div>

@@ -18,10 +18,8 @@ export default function GuessWidget({ inputCandidate, setInputValue, points, can
           className="flex flex-col gap-[10px] p-[12px] rounded-[12px] justify-center items-center min-w-[10rem]"
           style={{ backgroundColor: "#6973db", color: "#F5F5F5" }}
       >
-        <p className="m-[0px]" >{t("home.guessWidget.title")}</p>
-        <div className="flex flex-col gap-[10px] p-[12px]">
-        {/*  Guess*/}
-        </div>
+        <p className="m-[0px] text-[18px]" style={{fontWeight: 600}} >{t("home.guessWidget.title")}</p>
+        
         <p className="m-[0px]" >{t("home.guessWidget.explanation")}<b> {points} points!</b></p>
 
         <TextInput value={inputCandidate} onChange={(e) => setInputValue(e.target.value)}/>

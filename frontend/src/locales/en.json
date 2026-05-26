@@ -20,7 +20,12 @@
     "revealHint_other": "Reveal the hints",
     "noHintsAvailable": "No hints available yet",
     "leaderboardButton": "See the leaderboard",
-    "leaderboardWidget": "Your total score"
+    "leaderboardWidget": "Your total score",
+    "guessWidget": {
+      "title": "Guess your soulmate",
+      "explanation": "If your guess is correct, you will earn",
+      "button": "Submit"
+    }
   },
   "leaderboard": {
     "title": "Leaderboard",

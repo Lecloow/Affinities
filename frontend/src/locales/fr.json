@@ -20,12 +20,17 @@
     "revealHint_other": "Révéler les indices",
     "noHintsAvailable": "Pas d'indices disponibles",
     "leaderboardButton": "Voir le classement",
-    "leaderboardWidget": "Ton score total"
-  },
-    "leaderboard": {
-        "title": "Classement",
-        "rank": "Rang",
-        "name": "Nom",
-        "score": "Score"
+    "leaderboardWidget": "Ton score total",
+    "guessWidget": {
+      "title": "Devine ton âme soeur",
+      "explanation": "Si tu devines correctement, tu gagneras",
+      "button": "Valider"
     }
+  },
+  "leaderboard": {
+      "title": "Classement",
+      "rank": "Rang",
+      "name": "Nom",
+      "score": "Score"
+  }
 }

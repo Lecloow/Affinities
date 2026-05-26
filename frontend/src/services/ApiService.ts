@@ -1,7 +1,7 @@
-import type {User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID} from './types';
+import type {User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID, Match} from './types';
 
 
-const API_BASE_URL = "http://localhost:8080".replace(/\/$/, '') //import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = "http://localhost:5173".replace(/\/$/, '') //import.meta.env.VITE_API_BASE_URL;
 
 export class ApiService {
   private static async request<T>(url: string, options?: RequestInit): Promise<T> {
@@ -37,6 +37,9 @@ export class ApiService {
 
   static async getCandidates(): Promise<Candidate[]> {
     return this.request(`/me/candidates`);
+  }
+  static async getMatches(): Promise<Match[]> {
+    return this.request(`/me/matches`);
   }
 
   static async getLeaderboard(): Promise<LeaderboardEntry[]> {

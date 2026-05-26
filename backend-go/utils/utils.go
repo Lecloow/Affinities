@@ -1,13 +1,10 @@
 package utils
 
 import (
-    "context"
 	"crypto/rand"
 	"encoding/base64"
 	"math/big"
 	"time"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func GenerateSecureToken() string {
@@ -20,14 +17,13 @@ func GenerateSecureToken() string {
 }
 
 
-func GetCurrentDay(db *pgxpool.Pool) int {
+func GetCurrentDay() int {
     // Implement logic to determine the current day of the event
     // For example, if the event starts on a specific date, calculate the difference in days from that date to today
-	var eventStartDate time.Time
-	err := db.QueryRow(context.Background(), "SELECT event_start_date FROM game_config LIMIT 1").Scan(&eventStartDate)
+	eventStartDate, err := time.Parse("2006-01-02", "2026-05-25") //2006-01-02 is just the format (YYYY-MM_DD)
 	if err != nil {
-		return 1  // Fallback
-	}
+	return 0
+    }
 
 	daysPassed := int(time.Since(eventStartDate).Hours() / 24)
 	return daysPassed + 1

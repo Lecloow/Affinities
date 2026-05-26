@@ -66,6 +66,7 @@ func main() {
 		auth.POST("/guess", userHandler.Guess)
 		auth.GET("/leaderboard", userHandler.Leaderboard)
 		auth.GET("/me/candidates", userHandler.Candidates)
+		auth.GET("/me/matches", userHandler.Matches)
 		auth.GET("/me/stats", userHandler.Stats)
 		auth.GET("/me/hints", userHandler.GetHints)
 		auth.POST("/me/hints/:day/:hintNumber/reveal", userHandler.RevealHint)

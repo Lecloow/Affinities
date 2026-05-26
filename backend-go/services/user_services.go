@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
-	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -100,7 +99,7 @@ func (s *UserService) GetStats(ctx context.Context, id models.UserID) (*models.U
 		return nil, err
 	}
 
-    currentDay := utils.GetCurrentDay(s.DB)
+    currentDay := utils.GetCurrentDay()
 
 	guessesToday := guessesPerDay[currentDay]
 	// Add one to the number of guesses because it's the point for the next guess

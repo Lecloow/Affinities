@@ -20,7 +20,7 @@ func GenerateSecureToken() string {
 func GetCurrentDay() int {
     // Implement logic to determine the current day of the event
     // For example, if the event starts on a specific date, calculate the difference in days from that date to today
-	eventStartDate, err := time.Parse("2006-01-02", "2026-05-25") //2006-01-02 is just the format (YYYY-MM_DD)
+	eventStartDate, err := time.Parse("2006-01-02", "2026-05-28") //2006-01-02 is just the format (YYYY-MM_DD)
 	if err != nil {
 	return 0
     }

@@ -24,7 +24,8 @@
     "guessWidget": {
       "title": "Devine ton âme soeur",
       "explanation": "Si tu devines correctement, tu gagneras",
-      "button": "Valider"
+      "button": "Valider",
+      "textInput": "Ecris ici ton guess"
     }
   },
   "leaderboard": {

@@ -24,7 +24,8 @@
     "guessWidget": {
       "title": "Guess your soulmate",
       "explanation": "If your guess is correct, you will earn",
-      "button": "Submit"
+      "button": "Submit",
+      "textInput": "Write here your guess"
     }
   },
   "leaderboard": {

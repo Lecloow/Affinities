@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,8 @@ func (h *UserHandler) Guess(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
+    day := utils.GetCurrentDay()
+    guess.Day = day
 
 	userID := c.MustGet("userID").(models.UserID)
 	guess.UserId = userID

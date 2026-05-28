@@ -5,14 +5,13 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/guess
+  url: {{baseUrl}}/me/guess
   body: json
   auth: none
 }
 
 body:json {
   {
-    "day": 1,
     "hintNumber": 2,
     "guessedUserId": 3
   }

@@ -85,10 +85,11 @@ export default function HomePage() {
   const handleGuess = async () => {
     try {
       if (selectedCandidate) {
-        console.log(selectedCandidate);
-        // await ApiService.guess(day, filteredHints, inputCandidate);
-        // setInputCandidate("");
-        // await fetchScoreAndHints();
+        const response = await ApiService.guess(filteredHints.filter(h => h.revealed).length, selectedCandidate.id);
+        setInputCandidate("");
+        setSelectedCandidate(null);
+        await fetchScoreAndHints();
+        console.log("Guess response:", response);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Guess failed");
@@ -141,7 +142,6 @@ export default function HomePage() {
   // TODO: Auto refresh of the token and autologout
   const filteredHints = hints.filter(h => h.day === day);
   const count = filteredHints.filter(h => new Date(h.revealTime) <= new Date() && !h.revealed).length;
-
   if (loading) return <div></div>;
   return (
       <div>
@@ -164,27 +164,27 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-[10px] p-[2.5rem]">
             {filteredHints.map(({ hintNumber, content, revealTime, revealed }) => (
-                <div key={hintNumber} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
-                  <div className="flex flex-row gap-[9rem] justify-between w-full">
-                    <span
-                        className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                        style={{ backgroundColor: revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
-                    >
-                      {t("hint")} n°{hintNumber}
-                    </span>
-                    <span
-                        className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                        style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
-                    >
-                  {toRelativeTime(revealTime)}
-                </span>
-                  </div>
-                  {revealed && (
-                      <p className="text-[15px] text-black leading-none">
-                        {content}
-                      </p>
-                  )}
+              <div key={hintNumber} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
+                <div className="flex flex-row gap-[9rem] justify-between w-full">
+                  <span
+                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                      style={{ backgroundColor: revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
+                  >
+                    {t("hint")} n°{hintNumber}
+                  </span>
+                  <span
+                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                      style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
+                  >
+                    {toRelativeTime(revealTime)}
+                  </span>
                 </div>
+                {revealed && (
+                    <p className="text-[15px] text-black leading-none">
+                      {content}
+                    </p>
+                )}
+              </div>
             ))}
           </div>
 
@@ -192,35 +192,46 @@ export default function HomePage() {
               <div className="flex flex-col gap-[10px] p-[2.5rem]">
                 <div className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
                   <div className="flex flex-row gap-[9rem] justify-between w-full">
-                    <span
-                        className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                        style={{ backgroundColor: match.revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
-                    >
-                      Reveal
-                    </span>
-                    <span
-                        className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                        style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
-                    >
-                      {toRelativeTime(match.revealTime)}
-                    </span>
+                  <span
+                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                      style={{ backgroundColor: match.revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
+                  >
+                    Reveal
+                  </span>
+                  <span
+                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
+                      style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
+                  >
+                    {toRelativeTime(match.revealTime)}
+                  </span>
                   </div>
                   {match.revealed && (
-                      <p className="text-[15px] text-black leading-none">
-                        {t("revealMessage")} TODO :Actually a widget is better here
-                      </p>
+                    <p className="text-[15px] text-black leading-none">
+                      {match.firstName} {match.lastName}
+                    </p>
                   )}
                 </div>
               </div>
           )}
 
-          <Button
-              text={count > 0 ? t("revealHint", { count }) : t("home.noHintsAvailable")}
-              backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
-              onClick={() => { void revealHint(); }}
-              width="19.25rem"
-              disabled={count === 0}
-          />
+          {match && new Date(match.revealTime) < new Date() ? (
+              <Button
+                  text={match.revealed ? t("home.revealMatch") : t("revealed")}
+                  backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
+                  onClick={() => { void revealMatch(); }}
+                  width="19.25rem"
+                  disabled={match.revealed}
+              />
+          ) :
+              <Button
+                  text={count > 0 ? t("revealHint", { count }) : t("home.noHintsAvailable")}
+                  backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
+                  onClick={() => { void revealHint(); }}
+                  width="19.25rem"
+                  disabled={count === 0}
+              />
+          }
+
 
           {match?.revealed ? (
               <CodeWidget score={score} onClick={goToLeaderboard} />
@@ -228,6 +239,7 @@ export default function HomePage() {
               <GuessWidget
                   inputCandidate={inputCandidate}
                   setInputValue={setInputCandidate}
+                  setSelectedCandidate={setSelectedCandidate}
                   points={pointsForNextGuess}
                   candidates={candidates}
                   onClick={handleGuess}

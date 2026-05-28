@@ -36,6 +36,8 @@ export interface Match {
   id: number;
   userId: UserID;
   day: number;
+  firstName: string;
+  lastName: string;
   revealTime: string;
   revealed: boolean;
 }

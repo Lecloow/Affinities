@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -99,11 +100,78 @@ func (s *UserService) GetStats(ctx context.Context, id models.UserID) (*models.U
 		return nil, err
 	}
 
-    currentDay := utils.GetCurrentDay()
+	currentDay := utils.GetCurrentDay()
 
 	guessesToday := guessesPerDay[currentDay]
 	// Add one to the number of guesses because it's the point for the next guess
-    stats.PointsForNextGuess = utils.CalculatePoints(guessesToday+1)
+	stats.PointsForNextGuess = utils.CalculatePoints(guessesToday + 1)
 
-    return stats, nil
+	return stats, nil
+}
+
+func (s *UserService) GetMatches(ctx context.Context, id models.UserID) ([]*models.Match, error) {
+	rows, err := s.DB.Query(ctx,
+		`SELECT m.id, m.match_id, m.day, m.reveal_time, m.revealed,
+		        u.first_name, u.last_name, u.class
+		 FROM matches m
+		 LEFT JOIN users u ON m.match_id = u.id
+		 WHERE m.user_id = $1
+		 ORDER BY m.day`,
+		id,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var matches []*models.Match
+
+	for rows.Next() {
+		match := &models.Match{}
+		if err := rows.Scan(
+			&match.ID,
+			&match.MatchID,
+			&match.Day,
+			&match.RevealTime,
+			&match.Revealed,
+			&match.FirstName,
+			&match.LastName,
+			&match.Class,
+		); err != nil {
+			return nil, err
+		}
+
+		if !match.Revealed {
+			match.FirstName = "Locked"
+			match.LastName = "Locked"
+			match.Class = "Locked"
+		}
+
+		matches = append(matches, match)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return matches, nil
+}
+
+func (s *UserService) RevealMatch(ctx context.Context, userId models.UserID, day int) (int, error) {
+	match := &models.Match{}
+
+	err := s.DB.QueryRow(ctx, `SELECT id, reveal_time, revealed FROM matches WHERE user_id = $1 AND day = $2`, userId, day).Scan(&match.ID, &match.RevealTime, &match.Revealed)
+	if err != nil {
+		return 0, err
+	}
+	if !match.RevealTime.Before(time.Now().UTC()) {
+		return 0, errors.New("cannot be revealed before reveal time")
+	}
+
+	_, err = s.DB.Exec(ctx, "UPDATE matches SET revealed = $1 WHERE id = $2 ", true, match.ID)
+	if err != nil {
+		return 0, err
+	}
+
+	return match.ID, nil
 }

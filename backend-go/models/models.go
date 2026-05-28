@@ -18,6 +18,17 @@ type Candidates struct {
 	LastName  string `json:"lastName"`
 }
 
+type Match struct {
+	ID         int       `json:"id"`
+	MatchID    UserID    `json:"matchId"`
+	Day        int       `json:"day"`
+	FirstName  string    `json:"firstName"`
+	LastName   string    `json:"lastName"`
+	Class      string    `json:"class"`
+	RevealTime time.Time `json:"revealTime"`
+	Revealed   bool      `json:"revealed"`
+}
+
 type CreateUserRequest struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
@@ -27,11 +38,11 @@ type CreateUserRequest struct {
 }
 
 type UserStats struct {
-	ID          UserID   `json:"id"`
-	TotalPoints int      `json:"totalPoints"`
-	BonusPoints int      `json:"bonusPoints"`
-	Guesses     []*Guess `json:"guesses"`
-	PointsForNextGuess    int     `json:"pointsForNextGuess"`
+	ID                 UserID   `json:"id"`
+	TotalPoints        int      `json:"totalPoints"`
+	BonusPoints        int      `json:"bonusPoints"`
+	Guesses            []*Guess `json:"guesses"`
+	PointsForNextGuess int      `json:"pointsForNextGuess"`
 }
 
 type Guess struct {

@@ -24,7 +24,8 @@ export default function HomePage() {
   const [score, setScore] = useState<number>(0);
   const [pointsForNextGuess, setPointsForNextGuess] = useState<number>(0);
   const goToLeaderboard = () => navigate("/leaderboard");
-  const [inputCandidate, setInputCandidate] = useState("");
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [inputCandidate, setInputCandidate] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const match = matches.length > 0 ? matches.find(m => m.day === day) : null;
 
@@ -81,6 +82,18 @@ export default function HomePage() {
     }
   };
 
+  const handleGuess = async () => {
+    try {
+      if (selectedCandidate) {
+        console.log(selectedCandidate);
+        // await ApiService.guess(day, filteredHints, inputCandidate);
+        // setInputCandidate("");
+        // await fetchScoreAndHints();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Guess failed");
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -212,7 +225,13 @@ export default function HomePage() {
           {match?.revealed ? (
               <CodeWidget score={score} onClick={goToLeaderboard} />
             ) : (
-              <GuessWidget inputCandidate={inputCandidate} setInputValue={setInputCandidate} points={pointsForNextGuess} candidates={candidates} onClick={goToLeaderboard} />
+              <GuessWidget
+                  inputCandidate={inputCandidate}
+                  setInputValue={setInputCandidate}
+                  points={pointsForNextGuess}
+                  candidates={candidates}
+                  onClick={handleGuess}
+              />
           )}
 
         </div>

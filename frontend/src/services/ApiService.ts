@@ -42,6 +42,12 @@ export class ApiService {
     return this.request(`/me/matches`);
   }
 
+  static async revealMatch(day: number): Promise<{ success: boolean }> {
+    return this.request(`/me/matches/${day}/reveal`, {
+      method: 'POST',
+    });
+  }
+
   static async getLeaderboard(): Promise<LeaderboardEntry[]> {
     return this.request(`/leaderboard`);
   }
@@ -77,10 +83,10 @@ export class ApiService {
     });
   }
 
-  static async guess(day: number, hintNumber: number, guessedUser: UserID): Promise<Guess> {
-    return this.request(`/me/guess`, {
+  static async guess(hintNumber: number, guessedUser: UserID): Promise<Guess> {
+    return this.request(`me/guess`, {
       method: 'POST',
-      body: JSON.stringify({ day, hintNumber, guessedUserId: guessedUser }),
+      body: JSON.stringify({ hintNumber, guessedUserId: guessedUser }),
     });
   }
 }

@@ -19,6 +19,8 @@
     "revealHint_one": "Reveal the hint",
     "revealHint_other": "Reveal the hints",
     "noHintsAvailable": "No hints available yet",
+    "revealMatch": "Reveal my soulmate",
+    "revealed": "Soulmate revealed",
     "leaderboardButton": "See the leaderboard",
     "leaderboardWidget": "Your total score",
     "guessWidget": {

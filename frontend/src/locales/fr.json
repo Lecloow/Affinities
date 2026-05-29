@@ -19,6 +19,8 @@
     "revealHint_one": "Révéler l'indice",
     "revealHint_other": "Révéler les indices",
     "noHintsAvailable": "Pas d'indices disponibles",
+    "revealMatch": "Révéler mon match",
+    "revealed": "Âme soeur révélée",
     "leaderboardButton": "Voir le classement",
     "leaderboardWidget": "Ton score total",
     "guessWidget": {

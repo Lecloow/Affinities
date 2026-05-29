@@ -30,17 +30,17 @@ func main() {
 		router = gin.Default()
 	}
 
-// 	router.Use(cors.New(cors.Config{
-// 	//AllowOrigins: []string{"https://comitedepromo2026.com"}
-// 		AllowOrigins: []string{"http://localhost:5173"},
-// 		//AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-// 		//AllowHeaders:     []string{"Origin", "Content-Type"},
-// 		//ExposeHeaders:    []string{"Content-Length"},
-// 		AllowMethods:     []string{"*"},
-// 		AllowHeaders:     []string{"*"},
-// 		AllowCredentials: true,
-// 		MaxAge:           24 * time.Hour,
-// 	}))
+	// 	router.Use(cors.New(cors.Config{
+	// 	//AllowOrigins: []string{"https://comitedepromo2026.com"}
+	// 		AllowOrigins: []string{"http://localhost:5173"},
+	// 		//AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+	// 		//AllowHeaders:     []string{"Origin", "Content-Type"},
+	// 		//ExposeHeaders:    []string{"Content-Length"},
+	// 		AllowMethods:     []string{"*"},
+	// 		AllowHeaders:     []string{"*"},
+	// 		AllowCredentials: true,
+	// 		MaxAge:           24 * time.Hour,
+	// 	}))
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
@@ -56,17 +56,18 @@ func main() {
 	router.Use(func(c *gin.Context) {
 		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 1<<20) // Limit to 1MB to avoid DDoS attacks
 	})
-    router.OPTIONS("/*path", func(c *gin.Context) {
-        c.Status(204)
-    })
+	router.OPTIONS("/*path", func(c *gin.Context) {
+		c.Status(204)
+	})
 
 	auth := router.Group("/")
 	auth.Use(handlers.AuthMiddleware(userService))
 	{
-		auth.POST("/guess", userHandler.Guess)
+		auth.POST("me/guess", userHandler.Guess)
 		auth.GET("/leaderboard", userHandler.Leaderboard)
 		auth.GET("/me/candidates", userHandler.Candidates)
-		auth.GET("/me/matches", userHandler.Matches)
+		auth.GET("/me/matches", userHandler.GetMatches)
+		auth.POST("/me/matches/:day/reveal", userHandler.RevealMatches)
 		auth.GET("/me/stats", userHandler.Stats)
 		auth.GET("/me/hints", userHandler.GetHints)
 		auth.POST("/me/hints/:day/:hintNumber/reveal", userHandler.RevealHint)
@@ -89,7 +90,7 @@ func main() {
 		authAdmin.GET("/users/:id", userHandler.GetUserByID)
 		authAdmin.POST("/importData", userHandler.ImportXlsx)
 		authAdmin.GET("/createMatches:day", userHandler.CreateMatches)
-	} //TODO: shoudl be adminHandler nah ??
+	}
 
 	if err := router.Run(":8080"); err != nil {
 		panic(fmt.Errorf("failed to run server: %v", err))

@@ -81,6 +81,14 @@ export default function HomePage() {
       setError(err instanceof Error ? err.message : "Cannot reveal hints");
     }
   };
+  const revealMatch = async () => {
+    try {
+      await ApiService.revealMatch(day);
+      await fetchScoreAndHints();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Cannot reveal match");
+    }
+  };
 
   const handleGuess = async () => {
     try {
@@ -145,7 +153,7 @@ export default function HomePage() {
   if (loading) return <div></div>;
   return (
       <div>
-        <div className="bg-white flex flex-col w-full items-center min-h-screen gap-[1em]">
+        <div className="bg-white flex flex-col w-full items-center min-h-screen gap-[1rem]">
           <div className="flex flex-row justify-center items-center gap-[4.9rem]">
             <h1 className="text-[30px]" style={{ fontWeight: 400 }}>👋 Salut {name}</h1>
             <Button
@@ -162,7 +170,7 @@ export default function HomePage() {
 
           <SegmentedControl options={options} value={day} onChange={setDay} />
 
-          <div className="flex flex-col gap-[10px] p-[2.5rem]">
+          <div className="flex flex-col pt-[2rem]">
             {filteredHints.map(({ hintNumber, content, revealTime, revealed }) => (
               <div key={hintNumber} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
                 <div className="flex flex-row gap-[9rem] justify-between w-full">
@@ -186,12 +194,9 @@ export default function HomePage() {
                 )}
               </div>
             ))}
-          </div>
-
-          {match && (
-              <div className="flex flex-col gap-[10px] p-[2.5rem]">
-                <div className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
-                  <div className="flex flex-row gap-[9rem] justify-between w-full">
+            {match && (
+              <div className="flex flex-col px-[1.5rem] justify-between w-full items-center">
+                <div className="flex flex-row gap-[9rem] justify-between w-full">
                   <span
                       className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
                       style={{ backgroundColor: match.revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
@@ -204,34 +209,37 @@ export default function HomePage() {
                   >
                     {toRelativeTime(match.revealTime)}
                   </span>
-                  </div>
-                  {match.revealed && (
+                </div>
+                {match.revealed && (
                     <p className="text-[15px] text-black leading-none">
                       {match.firstName} {match.lastName}
                     </p>
-                  )}
-                </div>
+                )}
               </div>
-          )}
+            )}
+          </div>
 
-          {match && new Date(match.revealTime) < new Date() ? (
-              <Button
-                  text={match.revealed ? t("home.revealMatch") : t("revealed")}
-                  backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
-                  onClick={() => { void revealMatch(); }}
-                  width="19.25rem"
-                  disabled={match.revealed}
-              />
-          ) :
-              <Button
-                  text={count > 0 ? t("revealHint", { count }) : t("home.noHintsAvailable")}
-                  backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
-                  onClick={() => { void revealHint(); }}
-                  width="19.25rem"
-                  disabled={count === 0}
-              />
-          }
 
+
+          <div className="pt-[2rem] pb-[1rem]">
+            {match && new Date(match.revealTime) < new Date() ? (
+                <Button
+                    text={match.revealed ? t("home.revealed") : t("home.revealMatch")}
+                    backgroundColor={match.revealed ? "#F8ADCB" : "#FF6CA7"}
+                    onClick={() => { void revealMatch(); }}
+                    width="19.25rem"
+                    disabled={match.revealed}
+                />
+            ) :
+                <Button
+                    text={count > 0 ? t("home.revealHint", { count }) : t("home.noHintsAvailable")}
+                    backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
+                    onClick={() => { void revealHint(); }}
+                    width="19.25rem"
+                    disabled={count === 0}
+                />
+            }
+        </div>
 
           {match?.revealed ? (
               <CodeWidget score={score} onClick={goToLeaderboard} />

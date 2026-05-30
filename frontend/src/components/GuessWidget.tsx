@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import Button from "./Button";
 import type {Candidate} from "../services/types.ts";
 import TextInput from "./TextInput.tsx";
+import ReactMarkdown from "react-markdown";
 
 type WidgetProps = {
   inputCandidate: string;
@@ -21,12 +22,14 @@ export default function GuessWidget({ inputCandidate, setInputValue, setSelected
 
   return (
       <div
-          className="flex flex-col gap-[10px] p-[12px] rounded-[12px] items-center min-w-[10rem]"
+          className="flex flex-col gap-2.5 p-3 rounded-xl items-center min-w-40"
           style={{ backgroundColor: "#ececf6", color: "#000000" }}
       >
-        <p className="m-[0px] text-[18px]" style={{fontWeight: 600}} >{t("home.guessWidget.title")}</p>
+        <p className="m-0 text-[18px]" style={{fontWeight: 600}} >{t("home.guessWidget.title")}</p>
 
-        <p className="m-[0px]" >{t("home.guessWidget.explanation")}<b style={{fontWeight: 600 }}> {points} points!</b></p>
+        <ReactMarkdown components={{ strong: (props) => <strong style={{fontWeight: "600"}} {...props} /> }}>
+          {t("home.guessWidget.explanation", { points })}
+        </ReactMarkdown>
 
         <TextInput
             value={inputCandidate}
@@ -37,13 +40,13 @@ export default function GuessWidget({ inputCandidate, setInputValue, setSelected
 
         {inputCandidate && filteredCandidates.length > 0 && (
             <div
-                className="flex flex-col gap-[0px] w-full max-h-[250px] overflow-y-auto rounded-[8px]"
+                className="flex flex-col gap-0 w-full max-h-62.5 overflow-y-auto rounded-lg"
                 style={{ backgroundColor: "#ffffff", color: "#000000" }}
             >
               {filteredCandidates.map((candidate, index) => (
                   <div
                       key={candidate.id}
-                      className="flex flex-row justify-between items-center p-[12px] cursor-pointer"
+                      className="flex flex-row justify-between items-center p-3 cursor-pointer"
                       style={{
                         borderBottom: index !== filteredCandidates.length - 1 ? "1px solid #D1D1D1" : "none"
                       }}
@@ -54,7 +57,7 @@ export default function GuessWidget({ inputCandidate, setInputValue, setSelected
                         setSelectedCandidate?.(candidate);
                       }}
                   >
-                    <div className="flex flex-col gap-[2px]">
+                    <div className="flex flex-col gap-0.5">
                       <span className="text-[14px] font-500">{candidate.firstName} {candidate.lastName}</span>
                       {/*<span className="text-[11px] opacity-70">{candidate.class}</span>*/}
                     </div>

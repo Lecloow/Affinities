@@ -6,13 +6,13 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import type {LeaderboardEntry} from "../services/types.ts";
+import Tag from "../components/Tag";
 
 export default function LeaderboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const goBack = () => navigate("/home");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const intervalRef = useRef<number | null>(null);
   const REFRESH_MS = 20000; //20s
@@ -38,9 +38,8 @@ export default function LeaderboardPage() {
         }
         await fetchLeaderboard();
       } catch (err) {
+        console.error(err);
         setError("Unknown error");
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -74,35 +73,31 @@ export default function LeaderboardPage() {
             />
             <h1 className="text-[30px]" style={{ fontWeight: 400 }}>{t("leaderboard.title")}</h1>
           </div>
-          <div className="flex flex-col gap-[10px] p-[2.5rem]">
+          <div className="flex flex-col gap-2.5 p-10">
             {Array.isArray(leaderboard) && leaderboard.map(({ rank, userId, firstName, lastName, class: userClass, totalPoints }) => {
               const isCurrentUser = userId === currentUserId;
 
               return(
-                  <div key={rank} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
+                  <div key={rank} className="flex flex-col px-6 gap-2.5 items-center w-full">
                     <div
-                        className="flex flex-row gap-[6rem] rounded-[8px] justify-between w-full"
+                        className="flex flex-row gap-24 rounded-lg justify-between w-full"
                         style={{
                           backgroundColor: isCurrentUser ? "#FFD700" : "#ffffff",
                           fontWeight: "400",
                           color: isCurrentUser ? "#000" : "inherit"
                         }}>
-                      <span className="text-[16px] flex items-center px-[12px] rounded-[8px] whitespace-nowrap shrink-0" >
+                      <span className="text-[16px] flex items-center px-3 rounded-lg whitespace-nowrap shrink-0" >
                         {rank === 1 && "🥇 "}
                         {rank === 2 && "🥈 "}
                         {rank === 3 && "🥉 "}
                         {rank > 3 && `${rank} `}
                         {firstName} {lastName}
                       </span>
-                      <span className="text-[12px] rounded-[8px] whitespace-nowrap shrink-0 flex items-center">
+                      <span className="text-[12px] rounded-lg whitespace-nowrap shrink-0 flex items-center">
                         {userClass}
                       </span>
-                      <span
-                          className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                          style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
-                      >
-                        {totalPoints} {t("points")}
-                      </span>
+
+                      <Tag content={`${totalPoints} ${t("points")}`} />
                     </div>
 
                   </div>

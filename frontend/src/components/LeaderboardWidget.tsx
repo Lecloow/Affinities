@@ -11,11 +11,11 @@ export default function LeaderboardWidget({ score, onClick }: WidgetProps) {
 
   return (
       <div
-          className="flex flex-col gap-[10px] p-[12px] rounded-[12px] justify-center items-center min-w-[10rem]"
+          className="flex flex-col gap-2.5 p-3 rounded-xl justify-center items-center min-w-40"
           style={{ backgroundColor: "#6973db", color: "#F5F5F5" }}
       >
-        <p className="m-[0px]" >{t("home.leaderboardWidget")}</p>
-        <p className="m-[2px] text-[30px] leading-none" style={{ fontWeight: 600 }} >{score} pts</p>
+        <p className="m-0" >{t("home.leaderboardWidget")}</p>
+        <p className="m-0.5 text-[30px] leading-none" style={{ fontWeight: 600 }} >{score} pts</p>
 
         <Button
             text={t("home.leaderboardButton")}

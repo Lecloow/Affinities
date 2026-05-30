@@ -11,6 +11,7 @@ import { toRelativeTime } from "../utils/time";
 import LeaderboardWidget from "../components/LeaderboardWidget.tsx";
 import GuessWidget from "../components/GuessWidget";
 import CodeWidget from "../components/CodeWidget";
+import Tag from "../components/tag.tsx";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -28,6 +29,7 @@ export default function HomePage() {
   const [inputCandidate, setInputCandidate] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const match = matches.length > 0 ? matches.find(m => m.day === day) : null;
+  const [exchangeCode, setExchangeCode] = useState("");
 
   const uniqueDays = useMemo(
       () => Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b),
@@ -73,6 +75,16 @@ export default function HomePage() {
     }
   };
 
+  const fetchRevealCode = async () => {
+    try {
+      const revealCode = await ApiService.getRevealCode(day);
+      setExchangeCode(revealCode.code);
+    } catch (err) {
+      console.error("fetchRevealCode error", err);
+      setError((err instanceof Error) ? err.message : "Unknown error");
+    }
+  }; //TODO: Rework of revealCode
+
   const revealHint = async () => {
     try {
       await ApiService.revealAllHints(day);
@@ -93,14 +105,25 @@ export default function HomePage() {
   const handleGuess = async () => {
     try {
       if (selectedCandidate) {
-        const response = await ApiService.guess(filteredHints.filter(h => h.revealed).length, selectedCandidate.id);
+        await ApiService.guess(filteredHints.filter(h => h.revealed).length, selectedCandidate.id);
         setInputCandidate("");
         setSelectedCandidate(null);
         await fetchScoreAndHints();
-        console.log("Guess response:", response);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Guess failed");
+    }
+  };
+
+  const handleCodeExchange = async () => {
+    try {
+      if (selectedCandidate) {
+        await ApiService.exchangeRevealCode(day, exchangeCode);
+        setExchangeCode("");
+        await fetchRevealCode();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Exchange failed");
     }
   };
 
@@ -113,6 +136,7 @@ export default function HomePage() {
           setName(parsed.firstName);
         }
         await fetchScoreAndHints();
+        await fetchRevealCode();
       } catch (err) {
         console.error(err);
         setError("Unknown error");
@@ -153,9 +177,9 @@ export default function HomePage() {
   if (loading) return <div></div>;
   return (
       <div>
-        <div className="bg-white flex flex-col w-full items-center min-h-screen gap-[1rem]">
+        <div className="bg-white flex flex-col w-full items-center min-h-screen gap-4">
           <div className="flex flex-row justify-center items-center gap-[4.9rem]">
-            <h1 className="text-[30px]" style={{ fontWeight: 400 }}>👋 Salut {name}</h1>
+            <h1 className="text-[30px]" style={{ fontWeight: 400 }}>{t("home.hey", {name})}</h1>
             <Button
                 text=""
                 backgroundColor="#FF6CA7"
@@ -170,22 +194,14 @@ export default function HomePage() {
 
           <SegmentedControl options={options} value={day} onChange={setDay} />
 
-          <div className="flex flex-col pt-[2rem]">
+          <div className="flex flex-col pt-8">
             {filteredHints.map(({ hintNumber, content, revealTime, revealed }) => (
-              <div key={hintNumber} className="flex flex-col px-[1.5rem] gap-[10px] items-center w-full">
-                <div className="flex flex-row gap-[9rem] justify-between w-full">
-                  <span
-                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                      style={{ backgroundColor: revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
-                  >
-                    {t("hint")} n°{hintNumber}
-                  </span>
-                  <span
-                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                      style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
-                  >
-                    {toRelativeTime(revealTime)}
-                  </span>
+              <div key={hintNumber} className="flex flex-col px-6 gap-2.5 items-center w-full">
+                <div className="flex flex-row gap-36 justify-between w-full">
+
+                  <Tag content={`${t("hint")} n°${hintNumber}`} revealed={revealed} />
+                  <Tag content={toRelativeTime(revealTime)} />
+
                 </div>
                 {revealed && (
                     <p className="text-[15px] text-black leading-none">
@@ -195,20 +211,12 @@ export default function HomePage() {
               </div>
             ))}
             {match && (
-              <div className="flex flex-col px-[1.5rem] justify-between w-full items-center">
-                <div className="flex flex-row gap-[9rem] justify-between w-full">
-                  <span
-                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                      style={{ backgroundColor: match.revealed ? "#FF9A59" : "#F990DA", fontWeight: "400" }}
-                  >
-                    Reveal
-                  </span>
-                  <span
-                      className="text-[16px] p-[12px] rounded-[8px] whitespace-nowrap shrink-0"
-                      style={{ backgroundColor: "#ececf6", fontWeight: "400" }}
-                  >
-                    {toRelativeTime(match.revealTime)}
-                  </span>
+              <div className="flex flex-col px-6 justify-between w-full items-center">
+                <div className="flex flex-row gap-36 justify-between w-full">
+
+                  <Tag content={t("reveal")} revealed={match.revealed} />
+                  <Tag content={toRelativeTime(match.revealTime)} />
+
                 </div>
                 {match.revealed && (
                     <p className="text-[15px] text-black leading-none">
@@ -221,7 +229,7 @@ export default function HomePage() {
 
 
 
-          <div className="pt-[2rem] pb-[1rem]">
+          <div className="pt-8 pb-4">
             {match && new Date(match.revealTime) < new Date() ? (
                 <Button
                     text={match.revealed ? t("home.revealed") : t("home.revealMatch")}
@@ -242,7 +250,7 @@ export default function HomePage() {
         </div>
 
           {match?.revealed ? (
-              <CodeWidget score={score} onClick={goToLeaderboard} />
+              <CodeWidget code={exchangeCode} onClick={handleCodeExchange} />
             ) : (
               <GuessWidget
                   inputCandidate={inputCandidate}

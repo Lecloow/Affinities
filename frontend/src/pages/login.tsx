@@ -8,6 +8,7 @@ import { ApiService } from "../services/ApiService";
 import logoImg from "../assets/logo.png";
 import branchImg from "../assets/branch.png";
 import { useEffect } from "react";
+import Tag from "../components/tag.tsx";
 
 const HeartIcon = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="#F5F5F5">
@@ -55,24 +56,24 @@ export default function LoginPage() {
         <div className="bg-white flex flex-col items-center min-h-screen">
           <div className="relative flex flex-col items-center min-h-screen w-full overflow-hidden">
             {/*Flowers*/}
-            <div className="absolute top-[-101px] left-[-142px] size-[327px] flex items-center justify-center pointer-events-none">
-              <img src={branchImg} alt="" className="size-[244px] rotate-[63.2deg] object-cover" />
+            <div className="absolute -top-25.25 -left-35.5 size-81.75 flex items-center justify-center pointer-events-none">
+              <img src={branchImg} alt="" className="size-61 rotate-[63.2deg] object-cover" />
             </div>
-            <div className="absolute top-[-118px] right-[-113px] size-[344px] flex items-center justify-center pointer-events-none">
-              <img src={branchImg} alt="" className="size-[244px] rotate-[-136.61deg] object-cover" />
+            <div className="absolute -top-29.5 -right-28.25 size-86 flex items-center justify-center pointer-events-none">
+              <img src={branchImg} alt="" className="size-61 rotate-[-136.61deg] object-cover" />
             </div>
-            <div className="absolute bottom-[-214px] left-[-159px] size-[330px] flex items-center justify-center pointer-events-none">
-              <img src={branchImg} alt="" className="size-[244px] rotate-[61.62deg] object-cover" />
+            <div className="absolute -bottom-53.5 -left-39.75 size-82.5 flex items-center justify-center pointer-events-none">
+              <img src={branchImg} alt="" className="size-61 rotate-[61.62deg] object-cover" />
             </div>
-            <div className="absolute bottom-[-172px] right-[-172px] size-[343px] flex items-center justify-center pointer-events-none">
-              <img src={branchImg} alt="" className="size-[244px] rotate-[-39.38deg] object-cover" />
+            <div className="absolute -bottom-43 -right-43 size-85.75 flex items-center justify-center pointer-events-none">
+              <img src={branchImg} alt="" className="size-61 rotate-[-39.38deg] object-cover" />
             </div>
 
-            <div className="relative flex flex-col items-center gap-[10px] px-[10px] pt-[140px] pb-[40px]">
+            <div className="relative flex flex-col items-center gap-2.5 px-2.5 pt-35 pb-10">
 
-              <img src={logoImg} alt="Logo" className="h-[83px] w-[76px] object-contain shrink-0" />
+              <img src={logoImg} alt="Logo" className="h-20.75 w-19 object-contain shrink-0" />
 
-              <div className="flex flex-col gap-[15px] items-center w-full">
+              <div className="flex flex-col gap-3.75 items-center w-full">
                 <h1
                     className="text-[50px] text-[#1b2027] text-center"
                     style={{ fontWeight: 600 }}
@@ -80,7 +81,7 @@ export default function LoginPage() {
                   {t("header")}
                 </h1>
 
-                <div className="w-[10rem] h-[2px]" style={{ background: "#000000" }}></div>
+                <div className="w-40 h-0.5" style={{ background: "#000000" }}></div>
 
                 <h2
                     className="text-[16px] text-center bg-clip-text text-transparent"
@@ -94,21 +95,16 @@ export default function LoginPage() {
                   {t("caption")}
                 </h2>
               </div>
-              <div className=" flex flex-col w-full justify-between gap-[10px] p-[2.5rem]">
+              <div className=" flex flex-col w-full justify-between gap-2.5 p-10">
                 {timeline.map(({ day, desc }) => (
-                    <div key={day} className="flex justify-between gap-[10px] items-center w-full">
-                  <span
-                      className="text-[16px] font-bold text-[#1e1e1e] p-[8px] rounded-[8px] whitespace-nowrap shrink-0"
-                      style={{ backgroundColor: "#ececf6" }}
-                  >
-                    {day}
-                  </span>
+                    <div key={day} className="flex justify-between gap-2.5 items-center w-full">
+                      <Tag content={day} />
                       <p className="text-[15px] text-black leading-none">{desc}</p>
                     </div>
                 ))}
               </div>
               {/*FIXME: Fix the gap between the tad and the value*/}
-              <div className="flex flex-col gap-[1.5rem] items-center justify-center pb-[60px] w-full">
+              <div className="flex flex-col gap-6 items-center justify-center pb-15 w-full">
                 <TextInput
                     value={inputValue}
                     width="19.25rem"

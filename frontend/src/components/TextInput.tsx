@@ -21,10 +21,10 @@ export default function TextInput({
             placeholder={placeholder}
             style={{ width: width }}
             className={`
-          box-border p-[12px]
+          box-border p-3
           text-base text-gray-900
           placeholder-[#b3b3b3]
-          bg-white border border-[#d9d9d9] rounded-[8px]
+          bg-white border border-[#d9d9d9] rounded-lg
           focus:outline-none focus:ring-1 focus:ring-[#d9d9d9]
           transition duration-150 ease-in-out
         `}

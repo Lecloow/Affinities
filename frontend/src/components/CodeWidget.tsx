@@ -1,28 +1,42 @@
 import { useTranslation } from "react-i18next";
 import Button from "./Button";
+import TextInput from "./TextInput.tsx";
+import ReactMarkdown from 'react-markdown';
 
 type WidgetProps = {
-  score: number;
+  inputCode: string;
+  setInputValue: (value: string) => void;
+  code: string;
   onClick?: () => void;
 };
 
-export default function CodedWidget({ score, onClick }: WidgetProps) {
+export default function CodeWidget({ inputCode, setInputValue, code, onClick }: WidgetProps) {
   const { t } = useTranslation();
 
   return (
       <div
-          className="flex flex-col gap-[10px] p-[12px] rounded-[12px] justify-center items-center min-w-[10rem]"
-          style={{ backgroundColor: "#6973db", color: "#F5F5F5" }}
+          className="flex flex-col gap-2.5 p-3 rounded-xl items-center min-w-40"
+          style={{ backgroundColor: "#ececf6", color: "#000000" }}
       >
-        <p className="m-[0px]" >{t("home.leaderboardWidget")}</p>
-        <p className="m-[2px] text-[30px] leading-none" style={{ fontWeight: 600 }} >{score} pts</p>
+        <p className="m-0 text-[18px]" style={{fontWeight: 600}} >{t("home.codeWidget.title")}</p>
+
+        <ReactMarkdown components={{ strong: (props) => <strong style={{fontWeight: "600"}} {...props} /> }}>
+          {t("home.codeWidget.explanation")}
+        </ReactMarkdown>
+
+        <TextInput
+          value={inputCode}
+          width="100%"
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder={t("home.codeWidget.textInput")
+        }/>
 
         <Button
-            text={t("home.leaderboardButton")}
-            backgroundColor="#ffffff"
-            foregroundColor="#667eea"
-            onClick={onClick}
-            width=""
+          text={t("home.codeWidget.button")}
+          backgroundColor="#FF6CA7"
+          foregroundColor="#ffffff"
+          onClick={onClick}
+          width="100%"
         />
       </div>
   );

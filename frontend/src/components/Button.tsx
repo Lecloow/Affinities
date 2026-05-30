@@ -25,7 +25,7 @@ export default function Button({
                                }: ButtonProps) {
   return (
       <button
-          className="h-[40px] rounded-[8px] border-0 inline-flex text-[16px] items-center justify-center gap-[10px] cursor-pointer"
+          className="h-10 rounded-lg border-0 inline-flex text-[16px] items-center justify-center gap-2.5 cursor-pointer"
           onClick={onClick}
           style={{ backgroundColor, color: foregroundColor, width: width, padding }}
           disabled={disabled}

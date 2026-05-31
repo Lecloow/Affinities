@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -39,4 +40,12 @@ func SplitName(full string) (firstName, lastName string) {
 	}
 	firstName = strings.TrimSpace(firstName)
 	return
+}
+
+func QuestionIndex(col string) int {
+	n, err := strconv.Atoi(strings.TrimPrefix(col, "q"))
+	if err != nil {
+		return 0
+	}
+	return n
 }

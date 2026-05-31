@@ -98,13 +98,10 @@ func importUsersFromFile(
 			Class:     level + " " + classLetter,
 		}
 
-		password, err := h.Service.ImportUser(ctx, newUser, passwordLength)
-		if err != nil {
-			continue
-		}
+		answers, err := parseAnswers(row, colIndex)
 
-		answers := parseAnswers(row, colIndex)
-		if err := h.Service.ImportUserAnswers(ctx, newUser.ID, answers); err != nil {
+		password, err := h.Service.ImportUser(ctx, newUser, passwordLength, answers)
+		if err != nil {
 			return nil, err
 		}
 
@@ -118,7 +115,7 @@ func importUsersFromFile(
 	return importedUsers, nil
 }
 
-func parseAnswers(row []string, colIndex map[string]int) map[string]int {
+func parseAnswers(row []string, colIndex map[string]int) ([]int16, error) {
 	answers := map[string]int{}
 	for rawHeader, idx := range colIndex {
 		cfg, ok := utils.GetQuestion(rawHeader)
@@ -131,5 +128,20 @@ func parseAnswers(row []string, colIndex map[string]int) map[string]int {
 		}
 		answers[cfg.Column] = val
 	}
-	return answers
+
+	questionCount := len(utils.Questions)
+	result := make([]int16, questionCount)
+	for col, val := range answers {
+		pos := utils.QuestionIndex(col)
+		if pos < 1 || pos > questionCount {
+			return nil, fmt.Errorf("invalid question index: %s", col)
+		}
+		result[pos-1] = int16(val)
+	}
+
+	if len(answers) != questionCount {
+		return nil, fmt.Errorf("expected %d answers, got %d", questionCount, len(answers))
+	}
+
+	return result, nil
 }

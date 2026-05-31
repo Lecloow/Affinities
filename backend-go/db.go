@@ -34,9 +34,10 @@ func initDB() {
 		last_name TEXT NOT NULL,
 		email TEXT NOT NULL UNIQUE,
 		class TEXT NOT NULL,
+		answers SMALLINT[] NOT NULL,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);
-	
+
 	CREATE TABLE IF NOT EXISTS credentials (
 		user_id BIGSERIAL PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		password_hash TEXT NOT NULL
@@ -101,25 +102,6 @@ func initDB() {
 		exchanged_at TIMESTAMP,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		UNIQUE(user_id, day)
-	);
-
-	CREATE TABLE IF NOT EXISTS answers (
-		user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-		q1  SMALLINT,
-		q2  SMALLINT,
-		q3  SMALLINT,
-		q4  SMALLINT,
-		q5  SMALLINT,
-		q6  SMALLINT,
-		q7  SMALLINT,
-		q8  SMALLINT,
-		q9  SMALLINT,
-		q10 SMALLINT,
-		q11 SMALLINT,
-		q12 SMALLINT,
-		q13 SMALLINT,
-		q14 SMALLINT,
-		q15 SMALLINT
 	);
 
 	CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);

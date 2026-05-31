@@ -90,7 +90,7 @@ import (
 //
 //// TODO: Security and code improvements
 
-func (s *UserService) ImportUser(ctx context.Context, user *models.User, passwordLength int) (string, error) {
+func (s *UserService) ImportUser(ctx context.Context, user *models.User, passwordLength int, answers []int16) (string, error) {
 	tx, err := s.DB.Begin(ctx)
 	if err != nil {
 		return "", err
@@ -106,8 +106,8 @@ func (s *UserService) ImportUser(ctx context.Context, user *models.User, passwor
 		}
 
 		err = tx.QueryRow(ctx,
-			"INSERT INTO users (first_name, last_name, email, class) VALUES ($1, $2, $3, $4) RETURNING id",
-			user.FirstName, user.LastName, user.Email, user.Class,
+			"INSERT INTO users (first_name, last_name, email, class, answers) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+			user.FirstName, user.LastName, user.Email, user.Class, answers,
 		).Scan(&user.ID)
 		if err != nil {
 			return "", err

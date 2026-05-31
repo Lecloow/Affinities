@@ -16,14 +16,13 @@ func GenerateSecureToken() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-
 func GetCurrentDay() int {
-    // Implement logic to determine the current day of the event
-    // For example, if the event starts on a specific date, calculate the difference in days from that date to today
+	// Implement logic to determine the current day of the event
+	// For example, if the event starts on a specific date, calculate the difference in days from that date to today
 	eventStartDate, err := time.Parse("2006-01-02", "2026-05-28") //2006-01-02 is just the format (YYYY-MM_DD)
 	if err != nil {
-	return 0
-    }
+		return 0
+	}
 
 	daysPassed := int(time.Since(eventStartDate).Hours() / 24)
 	return daysPassed + 1
@@ -78,6 +77,19 @@ func GenerateString(charsets string, length int) (string, error) {
 	}
 
 	return string(result), nil
+}
+
+func MatchScore(a, b []int16) float64 {
+	if len(a) != len(b) {
+		return 0
+	}
+	matches := 0
+	for i := range a {
+		if a[i] == b[i] {
+			matches++
+		}
+	}
+	return float64(matches) / float64(len(a))
 }
 
 //func HashPassword(password string) (string, error) {

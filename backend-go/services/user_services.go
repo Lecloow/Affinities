@@ -168,6 +168,9 @@ func (s *UserService) RevealMatch(ctx context.Context, userId models.UserID, day
 		return 0, errors.New("cannot be revealed before reveal time")
 	}
 
+	if match.Revealed {
+		return 0, nil
+	}
 	_, err = s.DB.Exec(ctx, "UPDATE matches SET revealed = $1 WHERE id = $2 ", true, match.ID)
 	if err != nil {
 		return 0, err

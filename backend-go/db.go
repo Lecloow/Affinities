@@ -59,7 +59,8 @@ func initDB() {
 		match_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		day INTEGER NOT NULL CHECK (day > 0),
 		reveal_time TIMESTAMP NOT NULL,
-		revealed BOOLEAN NOT NULL,
+		revealed BOOLEAN NOT NULL DEFAULT FALSE,
+		score FLOAT  NOT NULL,
 		UNIQUE(user_id, day)
 	);
 

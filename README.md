@@ -31,9 +31,9 @@ Deployed under real constraints — actual deadline, actual users, actual conseq
                               └────────────────┘
 ```
 
-- **Frontend:** React + TypeScript, deployed on Render
+- **Frontend:** React + TypeScript
 - **Backend v1:** Python (FastAPI) — shipped fast for the initial event
-- **Backend v2 (in progress):** Go (Gin) — full rewrite
+- **Backend v2:** Go (Gin) — full rewrite for better performance, security, and no more AI-generated code
 - **CI/CD:** GitHub Actions
 - **API Testing:** Bruno
 

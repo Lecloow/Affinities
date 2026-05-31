@@ -12,7 +12,7 @@ export default function Tag({ content, revealed }: TagProps) {
 
   return (
       <span
-          className="text-base p-3 rounded-lg whitespace-nowrap shrink-0"
+          className="text-base p-2 rounded-lg whitespace-nowrap shrink-0"
           style={{ backgroundColor: bg }}
       >
       {content}

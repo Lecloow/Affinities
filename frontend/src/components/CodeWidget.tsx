@@ -20,6 +20,9 @@ export default function CodeWidget({ inputCode, setInputValue, code, onClick }: 
       >
         <p className="m-0 text-[18px]" style={{fontWeight: 600}} >{t("home.codeWidget.title")}</p>
 
+        <span className="text-[25px] p-3 rounded-lg whitespace-nowrap shrink-0" style={{backgroundColor: "#F990DA", color:"#ffffff"}}>{code}</span>
+        {/*TODO: Change to a gradient*/}
+
         <ReactMarkdown components={{ strong: (props) => <strong style={{fontWeight: "600"}} {...props} /> }}>
           {t("home.codeWidget.explanation")}
         </ReactMarkdown>

@@ -219,9 +219,12 @@ export default function HomePage() {
 
                 </div>
                 {match.revealed && (
-                    <p className="text-[15px] text-black leading-none">
-                      {match.firstName} {match.lastName}
-                    </p>
+                    <div className="flex flex-col mt-3 w-full p-3 rounded-xl justify-center items-center" style={{ backgroundColor: "#f1f1f1" }}>
+                      <h1 className="text-base">{t("home.yourMatch")}</h1>
+                      <p className="text-[25px] text-black leading-none">
+                        {match.firstName} {match.lastName}
+                      </p>
+                    </div>
                 )}
               </div>
             )}
@@ -229,7 +232,7 @@ export default function HomePage() {
 
 
 
-          <div className="pt-8 pb-4">
+          <div className="pt-4 pb-4">
             {match && new Date(match.revealTime) < new Date() ? (
                 <Button
                     text={match.revealed ? t("home.revealed") : t("home.revealMatch")}
@@ -250,7 +253,7 @@ export default function HomePage() {
         </div>
 
           {match?.revealed ? (
-              <CodeWidget code={exchangeCode} onClick={handleCodeExchange} />
+              <CodeWidget code="Demo Code" onClick={handleCodeExchange} />
             ) : (
               <GuessWidget
                   inputCandidate={inputCandidate}

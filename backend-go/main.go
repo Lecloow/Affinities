@@ -89,7 +89,7 @@ func main() {
 		authAdmin.GET("/users", userHandler.GetAllUsers)
 		authAdmin.GET("/users/:id", userHandler.GetUserByID)
 		authAdmin.POST("/importData", userHandler.ImportXlsx)
-		authAdmin.GET("/createMatches:day", userHandler.CreateMatches)
+		authAdmin.POST("/createMatches", userHandler.CreateMatches)
 	}
 
 	if err := router.Run(":8080"); err != nil {

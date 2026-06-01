@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import Credits from "../components/Credits";
 import Button from "../components/Button.tsx";
-import { ApiService } from "../services/ApiService.ts";
+import { ApiService } from "../api/ApiService.ts";
+
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';

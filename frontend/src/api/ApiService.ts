@@ -1,7 +1,5 @@
-import type {User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID, Match} from './types';
-
-
-const API_BASE_URL = "http://localhost:5173".replace(/\/$/, '') //import.meta.env.VITE_API_BASE_URL;
+import type {User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID, Match} from '../services/types.ts';
+import { API_BASE_URL } from "./index.ts"
 
 export class ApiService {
   private static async request<T>(url: string, options?: RequestInit): Promise<T> {

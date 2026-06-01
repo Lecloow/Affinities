@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import Credits from "../components/Credits";
 import Button from "../components/Button.tsx";
 import { SegmentedControl } from "../components/SegmentedControl.tsx";
-import { ApiService } from "../services/ApiService.ts";
+import { Api } from "@/api";
 import { useEffect, useState, useRef, useMemo } from "react";
 import type { Hint, Match, Candidate, RevealCode } from "../services/types.ts";
 import { useNavigate } from "react-router-dom";
@@ -53,9 +53,9 @@ export default function HomePage() {
   const fetchScoreAndHints = async () => {
     try {
       const [hintsData, stats, matches] = await Promise.all([
-        ApiService.getHints(),
-        ApiService.getUserStats(),
-        ApiService.getMatches(),
+        Api.getHints(),
+        Api.getUserStats(),
+        Api.getMatches(),
       ]);
       setHints(hintsData);
 
@@ -68,7 +68,7 @@ export default function HomePage() {
       setScore(stats.totalPoints);
       setPointsForNextGuess(stats.pointsForNextGuess);
 
-      const candidatesData = await ApiService.getCandidates();
+      const candidatesData = await Api.getCandidates();
       setCandidates(candidatesData);
     } catch (err) {
       console.error("fetchScoreAndHints error", err);
@@ -78,7 +78,7 @@ export default function HomePage() {
 
   const fetchRevealCode = async () => {
     try {
-      const revealCode = await ApiService.getRevealCode();
+      const revealCode = await Api.getRevealCode();
       setExchangeCode(revealCode);
     } catch (err) {
       console.error("fetchRevealCode error", err);
@@ -88,7 +88,7 @@ export default function HomePage() {
 
   const revealHint = async () => {
     try {
-      await ApiService.revealAllHints(day);
+      await Api.revealAllHints(day);
       await fetchScoreAndHints();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Cannot reveal hints");
@@ -96,7 +96,7 @@ export default function HomePage() {
   };
   const revealMatch = async () => {
     try {
-      await ApiService.revealMatch(day);
+      await Api.revealMatch(day);
       await fetchScoreAndHints();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Cannot reveal match");
@@ -106,7 +106,7 @@ export default function HomePage() {
   const handleGuess = async () => {
     try {
       if (selectedCandidate) {
-        await ApiService.guess(filteredHints.filter(h => h.revealed).length, selectedCandidate.id);
+        await Api.guess(filteredHints.filter(h => h.revealed).length, selectedCandidate.id);
         setInputCandidate("");
         setSelectedCandidate(null);
         await fetchScoreAndHints();
@@ -118,7 +118,7 @@ export default function HomePage() {
 
   const handleCodeExchange = async () => {
     try {
-      await ApiService.exchangeRevealCode(day, inputCode);
+      await Api.exchangeRevealCode(day, inputCode);
       setInputCode("");
       await fetchRevealCode();
     } catch (err) {
@@ -164,7 +164,7 @@ export default function HomePage() {
   const handleLogout = async () => {
     setError("");
     try {
-      await ApiService.logout();
+      await Api.logout();
       localStorage.removeItem('userInfo');
       navigate("/");
     } catch (err) {

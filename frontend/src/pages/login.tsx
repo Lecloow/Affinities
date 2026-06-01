@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Credits from "../components/Credits";
 import Button from "../components/Button";
 import TextInput from "../components/TextInput";
-import { ApiService } from "../services/ApiService";
+import { Api } from "@/api";
 import logoImg from "../assets/logo.png";
 import branchImg from "../assets/branch.png";
 import { useEffect } from "react";
@@ -31,7 +31,7 @@ export default function LoginPage() {
       return;
     }
     try {
-      const userInfo = await ApiService.login(inputValue);
+      const userInfo = await Api.login(inputValue);
       localStorage.setItem('userInfo', JSON.stringify(userInfo));
       navigate("/home");
     } catch (err) {
@@ -42,10 +42,10 @@ export default function LoginPage() {
   useEffect(() => {
     const autoLogin = async () => {
       try {
-        await ApiService.getUserStats();
+        await Api.getUserStats();
         navigate("/home");
       } catch {
-        await ApiService.logout();
+        await Api.logout();
       }
     };
     void autoLogin();

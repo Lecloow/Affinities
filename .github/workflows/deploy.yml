@@ -1,35 +1,53 @@
 name: Deploy Frontend
-
 on:
   push:
-    branches: [main]
-
+    branches: [main, archive/website]
 permissions:
   contents: write
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout main
+        uses: actions/checkout@v4
         with:
-          node-version: '18'
+          ref: main
 
-      - name: Install dependencies
-        run: cd Website && npm install
+      - name: Checkout archive
+        uses: actions/checkout@v4
+        with:
+          ref: archive/website
+          path: old
 
-      - name: Build
-        working-directory: ./Website
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Build Affinities website
+        working-directory: ./frontend
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-        run: npm run build
+        run: |
+          bun install
+          bun run build
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Build ancien site
+        working-directory: ./old/Website
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+        run: |
+          bun install
+          bunx vite build --base=/old/
+
+      - name: Assemble
+        run: |
+          mkdir -p dist
+          cp -r frontend/dist/. dist/
+          mkdir -p dist/old
+          cp -r old/Website/dist/. dist/old/
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./Website/dist
+          publish_dir: ./dist
           cname: lecloow.github.io

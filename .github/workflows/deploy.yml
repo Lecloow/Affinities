@@ -1,50 +1,39 @@
 name: Deploy Frontend
+
 on:
   push:
-    branches: [main, archive/website]
+    branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          ref: main
 
-      - name: Checkout archive
+    steps:
+      - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          ref: archive/website
-          path: old
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: bun install
 
       - name: Build Affinities website
         working-directory: ./frontend
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-        run: |
-          bun install
-          bun run build
+        run: bun run build
 
-      - name: Build ancien site
-        working-directory: ./old/Website
-        env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+      - name: Prepare deploy folder
         run: |
-          bun install
-          bunx vite build --base=/old/
-
-      - name: Assemble
-        run: |
+          rm -rf dist
           mkdir -p dist
           cp -r frontend/dist/. dist/
-          mkdir -p dist/old
-          cp -r old/Website/dist/. dist/old/
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4

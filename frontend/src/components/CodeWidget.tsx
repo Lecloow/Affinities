@@ -2,15 +2,16 @@ import { useTranslation } from "react-i18next";
 import Button from "./Button";
 import TextInput from "./TextInput.tsx";
 import ReactMarkdown from 'react-markdown';
+import type { RevealCode } from "../services/types.ts"
 
 type WidgetProps = {
+  exchangeCode: RevealCode;
   inputCode: string;
-  setInputValue: (value: string) => void;
-  code: string;
+  setInputCode: (value: string) => void;
   onClick?: () => void;
 };
 
-export default function CodeWidget({ inputCode, setInputValue, code, onClick }: WidgetProps) {
+export default function CodeWidget({ exchangeCode, inputCode, setInputCode, onClick }: WidgetProps) {
   const { t } = useTranslation();
 
   return (
@@ -20,7 +21,7 @@ export default function CodeWidget({ inputCode, setInputValue, code, onClick }: 
       >
         <p className="m-0 text-[18px]" style={{fontWeight: 600}} >{t("home.codeWidget.title")}</p>
 
-        <span className="text-[25px] p-3 rounded-lg whitespace-nowrap shrink-0" style={{backgroundColor: "#F990DA", color:"#ffffff"}}>{code}</span>
+        <span className="text-[25px] p-3 rounded-lg whitespace-nowrap shrink-0" style={{backgroundColor: "#F990DA", color:"#ffffff"}}>{exchangeCode.code}</span>
         {/*TODO: Change to a gradient*/}
 
         <ReactMarkdown components={{ strong: (props) => <strong style={{fontWeight: "600"}} {...props} /> }}>
@@ -30,7 +31,7 @@ export default function CodeWidget({ inputCode, setInputValue, code, onClick }: 
         <TextInput
           value={inputCode}
           width="100%"
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => setInputCode(e.target.value)}
           placeholder={t("home.codeWidget.textInput")
         }/>
 

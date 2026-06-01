@@ -4,7 +4,7 @@ import Button from "../components/Button.tsx";
 import { SegmentedControl } from "../components/SegmentedControl.tsx";
 import { ApiService } from "../services/ApiService.ts";
 import { useEffect, useState, useRef, useMemo } from "react";
-import type { Hint, Match, Candidate } from "../services/types.ts";
+import type { Hint, Match, Candidate, RevealCode } from "../services/types.ts";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import { toRelativeTime } from "../utils/time";
@@ -29,7 +29,8 @@ export default function HomePage() {
   const [inputCandidate, setInputCandidate] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const match = matches.length > 0 ? matches.find(m => m.day === day) : null;
-  const [exchangeCode, setExchangeCode] = useState("");
+  const [exchangeCode, setExchangeCode] = useState<RevealCode[]>([]);
+  const [inputCode, setInputCode] = useState("");
 
   const uniqueDays = useMemo(
       () => Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b),
@@ -77,8 +78,8 @@ export default function HomePage() {
 
   const fetchRevealCode = async () => {
     try {
-      const revealCode = await ApiService.getRevealCode(day);
-      setExchangeCode(revealCode.code);
+      const revealCode = await ApiService.getRevealCode();
+      setExchangeCode(revealCode);
     } catch (err) {
       console.error("fetchRevealCode error", err);
       setError((err instanceof Error) ? err.message : "Unknown error");
@@ -117,13 +118,12 @@ export default function HomePage() {
 
   const handleCodeExchange = async () => {
     try {
-      if (selectedCandidate) {
-        await ApiService.exchangeRevealCode(day, exchangeCode);
-        setExchangeCode("");
-        await fetchRevealCode();
-      }
+      await ApiService.exchangeRevealCode(day, inputCode);
+      setInputCode("");
+      await fetchRevealCode();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Exchange failed");
+      //TODO: Add popup to say that the code is incorrect
     }
   };
 
@@ -253,7 +253,7 @@ export default function HomePage() {
         </div>
 
           {match?.revealed ? (
-              <CodeWidget code="Demo Code" onClick={handleCodeExchange} />
+              <CodeWidget exchangeCode={exchangeCode[day-1]} inputCode={inputCode} setInputCode={setInputCode} onClick={handleCodeExchange} />
             ) : (
               <GuessWidget
                   inputCandidate={inputCandidate}

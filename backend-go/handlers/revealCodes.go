@@ -11,15 +11,15 @@ import (
 func (h *UserHandler) GetRevealCode(c *gin.Context) {
 	ctx := c.Request.Context()
 	userID := c.MustGet("userID").(models.UserID)
-	dayStr := c.Param("day")
+	//dayStr := c.Param("day")
+	//
+	//day, err := strconv.Atoi(dayStr)
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": "invalid day"})
+	//	return
+	//}
 
-	day, err := strconv.Atoi(dayStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid day"})
-		return
-	}
-
-	revealCode, err := h.Service.GetRevealCode(ctx, userID, day)
+	revealCode, err := h.Service.GetRevealCode(ctx, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

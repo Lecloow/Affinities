@@ -61,8 +61,8 @@ func main() {
 		auth.GET("/me/hints", userHandler.GetHints)
 		auth.POST("/me/hints/:day/:hintNumber/reveal", userHandler.RevealHint)
 		auth.POST("/me/hints/:day/reveal-all", userHandler.RevealAllHints)
-		auth.GET("/me/code/:day", userHandler.GetRevealCode)
-		auth.POST("/me/code/:day/exchange", userHandler.ExchangeCode)
+		auth.GET("/me/revealcode", userHandler.GetRevealCode)
+		auth.POST("/me/revealcode/:day/exchange", userHandler.ExchangeCode)
 		auth.POST("/logout", userHandler.Logout)
 	}
 

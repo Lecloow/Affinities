@@ -60,24 +60,18 @@ export class ApiService {
     return this.request(`/me/hints`)
   }
 
-  static async revealHint(day: number, hintNumber: number): Promise<{ success: boolean }> {
-    return this.request(`/me/hints/${day}/${hintNumber}/reveal`, {
-      method: 'POST',
-    });
-  }
-
   static async revealAllHints(day: number): Promise<{ success: boolean; message: string }> {
     return this.request(`/me/hints/${day}/reveal-all`, {
       method: 'POST',
     });
   }
 
-  static async getRevealCode(day: number): Promise<RevealCode> {
-    return this.request(`/me/code/${day}`);
+  static async getRevealCode(): Promise<RevealCode[]> {
+    return this.request(`/me/revealcode`);
   }
 
   static async exchangeRevealCode(day: number, code: string): Promise<{ success: boolean }> {
-    return this.request(`/me/code/${day}/exchange`, {
+    return this.request(`/me/revealcode/${day}/exchange`, {
       method: 'POST',
       body: JSON.stringify({ code }),
     });

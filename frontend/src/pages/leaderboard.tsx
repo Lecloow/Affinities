@@ -6,13 +6,13 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import type {LeaderboardEntry} from "../services/types.ts";
-import Tag from "../components/Tag";
+import Tag from "../components/tag.tsx";
 
 export default function LeaderboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const goBack = () => navigate("/home");
-  const [error, setError] = useState("");
+  const [_error, setError] = useState("");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const intervalRef = useRef<number | null>(null);
   const REFRESH_MS = 20000; //20s

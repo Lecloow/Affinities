@@ -21,7 +21,7 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [inputValue, setInputValue] = useState("");
-  const [error, setError] = useState("");
+  const [_error, setError] = useState("");
   const timeline = t('timeline', { returnObjects: true }) as Array<{ day: string; desc: string }>;
 
   const handleLogin = async () => {
@@ -44,7 +44,7 @@ export default function LoginPage() {
       try {
         await ApiService.getUserStats();
         navigate("/home");
-      } catch (err) {
+      } catch {
         await ApiService.logout();
       }
     };

@@ -15,7 +15,7 @@ import Tag from "../components/tag.tsx";
 
 export default function HomePage() {
   const { t } = useTranslation();
-  const [error, setError] = useState("");
+  const [_error, setError] = useState("");
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);

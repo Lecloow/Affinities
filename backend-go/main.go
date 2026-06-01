@@ -30,17 +30,6 @@ func main() {
 		router = gin.Default()
 	}
 
-	// 	router.Use(cors.New(cors.Config{
-	// 	//AllowOrigins: []string{"https://comitedepromo2026.com"}
-	// 		AllowOrigins: []string{"http://localhost:5173"},
-	// 		//AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-	// 		//AllowHeaders:     []string{"Origin", "Content-Type"},
-	// 		//ExposeHeaders:    []string{"Content-Length"},
-	// 		AllowMethods:     []string{"*"},
-	// 		AllowHeaders:     []string{"*"},
-	// 		AllowCredentials: true,
-	// 		MaxAge:           24 * time.Hour,
-	// 	}))
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
@@ -72,8 +61,8 @@ func main() {
 		auth.GET("/me/hints", userHandler.GetHints)
 		auth.POST("/me/hints/:day/:hintNumber/reveal", userHandler.RevealHint)
 		auth.POST("/me/hints/:day/reveal-all", userHandler.RevealAllHints)
-		auth.GET("/me/codes/:day", userHandler.GetRevealCode)
-		auth.POST("/me/codes/:day/exchange", userHandler.ExchangeCode)
+		auth.GET("/me/code/:day", userHandler.GetRevealCode)
+		auth.POST("/me/code/:day/exchange", userHandler.ExchangeCode)
 		auth.POST("/logout", userHandler.Logout)
 	}
 

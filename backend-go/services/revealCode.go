@@ -27,7 +27,6 @@ func (s *UserService) GetRevealCode(ctx context.Context, userId models.UserID, d
 			if err != nil {
 				return nil, err
 			}
-			return &revealCode, nil
 		}
 		return nil, err
 	}
@@ -36,12 +35,14 @@ func (s *UserService) GetRevealCode(ctx context.Context, userId models.UserID, d
 	if err != nil {
 		return nil, err
 	}
-
 	err = s.DB.QueryRow(ctx, `
 		SELECT exchanged
 		FROM reveal_codes 
 		WHERE user_id = $1 AND day = $2
 	`, matchId, day).Scan(&revealCode.Exchanged)
+	if err != nil {
+		return nil, err
+	}
 
 	return &revealCode, nil
 }

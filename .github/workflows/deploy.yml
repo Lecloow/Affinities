@@ -2,6 +2,7 @@ name: Deploy Frontend
 on:
   push:
     branches: [main, archive/website]
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:

@@ -36,7 +36,28 @@ const state = {
   } as Record<number, UserID>
 };
 
+const matches = [{
+    id: 1,
+    userId: "101",
+    day: 1,
+    firstName: "Alice",
+    lastName: "Dupont",
+    revealTime: new Date().toISOString(),
+    revealed: false
+  },
+  {
+    id: 2,
+    userId: "102",
+    day: 1,
+    firstName: "Bob",
+    lastName: "Martin",
+    revealTime: new Date().toISOString(),
+    revealed: false
+  }
+]
+
 export class DemoApiService {
+
 
   static async login(): Promise<User> {
     await delay(150);
@@ -55,17 +76,7 @@ export class DemoApiService {
   static async getMatches(): Promise<Match[]> {
     await delay(80);
 
-    return [
-      {
-        id: 1,
-        userId: "999",
-        day: 1,
-        firstName: "Alice",
-        lastName: "Dupont",
-        revealTime: new Date().toISOString(),
-        revealed: false
-      }
-    ];
+    return matches
   }
 
   static async getHints(): Promise<Hint[]> {
@@ -130,6 +141,11 @@ export class DemoApiService {
   static async exchangeRevealCode(): Promise<{ success: boolean }> {
     await delay(80);
     return { success: true };
+  }
+
+  static async revealMatch(day: number): Promise<{ success: boolean }> {
+    matches[day-1].revealed = true
+    return { success: true }
   }
 
   static async guess(hintNumber: number, guessedUserId: UserID): Promise<Guess> {

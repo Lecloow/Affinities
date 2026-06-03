@@ -71,6 +71,12 @@ export default function HomePage() {
       const candidatesData = await Api.getCandidates();
       setCandidates(candidatesData);
     } catch (err) {
+      if (err instanceof Error && err.message === "UNAUTHORIZED") {
+        await Api.logout();
+        localStorage.removeItem("userInfo");
+        navigate("/");
+        return;
+      }
       console.error("fetchScoreAndHints error", err);
       setError((err instanceof Error) ? err.message : "Unknown error");
     }
@@ -81,10 +87,14 @@ export default function HomePage() {
       const revealCode = await Api.getRevealCode();
       setExchangeCode(revealCode);
     } catch (err) {
+      if (err instanceof Error && err.message === "UNAUTHORIZED") {
+        console.log("Token expired, user will be logged out on next action");
+        return;
+      }
       console.error("fetchRevealCode error", err);
       setError((err instanceof Error) ? err.message : "Unknown error");
     }
-  }; //TODO: Rework of revealCode
+  };
 
   const revealHint = async () => {
     try {
@@ -172,6 +182,7 @@ export default function HomePage() {
     }
   };
   // TODO: Auto refresh of the token and autologout
+
   const filteredHints = hints.filter(h => h.day === day);
   const count = filteredHints.filter(h => new Date(h.revealTime) <= new Date() && !h.revealed).length;
   if (loading) return <div></div>;
@@ -195,17 +206,17 @@ export default function HomePage() {
           <SegmentedControl options={options} value={day} onChange={setDay} />
 
           <div className="flex flex-col pt-8">
-            {filteredHints.map(({ hintNumber, content, revealTime, revealed }) => (
-              <div key={hintNumber} className="flex flex-col px-6 gap-2.5 items-center w-full">
+            {filteredHints.map((hint) => (
+              <div key={`${hint.hintNumber}-${hint.revealed}`} className="flex flex-col px-6 gap-2.5 items-center w-full">
                 <div className="flex flex-row gap-36 justify-between w-full">
 
-                  <Tag content={`${t("hint")} n°${hintNumber}`} revealed={revealed} />
-                  <Tag content={toRelativeTime(revealTime)} />
+                  <Tag content={`${t("hint")} n°${hint.hintNumber}`} revealed={hint.revealed} />
+                  <Tag content={toRelativeTime(hint.revealTime)} />
 
                 </div>
-                {revealed && (
+                {hint.revealed && (
                     <p className="text-[15px] text-black leading-none">
-                      {content}
+                      {hint.content}
                     </p>
                 )}
               </div>

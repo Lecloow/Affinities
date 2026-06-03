@@ -12,6 +12,12 @@ export class ApiService {
       },
     });
 
+    if (response.status === 401) {
+      this.handleUnauthorized();
+      throw new Error("UNAUTHORIZED");
+    }
+
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`API Error ${response.status}: ${errorText}`);
@@ -81,4 +87,10 @@ export class ApiService {
       body: JSON.stringify({ hintNumber, guessedUserId: guessedUser }),
     });
   }
+
+  private static handleUnauthorized() {
+    localStorage.removeItem("userInfo");
+    window.location.href = "/";
+  }
+
 }

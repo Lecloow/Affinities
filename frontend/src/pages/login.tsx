@@ -41,11 +41,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     const autoLogin = async () => {
+      const userInfo = localStorage.getItem("userInfo");
+      if (!userInfo) return;
       try {
         await Api.getUserStats();
         navigate("/home");
-      } catch {
-        await Api.logout();
+      } catch (_e) {
       }
     };
     void autoLogin();

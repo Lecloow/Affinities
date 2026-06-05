@@ -7,7 +7,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import type { Hint, Match, Candidate, RevealCode } from "../services/types.ts";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/24/outline';
-import { toRelativeTime } from "../utils/time";
+import {toLocalDateTimeString, toRelativeTime} from "../utils/time";
 import LeaderboardWidget from "../components/LeaderboardWidget";
 import GuessWidget from "../components/GuessWidget";
 import CodeWidget from "../components/CodeWidget";
@@ -191,7 +191,7 @@ export default function HomePage() {
       setError(err instanceof Error ? err.message : "Login failed");
     }
   };
-  // TODO: Auto refresh of the token and autologout
+  // TODO: Auto refresh of the token
 
   const filteredHints = hints.filter(h => h.day === day);
   const count = filteredHints.filter(h => new Date(h.revealTime) <= new Date() && !h.revealed).length;
@@ -251,10 +251,8 @@ export default function HomePage() {
             )}
           </div>
 
-
-
           <div className="pt-4 pb-4">
-            {match && new Date(match.revealTime) < new Date() ? (
+            {match && new Date(toLocalDateTimeString(match.revealTime)) < new Date() ? (
                 <Button
                     text={match.revealed ? t("home.revealed") : t("home.revealMatch")}
                     backgroundColor={match.revealed ? "#F8ADCB" : "#FF6CA7"}

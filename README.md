@@ -3,7 +3,6 @@
 > Full-stack matchmaking platform built for my high school's Valentine's Day event — **330+ students** 
 
 [![Hackatime](https://hackatime.hackclub.com/api/v1/badge/U0A84P8Q7JM/Lecloow/Affinities)](https://hackatime.hackclub.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Go](https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white)](https://golang.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -14,7 +13,7 @@
 
 My school committee (Comite de promo) wanted to organize a Valentine's Day matchmaking event. So I designed and built the platform from scratch.
 
-Deployed under real constraints — actual deadline, actual users, actual consequences if it broke.
+Deployed under real constraints: actual deadline, actual users, actual consequences if it broke.
 
 
 ## Architecture
@@ -47,7 +46,7 @@ I'm not interested in deploying AI spaghetti code, I am here to learn.
 |---|---|---|
 | **Code ownership** | Partially AI-generated | 100% hand-written |
 | **Database** | Unoptimized queries | Indexing & connection pooling |
-| **Performance** | ~50ms avg response | ~10ms avg response |
+| **Performance** | ~100ms avg response | ~15ms avg response |
 | **Security** | Minimal input validation | Strict validation, rate limiting, proper auth |
 | **Concurrency** | Single-threaded ASGI | Native goroutines |
 

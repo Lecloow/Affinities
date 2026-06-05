@@ -8,7 +8,7 @@ import { Api } from "@/api";
 import logoImg from "../assets/logo.png";
 import branchImg from "../assets/branch.png";
 import { useEffect } from "react";
-import Tag from "../components/tag.tsx";
+import Tag from "../components/Tag.tsx";
 
 const HeartIcon = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="#F5F5F5">

@@ -1,17 +1,18 @@
 import { useTranslation } from "react-i18next";
 import Credits from "../components/Credits";
-import Button from "../components/Button.tsx";
-import { SegmentedControl } from "../components/SegmentedControl.tsx";
+import Button from "../components/Button";
+import { SegmentedControl } from "../components/SegmentedControl";
 import { Api } from "@/api";
 import { useEffect, useState, useRef, useMemo } from "react";
 import type { Hint, Match, Candidate, RevealCode } from "../services/types.ts";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import { toRelativeTime } from "../utils/time";
-import LeaderboardWidget from "../components/LeaderboardWidget.tsx";
+import LeaderboardWidget from "../components/LeaderboardWidget";
 import GuessWidget from "../components/GuessWidget";
 import CodeWidget from "../components/CodeWidget";
-import Tag from "../components/tag.tsx";
+import Tag from "../components/Tag";
+import Popup from "../components/Popup";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -31,6 +32,8 @@ export default function HomePage() {
   const match = matches.length > 0 ? matches.find(m => m.day === day) : null;
   const [exchangeCode, setExchangeCode] = useState<RevealCode[]>([]);
   const [inputCode, setInputCode] = useState("");
+  const [showGuessResult, setShowGuessResult] = useState(false);
+  const [guessResultMessage, setGuessResultMessage] = useState("");
 
   const uniqueDays = useMemo(
       () => Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b),
@@ -116,9 +119,16 @@ export default function HomePage() {
   const handleGuess = async () => {
     try {
       if (selectedCandidate) {
-        await Api.guess(filteredHints.filter(h => h.revealed).length, selectedCandidate.id);
+        const result = await Api.guess(filteredHints.filter(h => h.revealed).length, selectedCandidate.id)
+        const message = result.isCorrect
+            ? t("home.popup.goodAnswer") //TODO: Add points earned
+            : filteredHints.filter(h => h.revealed).length === filteredHints.length
+                ? t("home.popup.badAnswer_lastHint", {inputCandidate})
+                : t("home.popup.badAnswer", {inputCandidate});
         setInputCandidate("");
         setSelectedCandidate(null);
+        setGuessResultMessage(message);
+        setShowGuessResult(true);
         await fetchScoreAndHints();
       }
     } catch (err) {
@@ -262,7 +272,6 @@ export default function HomePage() {
                 />
             }
         </div>
-
           {match?.revealed ? (
               <CodeWidget exchangeCode={exchangeCode[day-1]} inputCode={inputCode} setInputCode={setInputCode} onClick={handleCodeExchange} />
             ) : (
@@ -275,7 +284,11 @@ export default function HomePage() {
                   onClick={handleGuess}
               />
           )}
-
+          <Popup
+              isOpen={showGuessResult}
+              onClose={() => setShowGuessResult(false)}
+              content={guessResultMessage}
+          />
         </div>
         <Credits />
       </div>

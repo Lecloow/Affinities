@@ -37,6 +37,11 @@
       "explanation": "If you share this code with you soulmate, you will both earn **100 bonus points!**",
       "button": "Exchange",
       "textInput": "Enter your code here"
+    },
+    "popup": {
+      "goodAnswer": "Congratulations, you found your soulmate, you earn {{points}} points!",
+      "badAnswer": "Too bad, **{{inputCandidate}}** is not your soulmate. You can try again with the next hint!",
+      "badAnswer_lastHint": "Too bad, **{{inputCandidate}}** is not your soulmate. That was your last chance for today!"
     }
   },
   "leaderboard": {

@@ -7,7 +7,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import type {LeaderboardEntry} from "../services/types.ts";
-import Tag from "../components/tag.tsx";
+import Tag from "../components/Tag.tsx";
 
 export default function LeaderboardPage() {
   const { t } = useTranslation();

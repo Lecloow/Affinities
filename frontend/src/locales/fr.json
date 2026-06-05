@@ -37,6 +37,11 @@
       "explanation": "Partage ce code avec ton âme soeur pour gagner **100 points bonus** chacun!",
       "button": "Échanger",
       "textInput": "Code de ton ame soeur ici"
+    },
+    "popup": {
+      "goodAnswer": "Bravo tu as trouvé ton âme soeur, tu gagnes {{points}} points !",
+      "badAnswer": "Dommage, **{{inputCandidate}}** n'est pas ton âme soeur. Tu peux ressaier au prochain indice !",
+      "badAnswer_lastHint": "Dommage, **{{inputCandidate}}** n'est pas ton âme soeur. C'était ta dernière chance pour aujourd'hui !"
     }
   },
   "leaderboard": {

@@ -21,6 +21,7 @@ export interface Hint {
   day: number;
   hintNumber: number;
   difficulty: string;
+  type: string;
   content: string;
   revealTime: string;
   revealed: boolean;

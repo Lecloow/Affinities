@@ -70,8 +70,9 @@ func initDB() {
 		day INTEGER NOT NULL CHECK (day > 0),
 		hint_number INTEGER NOT NULL CHECK (hint_number > 0),
 		difficulty TEXT NOT NULL,
+		type TEXT NOT NULL,
 		content TEXT NOT NULL,
-		reveal_time TIMESTAMP,
+		reveal_time TIMESTAMP NOT NULL,
 		revealed BOOLEAN DEFAULT FALSE,
 		UNIQUE(user_id, day, hint_number)
 	);

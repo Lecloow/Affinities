@@ -79,6 +79,7 @@ type Hint struct {
 	Day        int       `json:"day"`
 	HintNumber int       `json:"hintNumber"`
 	Difficulty string    `json:"difficulty"`
+	Type       string    `json:"type"`
 	Content    string    `json:"content"`
 	RevealTime time.Time `json:"revealTime"`
 	Revealed   bool      `json:"revealed"`

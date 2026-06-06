@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import {Trans, useTranslation} from "react-i18next";
 import Credits from "../components/Credits";
 import Button from "../components/Button";
 import { SegmentedControl } from "../components/SegmentedControl";
@@ -215,7 +215,7 @@ export default function HomePage() {
 
           <SegmentedControl options={options} value={day} onChange={setDay} />
 
-          <div className="flex flex-col pt-8">
+          <div className="flex flex-col pt-8 gap-3">
             {filteredHints.map((hint) => (
               <div key={`${hint.hintNumber}-${hint.revealed}`} className="flex flex-col px-6 gap-2.5 items-center w-full">
                 <div className="flex flex-row gap-36 justify-between w-full">
@@ -225,9 +225,13 @@ export default function HomePage() {
 
                 </div>
                 {hint.revealed && (
-                    <p className="text-[15px] text-black leading-none">
-                      {hint.content}
-                    </p>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <Trans
+                        i18nKey={`hints.${hint.type}`}
+                        values={{ content: hint.content }}
+                        components={[<Tag content="" revealed={false}/>]}
+                      />
+                    </div>
                 )}
               </div>
             ))}

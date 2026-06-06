@@ -15,7 +15,8 @@ func (s *UserService) GetHints(ctx context.Context, userId models.UserID) ([]*mo
 					id,
 					day,
 					hint_number,
-					difficulty, 
+					difficulty,
+					type,
 					content,
 					reveal_time,
 					revealed
@@ -35,6 +36,7 @@ func (s *UserService) GetHints(ctx context.Context, userId models.UserID) ([]*mo
 			&hint.Day,
 			&hint.HintNumber,
 			&hint.Difficulty,
+			&hint.Type,
 			&hint.Content,
 			&hint.RevealTime,
 			&hint.Revealed,
@@ -44,6 +46,7 @@ func (s *UserService) GetHints(ctx context.Context, userId models.UserID) ([]*mo
 		}
 
 		if hint.RevealTime.After(time.Now().UTC()) || !hint.Revealed {
+		    hint.Type = "locked"
 			hint.Content = "Locked"
 		}
 

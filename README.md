@@ -42,27 +42,27 @@ Deployed under real constraints: actual deadline, actual users, actual consequen
 The Python backend did the job, but had real issues: slow response times, minimal security, and it was partially AI-generated.
 I'm not interested in deploying AI spaghetti code, I am here to learn.
 
-| | Python v1 | Go v2 |
-|---|---|---|
-| **Code ownership** | Partially AI-generated | 100% hand-written |
-| **Database** | Unoptimized queries | Indexing & connection pooling |
-| **Performance** | ~100ms avg response | ~15ms avg response |
-| **Security** | Minimal input validation | Strict validation, rate limiting, proper auth |
-| **Concurrency** | Single-threaded ASGI | Native goroutines |
+|                    | Python v1                | Go v2                                         |
+|--------------------|--------------------------|-----------------------------------------------|
+| **Code ownership** | Partially AI-generated   | 100% hand-written                             |
+| **Database**       | Unoptimized queries      | Indexing & connection pooling                 |
+| **Performance**    | ~100ms avg response      | ~15ms avg response                            |
+| **Security**       | Minimal input validation | Strict validation, rate limiting, proper auth |
+| **Concurrency**    | Single-threaded ASGI     | Native goroutines                             |
 
 Same logic on the frontend: original HTML/CSS → React + TypeScript rewrite, currently in progress.
 
 
 ## Tech Stack
 
-| Layer | Tech |
-|---|---|
-| Frontend | React, TypeScript, Vite |
-| Backend (v2) | Go, Gin |
-| Database | PostgreSQL |
-| CI/CD | GitHub Actions |
-| Deployment | Render |
-| API Testing | Bruno |
+| Layer        | Tech                    |
+|--------------|-------------------------|
+| Frontend     | React, TypeScript, Vite |
+| Backend (v2) | Go, Gin                 |
+| Database     | PostgreSQL              |
+| CI/CD        | GitHub Actions          |
+| Deployment   | Render                  |
+| API Testing  | Bruno                   |
 
 
 ## Running Locally

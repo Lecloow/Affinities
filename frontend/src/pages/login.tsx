@@ -53,80 +53,86 @@ export default function LoginPage() {
   }, [navigate]);
 
   return (
-      <div>
-        <div className="bg-white flex flex-col items-center min-h-screen">
-          <div className="relative flex flex-col items-center min-h-screen w-full overflow-hidden">
-            {/*Flowers*/}
-            <div className="absolute -top-25.25 -left-35.5 size-81.75 flex items-center justify-center pointer-events-none">
-              <img src={branchImg} alt="" className="size-61 rotate-[63.2deg] object-cover" />
-            </div>
-            <div className="absolute -top-29.5 -right-28.25 size-86 flex items-center justify-center pointer-events-none">
-              <img src={branchImg} alt="" className="size-61 rotate-[-136.61deg] object-cover" />
-            </div>
-            <div className="absolute -bottom-53.5 -left-39.75 size-82.5 flex items-center justify-center pointer-events-none">
-              <img src={branchImg} alt="" className="size-61 rotate-[61.62deg] object-cover" />
-            </div>
-            <div className="absolute -bottom-43 -right-43 size-85.75 flex items-center justify-center pointer-events-none">
-              <img src={branchImg} alt="" className="size-61 rotate-[-39.38deg] object-cover" />
-            </div>
+    <div>
+      <div className="bg-white flex flex-col items-center min-h-screen">
+        <div className="relative flex flex-col items-center min-h-screen w-full overflow-hidden">
+          {/*Flowers*/}
+          <div className="absolute -top-25.25 -left-35.5 size-81.75 flex items-center justify-center pointer-events-none">
+            <img src={branchImg} alt="" className="size-61 rotate-[63.2deg] object-cover" />
+          </div>
+          <div className="absolute -top-29.5 -right-28.25 size-86 flex items-center justify-center pointer-events-none">
+            <img src={branchImg} alt="" className="size-61 rotate-[-136.61deg] object-cover" />
+          </div>
+          <div className="absolute -bottom-53.5 -left-39.75 size-82.5 flex items-center justify-center pointer-events-none">
+            <img src={branchImg} alt="" className="size-61 rotate-[61.62deg] object-cover" />
+          </div>
+          <div className="absolute -bottom-43 -right-43 size-85.75 flex items-center justify-center pointer-events-none">
+            <img src={branchImg} alt="" className="size-61 rotate-[-39.38deg] object-cover" />
+          </div>
 
-            <div className="relative flex flex-col items-center gap-2.5 px-2.5 pt-35 pb-10">
+          <div className="relative flex flex-col items-center gap-2.5 px-2.5 pt-35 pb-10">
 
-              <img src={logoImg} alt="Logo" className="h-20.75 w-19 object-contain shrink-0" />
+            <img src={logoImg} alt="Logo" className="h-20.75 w-19 object-contain shrink-0" />
 
-              <div className="flex flex-col gap-3.75 items-center w-full">
-                <h1
-                    className="text-[50px] text-[#1b2027] text-center"
-                    style={{ fontWeight: 600 }}
+            <div className="flex flex-col gap-3.75 items-center w-full">
+              <h1
+                className="text-[50px] text-[#1b2027] text-center"
+                style={{ fontWeight: 600 }}
+              >
+                {t("header")}
+              </h1>
+
+              <div className="w-40 h-0.5" style={{ background: "#000000" }}></div>
+
+              <h2
+                className="text-[16px] text-center bg-clip-text text-transparent"
+                style={{
+                  fontWeight: 530,
+                  maxWidth: "256px",
+                  backgroundImage:
+                      "linear-gradient(93deg, #2E263A 24.76%, #796E8F 35.87%, #493B63 47.48%, #69657B 57.57%, #2E263A 75.24%)",
+                }}
+              >
+                {t("caption")}
+              </h2>
+            </div>
+            <div className="flex flex-col w-full gap-2.5 px-4 py-6 sm:px-10 sm:py-10">
+              {timeline.map(({ day, desc }) => (
+                <div
+                    key={day}
+                    className="flex items-center justify-between w-full gap-3"
                 >
-                  {t("header")}
-                </h1>
+                  <Tag content={day} />
 
-                <div className="w-40 h-0.5" style={{ background: "#000000" }}></div>
-
-                <h2
-                    className="text-[16px] text-center bg-clip-text text-transparent"
-                    style={{
-                      fontWeight: 530,
-                      maxWidth: "256px",
-                      backgroundImage:
-                          "linear-gradient(93deg, #2E263A 24.76%, #796E8F 35.87%, #493B63 47.48%, #69657B 57.57%, #2E263A 75.24%)",
-                    }}
-                >
-                  {t("caption")}
-                </h2>
-              </div>
-              <div className=" flex flex-col w-full justify-between gap-2.5 p-10">
-                {timeline.map(({ day, desc }) => (
-                    <div key={day} className="flex justify-between gap-2.5 items-center w-full">
-                      <Tag content={day} />
-                      <p className="text-[15px] text-black leading-none">{desc}</p>
-                    </div>
-                ))}
-              </div>
-              {/*FIXME: Fix the gap between the tad and the value*/}
-              <div className="flex flex-col gap-6 items-center justify-center pb-15 w-full">
-                <TextInput
-                    value={inputValue}
-                    width="19.25rem"
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder={t("login.placeholder")}
-                />
-                {/*{error && <p className="text-red-500 text-sm mt-1">{error}</p>} TODO: show alert instead bc this suck*/}
-
-                <Button
-                    text={t("login.button")}
-                    backgroundColor="#FF6CA7"
-                    onClick={handleLogin}
-                    width="19.25rem"
-                    rightIcon={<HeartIcon/>}
-                />
-              </div>
-
+                  <p className="text-[15px] text-black leading-none flex-1 text-right">
+                    {desc}
+                  </p>
+                </div>
+              ))}
             </div>
+            {/*FIXME: Fix the gap between the tad and the value*/}
+            <div className="flex flex-col gap-6 items-center justify-center pb-15 w-full">
+              <TextInput
+                value={inputValue}
+                width="19.25rem"
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={t("login.placeholder")}
+              />
+              {/*{error && <p className="text-red-500 text-sm mt-1">{error}</p>} TODO: show alert instead bc this suck*/}
+
+              <Button
+                text={t("login.button")}
+                backgroundColor="#FF6CA7"
+                onClick={handleLogin}
+                width="19.25rem"
+                rightIcon={<HeartIcon/>}
+              />
+            </div>
+
           </div>
         </div>
-        <Credits/>
       </div>
+      <Credits/>
+    </div>
   );
 }

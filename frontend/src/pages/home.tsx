@@ -198,111 +198,136 @@ export default function HomePage() {
   const count = filteredHints.filter(h => new Date(h.revealTime) <= new Date() && !h.revealed).length;
   if (loading) return <div></div>;
   return (
-      <div>
-        <div className="bg-white flex flex-col w-full items-center min-h-screen gap-4">
-          <div className="flex flex-row justify-center items-center gap-[4.9rem] mt-5">
-            <h1 className="text-[30px]" style={{ fontWeight: 400 }}>{t("home.hey", {name})}</h1>
-            <Button
-                text=""
-                backgroundColor="#FF6CA7"
-                onClick={handleLogout}
-                width="2.5rem"
-                padding="0px"
-                rightIcon={<ArrowLeftEndOnRectangleIcon className="w-[1.4rem] h-[1.4rem]" />}
-            />
-          </div>
+    <div className="bg-white flex flex-col w-full min-h-screen items-center gap-4 overflow-x-hidden">
+      <div className="flex flex-row justify-center items-center gap-6 mt-5 px-4 w-full">
+        <h1 className="text-[30px] font-normal">
+          {t("home.hey", { name })}
+        </h1>
 
-          <LeaderboardWidget score={score} onClick={goToLeaderboard} />
+        <Button
+          text=""
+          backgroundColor="#FF6CA7"
+          onClick={handleLogout}
+          width="2.5rem"
+          padding="0px"
+          rightIcon={
+            <ArrowLeftEndOnRectangleIcon className="w-[1.4rem] h-[1.4rem]" />
+          }
+        />
+      </div>
 
-          <SegmentedControl options={options} value={day} onChange={setDay} />
+      <LeaderboardWidget score={score} onClick={goToLeaderboard} />
+      <SegmentedControl options={options} value={day} onChange={setDay} />
 
-          <div className="flex flex-col pt-8 gap-3">
-            {filteredHints.map((hint) => (
-              <div key={`${hint.hintNumber}-${hint.revealed}`} className="flex flex-col px-6 gap-2.5 items-center w-full">
-                <div className="flex flex-row gap-36 justify-between w-full">
+      <div className="flex flex-col pt-8 gap-3 w-full px-4">
+        <div className="w-full max-w-md mx-auto flex flex-col gap-3">
+        {filteredHints.map((hint) => (
+          <div
+              key={`${hint.hintNumber}-${hint.revealed}`}
+              className="flex flex-col gap-2.5 w-full"
+          >
 
-                  <Tag content={`${t("hint")} n°${hint.hintNumber}`} revealed={hint.revealed} />
-                  <Tag content={toRelativeTime(hint.revealTime)} />
+            <div className="flex flex-row justify-between items-center w-full gap-4">
 
-                </div>
-                {hint.revealed && (
-                    <div className="flex items-center gap-1 flex-wrap">
-                      <Trans
-                          i18nKey={`hints.${hint.type}`}
-                          values={{ content: hint.content }}
-                          components={{
-                            tag: <Tag revealed={false} />
-                          }}
-                      />
-                    </div>
-                )}
-              </div>
-            ))}
-            {match && (
-              <div className="flex flex-col px-6 justify-between w-full items-center">
-                <div className="flex flex-row gap-36 justify-between w-full">
+              <Tag
+                content={`${t("hint")} n°${hint.hintNumber}`}
+                revealed={hint.revealed}
+              />
 
-                  <Tag content={t("reveal")} revealed={match.revealed} />
-                  <Tag content={toRelativeTime(match.revealTime)} />
+              <Tag content={toRelativeTime(hint.revealTime)} />
 
-                </div>
-                {match.revealed && (
-                    <div className="flex flex-col mt-3 w-full p-3 rounded-xl justify-center items-center" style={{ backgroundColor: "#f1f1f1" }}>
-                      <h1 className="text-base">{t("home.yourMatch")}</h1>
-                      <p className="text-[25px] text-black leading-none">
-                        {match.firstName} {match.lastName}
-                      </p>
-                    </div>
-                )}
+            </div>
+
+            {hint.revealed && (
+              <div className="flex items-center gap-1 flex-wrap w-full">
+                <Trans
+                  i18nKey={`hints.${hint.type}`}
+                  values={{ content: hint.content }}
+                  components={{
+                    tag: <Tag revealed={false} />
+                  }}
+                />
               </div>
             )}
-          </div>
 
-          <div className="pt-4 pb-4">
-            {match && new Date(toLocalDateTimeString(match.revealTime)) < new Date() ? (
-                <Button
-                    text={match.revealed ? t("home.revealed") : t("home.revealMatch")}
-                    backgroundColor={match.revealed ? "#F8ADCB" : "#FF6CA7"}
-                    onClick={() => { void revealMatch(); }}
-                    width="19.25rem"
-                    disabled={match.revealed}
-                />
-            ) :
-                <Button
-                    text={count > 0 ? t("home.revealHint", { count }) : t("home.noHintsAvailable")}
-                    backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
-                    onClick={() => { void revealHint(); }}
-                    width="19.25rem"
-                    disabled={count === 0}
-                />
-            }
+          </div>
+        ))}
+
+        {match && (
+          <div className="flex flex-col gap-2.5 w-full mt-4">
+
+            <div className="flex flex-row justify-between items-center w-full gap-4">
+              <Tag content={t("reveal")} revealed={match.revealed} />
+              <Tag content={toRelativeTime(match.revealTime)} />
+            </div>
+
+            {match.revealed && (
+              <div className="flex flex-col mt-3 w-full p-3 rounded-xl items-center justify-center bg-[#f1f1f1]">
+                <h1 className="text-base">{t("home.yourMatch")}</h1>
+                <p className="text-[25px] text-black leading-none">
+                  {match.firstName} {match.lastName}
+                </p>
+              </div>
+            )}
+
+          </div>
+        )}
         </div>
-          {hintNumber > 0 && (
-            match?.revealed ? (
-              <CodeWidget
-                  exchangeCode={exchangeCode[day - 1]}
-                  inputCode={inputCode}
-                  setInputCode={setInputCode}
-                  onClick={handleCodeExchange}
-              />
-            ) : (
-              <GuessWidget
-                  inputCandidate={inputCandidate}
-                  setInputValue={setInputCandidate}
-                  setSelectedCandidate={setSelectedCandidate}
-                  points={pointsForNextGuess}
-                  candidates={candidates}
-                  onClick={handleGuess}
-              />
-            )
-          )}
-          <Popup
-              isOpen={showGuessResult}
-              onClose={() => setShowGuessResult(false)}
-              content={guessResultMessage}
-          />
-        </div>
-        <Credits />
       </div>
+
+      <div className="pt-4 pb-4">
+        {match && new Date(toLocalDateTimeString(match.revealTime)) < new Date() ? (
+          <Button
+            text={match.revealed ? t("home.revealed") : t("home.revealMatch")}
+            backgroundColor={match.revealed ? "#F8ADCB" : "#FF6CA7"}
+            onClick={() => void revealMatch()}
+            width="19.25rem"
+            disabled={match.revealed}
+          />
+        ) : (
+          <Button
+            text={
+              count > 0
+                ? t("home.revealHint", { count })
+                : t("home.noHintsAvailable")
+            }
+            backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
+            onClick={() => void revealHint()}
+            width="19.25rem"
+            disabled={count === 0}
+          />
+        )}
+      </div>
+
+      {hintNumber > 0 && (
+        <div className="w-full flex justify-center px-4">
+          {match?.revealed ? (
+            <CodeWidget
+              exchangeCode={exchangeCode[day - 1]}
+              inputCode={inputCode}
+              setInputCode={setInputCode}
+              onClick={handleCodeExchange}
+            />
+          ) : (
+            <GuessWidget
+              inputCandidate={inputCandidate}
+              setInputValue={setInputCandidate}
+              setSelectedCandidate={setSelectedCandidate}
+              points={pointsForNextGuess}
+              candidates={candidates}
+              onClick={handleGuess}
+            />
+          )}
+        </div>
+      )}
+
+      <Popup
+        isOpen={showGuessResult}
+        onClose={() => setShowGuessResult(false)}
+        content={guessResultMessage}
+      />
+
+      <Credits />
+    </div>
   );
 }

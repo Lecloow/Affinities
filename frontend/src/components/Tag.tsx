@@ -16,7 +16,7 @@ export default function Tag({ content, revealed, children }: TagProps) {
   return (
       <span
           className="text-base p-2 rounded-lg whitespace-nowrap shrink-0"
-          style={{ backgroundColor: bg }}
+          style={{ backgroundColor: bg, fontWeight: 500 }}
       >
       {children ?? content}
     </span>

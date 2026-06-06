@@ -119,9 +119,9 @@ export default function HomePage() {
   const handleGuess = async () => {
     try {
       if (selectedCandidate) {
-        const result = await Api.guess(filteredHints.filter(h => h.revealed).length, selectedCandidate.id)
+        const result = await Api.guess(hintNumber, selectedCandidate.id)
         const message = result.isCorrect
-            ? t("home.popup.goodAnswer") //TODO: Add points earned
+            ? t("home.popup.goodAnswer", {points: result.pointsEarned})
             : filteredHints.filter(h => h.revealed).length === filteredHints.length
                 ? t("home.popup.badAnswer_lastHint", {inputCandidate})
                 : t("home.popup.badAnswer", {inputCandidate});
@@ -194,12 +194,13 @@ export default function HomePage() {
   // TODO: Auto refresh of the token
 
   const filteredHints = hints.filter(h => h.day === day);
+  const hintNumber = filteredHints.filter(h => h.revealed).length
   const count = filteredHints.filter(h => new Date(h.revealTime) <= new Date() && !h.revealed).length;
   if (loading) return <div></div>;
   return (
       <div>
         <div className="bg-white flex flex-col w-full items-center min-h-screen gap-4">
-          <div className="flex flex-row justify-center items-center gap-[4.9rem]">
+          <div className="flex flex-row justify-center items-center gap-[4.9rem] mt-5">
             <h1 className="text-[30px]" style={{ fontWeight: 400 }}>{t("home.hey", {name})}</h1>
             <Button
                 text=""
@@ -276,8 +277,14 @@ export default function HomePage() {
                 />
             }
         </div>
-          {match?.revealed ? (
-              <CodeWidget exchangeCode={exchangeCode[day-1]} inputCode={inputCode} setInputCode={setInputCode} onClick={handleCodeExchange} />
+          {hintNumber > 0 && (
+            match?.revealed ? (
+              <CodeWidget
+                  exchangeCode={exchangeCode[day - 1]}
+                  inputCode={inputCode}
+                  setInputCode={setInputCode}
+                  onClick={handleCodeExchange}
+              />
             ) : (
               <GuessWidget
                   inputCandidate={inputCandidate}
@@ -287,6 +294,7 @@ export default function HomePage() {
                   candidates={candidates}
                   onClick={handleGuess}
               />
+            )
           )}
           <Popup
               isOpen={showGuessResult}

@@ -52,6 +52,7 @@ type Guess struct {
 	HintNumber    int       `json:"hintNumber"`
 	GuessedUserId UserID    `json:"guessedUser"`
 	IsCorrect     bool      `json:"isCorrect"`
+	PointsEarned  int       `json:"pointsEarned"`
 	CreatedAt     time.Time `json:"createdAt"`
 }
 

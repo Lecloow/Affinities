@@ -31,11 +31,6 @@ const state = {
     { id: "102", firstName: "Bob", lastName: "Martin" },
     { id: "103", firstName: "Charlie", lastName: "Durand" }
   ] as Candidate[],
-
-  correctByDay: {
-    1: "101",
-    2: "102"
-  } as Record<number, UserID>
 };
 
 const matches: Match[] = [
@@ -66,7 +61,8 @@ const hints: Hint[] = [
     day: 1,
     hintNumber: 1,
     difficulty: "easy",
-    content: "Prénom 6 lettres",
+    type: "length",
+    content: "6",
     revealTime: new Date(Date.now() - 1000).toISOString(),
     revealed: false
   },
@@ -76,7 +72,8 @@ const hints: Hint[] = [
     day: 1,
     hintNumber: 2,
     difficulty: "easy",
-    content: "Prénom 6 lettres",
+    type: "length",
+    content: "6",
     revealTime: new Date(Date.now() +  60 * 60 * 1000).toISOString(),
     revealed: false
   },
@@ -86,7 +83,8 @@ const hints: Hint[] = [
     day: 1,
     hintNumber: 3,
     difficulty: "easy",
-    content: "Prénom 6 lettres",
+    type: "length",
+    content: "6",
     revealTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
     revealed: false
   },
@@ -96,7 +94,8 @@ const hints: Hint[] = [
     day: 2,
     hintNumber: 1,
     difficulty: "easy",
-    content: "Prénom 6 lettres",
+    type: "length",
+    content: "6",
     revealTime: new Date(Date.now() - 1000).toISOString(),
     revealed: false
   },
@@ -106,7 +105,8 @@ const hints: Hint[] = [
     day: 2,
     hintNumber: 2,
     difficulty: "easy",
-    content: "Prénom 6 lettres",
+    type: "length",
+    content: "6",
     revealTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     revealed: false
   },
@@ -116,7 +116,8 @@ const hints: Hint[] = [
     day: 2,
     hintNumber: 3,
     difficulty: "easy",
-    content: "Prénom 6 lettres",
+    type: "length",
+    content: "6",
     revealTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
     revealed: false
   },
@@ -263,7 +264,7 @@ export class DemoApiService {
 
     this.requireAuth();
 
-    const isCorrect = state.correctByDay[1] === guessedUserId;
+    const isCorrect = matches[0].userId === guessedUserId;
 
     const guess: Guess = {
       id: state.guesses.length + 1,

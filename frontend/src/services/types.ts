@@ -50,6 +50,7 @@ export interface Guess {
   hintNumber: number;
   guessedUserId: UserID;
   isCorrect: boolean;
+  pointsEarned: number;
   createdAt: string;
 }
 

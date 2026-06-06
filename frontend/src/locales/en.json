@@ -24,7 +24,7 @@
   "home": {
     "hey": "\uD83D\uDC4B Hey {{name}}!",
     "revealHint_one": "Reveal the hint",
-    "revealHint_other": "Reveal the hints",
+    "revealHint_other": "Reveal all hints",
     "noHintsAvailable": "No hints available yet",
     "revealMatch": "Reveal my soulmate",
     "revealed": "Soulmate revealed",

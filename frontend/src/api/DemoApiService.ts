@@ -273,6 +273,7 @@ export class DemoApiService {
       hintNumber,
       guessedUserId,
       isCorrect,
+      pointsEarned: isCorrect ? 0 : 100,
       createdAt: new Date().toISOString()
     };
 

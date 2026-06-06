@@ -17,9 +17,9 @@
     "2": "Friday"
   },
   "hints": {
-    "letter": "Your soulmate's name contains the letter <0>{{content}}</0>",
-    "length": "Your soulmate's name has <0>{{content}} letters</0>",
-    "name": "Your soulmate's name is <0>{{content}}</0>"
+    "letter": "Your soulmate's name contains the letter <tag>{{content}}</tag>",
+    "length": "Your soulmate's name has <tag>{{content}} letters</tag>",
+    "name": "Your soulmate's name is <tag>{{content}}</tag>"
   },
   "home": {
     "hey": "\uD83D\uDC4B Hey {{name}}!",

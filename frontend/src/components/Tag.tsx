@@ -1,7 +1,7 @@
 import type {ReactNode} from "react";
 
 type TagProps = {
-  content: string;
+  content?: string;
   revealed?: boolean;
   children?: ReactNode;
 };

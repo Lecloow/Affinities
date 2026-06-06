@@ -227,9 +227,11 @@ export default function HomePage() {
                 {hint.revealed && (
                     <div className="flex items-center gap-1 flex-wrap">
                       <Trans
-                        i18nKey={`hints.${hint.type}`}
-                        values={{ content: hint.content }}
-                        components={[<Tag content="" revealed={false}/>]}
+                          i18nKey={`hints.${hint.type}`}
+                          values={{ content: hint.content }}
+                          components={{
+                            tag: <Tag revealed={false} />
+                          }}
                       />
                     </div>
                 )}

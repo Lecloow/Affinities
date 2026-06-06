@@ -17,9 +17,9 @@
     "2": "Vendredi"
   },
   "hints": {
-    "letter": "Le nom de ton âme soeur contient la lettre <0>{{content}}</0>",
-    "length": "Le nom de ton âme soeur contient <0>{{content}} lettres</0>",
-    "name": "Le prénom de ton âme soeur est <0>{{content}}</0>"
+    "letter": "Le nom de ton âme soeur contient la lettre <tag>{{content}}</tag>",
+    "length": "Le nom de ton âme soeur contient <tag>{{content}} lettres</tag>",
+    "name": "Le prénom de ton âme soeur est <tag>{{content}}</tag>"
   },
   "home": {
     "hey": "\uD83D\uDC4B Salut {{name}}!",

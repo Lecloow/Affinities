@@ -44,7 +44,9 @@
       "title": "You secret code",
       "explanation": "If you share this code with you soulmate, you will both earn **100 bonus points!**",
       "button": "Exchange",
-      "textInput": "Enter your code here"
+      "textInput": "Enter your code here",
+      "exchanged": "You have exchanged your soulmate's code, you will both earn **100 bonus points** if your soulmate also exchanges codes!",
+      "bothExchanged": "You and your soulmate have exchanged codes, you both earned **100 bonus points!**"
     },
     "popup": {
       "goodAnswer": "Congratulations, you found your soulmate, you earn {{points}} points!",

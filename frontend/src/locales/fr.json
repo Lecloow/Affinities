@@ -44,7 +44,9 @@
       "title": "Ton code secret",
       "explanation": "Partage ce code avec ton âme soeur pour gagner **100 points bonus** chacun!",
       "button": "Échanger",
-      "textInput": "Code de ton ame soeur ici"
+      "textInput": "Code de ton ame soeur ici",
+      "exchanged": "Tu as échangé le code de ton âme soeur, vous allez tous les deux gagner **100 points bonus** si ton âme soeur échange aussi les codes !",
+      "bothExchanged": "Toi et ton âme soeur avez échangé les codes, vous avez tous les deux gagné **100 points bonus!**"
     },
     "popup": {
       "goodAnswer": "Bravo tu as trouvé ton âme soeur, tu gagnes {{points}} points !",

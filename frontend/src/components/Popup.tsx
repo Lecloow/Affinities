@@ -1,8 +1,8 @@
 import Button from "@/components/Button.tsx";
 import {useTranslation} from "react-i18next";
-import ReactMarkdown from "react-markdown";
 import { useEffect, useState } from "react";
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import Markdown from "@/components/Markdown.tsx";
 
 type PopupProps = {
   isOpen: boolean;
@@ -58,9 +58,7 @@ export default function Popup({ isOpen, error, onClose, content }: PopupProps) {
               )}
             </>
             :
-            <ReactMarkdown components={{ strong: (props) => <strong style={{fontWeight: "600"}} {...props} /> }}>
-              {content}
-            </ReactMarkdown>
+            <Markdown content={content}/>
           }
 
           <div className="flex justify-center w-full mt-3">

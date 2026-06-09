@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import Button from "./Button";
 import type {Candidate} from "../services/types.ts";
 import TextInput from "./TextInput.tsx";
-import ReactMarkdown from "react-markdown";
+import Markdown from "@/components/Markdown.tsx";
 
 type WidgetProps = {
   inputCandidate: string;
@@ -27,9 +27,7 @@ export default function GuessWidget({ inputCandidate, setInputValue, setSelected
       >
         <p className="m-0 text-[18px]" style={{fontWeight: 600}} >{t("home.guessWidget.title")}</p>
 
-        <ReactMarkdown components={{ strong: (props) => <strong style={{fontWeight: "600"}} {...props} /> }}>
-          {t("home.guessWidget.explanation", { points })}
-        </ReactMarkdown>
+        <Markdown content={t("home.guessWidget.explanation", { points })}/>
 
         {/*TODO: Log all guesses for today*/}
 

@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import Button from "./Button";
 import TextInput from "./TextInput.tsx";
-import ReactMarkdown from 'react-markdown';
 import type { RevealCode } from "../services/types.ts"
+import Markdown from "../components/Markdown";
 
 type WidgetProps = {
   exchangeCode: RevealCode;
@@ -26,15 +26,13 @@ export default function CodeWidget({ exchangeCode, inputCode, setInputCode, onCl
 
         {exchangeCode.partnerExchanged ?
           (exchangeCode.exchanged ?
-            <p className="m-0 text-[18px]" style={{fontWeight: 600}}>{t("home.codeWidget.bothExchanged", {partner: exchangeCode.partnerExchanged})}</p>
+              <Markdown content={t("home.codeWidget.bothExchanged")}/>
             :
-            <p className="m-0 text-[18px]" style={{fontWeight: 600}}>{t("home.codeWidget.exchanged", {partner: exchangeCode.partnerExchanged})}</p>
+              <Markdown content={t("home.codeWidget.exchanged")}/>
           )
           :
             <>
-              <ReactMarkdown components={{ strong: (props) => <strong style={{fontWeight: "600"}} {...props} /> }}>
-                {t("home.codeWidget.explanation")}
-              </ReactMarkdown>
+              <Markdown content={t("home.codeWidget.explanation")}/>
               <TextInput
                   value={inputCode}
                   width="100%"

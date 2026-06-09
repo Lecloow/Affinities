@@ -75,7 +75,7 @@ func (s *UserService) tryImportUser(
 
 	_, err = tx.Exec(
 		ctx,
-		`INSERT INTO non_hashed_password (user_id, password)
+		`INSERT INTO non_hashed_passwords (user_id, password)
 		 VALUES ($1, $2)`,
 		user.ID,
 		password,

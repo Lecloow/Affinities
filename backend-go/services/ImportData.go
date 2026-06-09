@@ -5,8 +5,6 @@ import (
 	"backend/utils"
 	"context"
 	"fmt"
-
-	"github.com/jackc/pgx/v5"
 )
 
 func (s *UserService) ImportUser(
@@ -46,17 +44,19 @@ func (s *UserService) tryImportUser(
 	if err != nil {
 		return err
 	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		err := tx.Rollback(ctx)
-		if err != nil {
-			return
+
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback(ctx)
 		}
-	}(tx, ctx)
+	}()
 
 	hashedPassword, err := utils.HashPassword(password)
 	if err != nil {
 		return err
 	}
+	fmt.Printf(hashedPassword)
 
 	err = tx.QueryRow(
 		ctx,
@@ -81,6 +81,7 @@ func (s *UserService) tryImportUser(
 		password,
 	)
 	if err != nil {
+		fmt.Print(err)
 		return err
 	}
 
@@ -95,5 +96,10 @@ func (s *UserService) tryImportUser(
 		return err
 	}
 
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	committed = true
+	return nil
 }

@@ -3,8 +3,12 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"math/big"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgconn"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GenerateSecureToken() string {
@@ -92,10 +96,18 @@ func MatchScore(a, b []int16) float64 {
 	return float64(matches) / float64(len(a))
 }
 
-//func HashPassword(password string) (string, error) {
-//	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-//	return string(bytes), err
-//}
+func IsUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == "23505"
+	}
+	return false
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
 
 //func VerifyPassword(password, hash string) bool {
 //	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))

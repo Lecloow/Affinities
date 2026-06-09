@@ -5,127 +5,95 @@ import (
 	"backend/utils"
 	"context"
 	"fmt"
+
+	"github.com/jackc/pgx/v5"
 )
 
-//func (s *UserService) ImportUser(ctx context.Context, user *models.User, passwordLength int) (string, error) {
-//	tx, err := s.DB.Begin(ctx)
-//	if err != nil {
-//		return "", err
-//	}
-//	defer func(tx pgx.Tx, ctx context.Context) {
-//		_ = tx.Rollback(ctx)
-//	}(tx, ctx)
-//
-//	var (
-//		password       string
-//		hashedPassword string
-//		number         int
-//	)
-//
-//	//for {
-//	//	password, err = utils.GeneratePassword(passwordLength)
-//	//	if err != nil {
-//	//		return "", err
-//	//	}
-//	//
-//	//	hashedPassword, err = utils.HashPassword(password)
-//	//	if err != nil {
-//	//		return "", err
-//	//	}
-//	//
-//	//	err = tx.QueryRow(ctx,
-//	//		"SELECT COUNT(*) FROM credentials WHERE password_hash = $1",
-//	//		hashedPassword,
-//	//	).Scan(&number)
-//	//	if err != nil {
-//	//		return "", err
-//	//	}
-//	//
-//	//	if number == 0 {
-//	//		break
-//	//	}
-//	//}
-//
-//	for {
-//		password, err = utils.GeneratePassword(passwordLength)
-//		if err != nil {
-//			return "", err
-//		}
-//
-//		err = tx.QueryRow(ctx,
-//			"SELECT COUNT(*) FROM credentials WHERE password_hash = $1",
-//			password,
-//		).Scan(&number)
-//		if err != nil {
-//			return "", err
-//		}
-//
-//		if number == 0 {
-//			break
-//		}
-//	}
-//
-//	err = tx.QueryRow(ctx,
-//		"INSERT INTO users (first_name, last_name, email, class) VALUES ($1, $2, $3, $4) RETURNING id",
-//		user.FirstName, user.LastName, user.Email, user.Class,
-//	).Scan(&user.ID)
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	_, err = tx.Exec(ctx,
-//		"INSERT INTO credentials (user_id, password_hash) VALUES ($1, $2)",
-//		user.ID, hashedPassword,
-//	)
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	if err := tx.Commit(ctx); err != nil {
-//		return "", err
-//	}
-//
-//	return password, nil
-//}
-//
-//// TODO: Security and code improvements
-
-func (s *UserService) ImportUser(ctx context.Context, user *models.User, passwordLength int, answers []int16) (string, error) {
-	tx, err := s.DB.Begin(ctx)
-	if err != nil {
-		return "", err
-	}
-	defer func() { _ = tx.Rollback(ctx) }()
-
-	var password string
+func (s *UserService) ImportUser(
+	ctx context.Context,
+	user *models.User,
+	passwordLength int,
+	answers []int16,
+) (string, error) {
 
 	for tries := 0; tries < 5; tries++ {
-		password, err = utils.GeneratePassword(passwordLength)
+		password, err := utils.GeneratePassword(passwordLength)
 		if err != nil {
 			return "", err
 		}
 
-		err = tx.QueryRow(ctx,
-			"INSERT INTO users (first_name, last_name, email, class, answers) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-			user.FirstName, user.LastName, user.Email, user.Class, answers,
-		).Scan(&user.ID)
-		if err != nil {
-			return "", err
-		}
-
-		_, err = tx.Exec(ctx,
-			"INSERT INTO credentials (user_id, password_hash) VALUES ($1, $2)",
-			user.ID, password,
-		)
+		err = s.tryImportUser(ctx, user, password, answers)
 		if err == nil {
-			if commitErr := tx.Commit(ctx); commitErr != nil {
-				return "", commitErr
-			}
 			return password, nil
 		}
-		_, _ = tx.Exec(ctx, "DELETE FROM users WHERE id=$1", user.ID)
+
+		if !utils.IsUniqueViolation(err) {
+			return "", err
+		}
 	}
-	return "", fmt.Errorf("failed to generate a unique password after multiple attempts")
+
+	return "", fmt.Errorf("failed to generate a unique password after 5 attempts")
 }
 
-//TODO: hashPassword
+func (s *UserService) tryImportUser(
+	ctx context.Context,
+	user *models.User,
+	password string,
+	answers []int16,
+) error {
+
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		err := tx.Rollback(ctx)
+		if err != nil {
+			return
+		}
+	}(tx, ctx)
+
+	hashedPassword, err := utils.HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	err = tx.QueryRow(
+		ctx,
+		`INSERT INTO users (first_name, last_name, email, class, answers)
+		 VALUES ($1, $2, $3, $4, $5)
+		 RETURNING id`,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.Class,
+		answers,
+	).Scan(&user.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO non_hashed_password (user_id, password)
+		 VALUES ($1, $2)`,
+		user.ID,
+		password,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO credentials (user_id, password_hash)
+		 VALUES ($1, $2)`,
+		user.ID,
+		hashedPassword,
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+}

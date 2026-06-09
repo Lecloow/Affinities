@@ -49,7 +49,9 @@
     "popup": {
       "goodAnswer": "Congratulations, you found your soulmate, you earn {{points}} points!",
       "badAnswer": "Too bad, **{{inputCandidate}}** is not your soulmate. You can try again with the next hint!",
-      "badAnswer_lastHint": "Too bad, **{{inputCandidate}}** is not your soulmate. That was your last chance for today!"
+      "badAnswer_lastHint": "Too bad, **{{inputCandidate}}** is not your soulmate. That was your last chance for today!",
+      "goodCode": "Great, you have exchanged your soulmate's code, you will both earn 100 bonus points!",
+      "badCode": "Sorry, **{{inputCode}}** is not your soulmate's code."
     }
   },
   "leaderboard": {

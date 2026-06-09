@@ -49,8 +49,24 @@ func (h *UserHandler) ExchangeCode(c *gin.Context) {
 
 	message, err := h.Service.ExchangeCode(ctx, userID, day, body.Code)
 	if err != nil {
+		if err.Error() == "invalid code" {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"detail":  "invalid code",
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"detail": message})
+
+	detail := ""
+	if message != nil {
+		detail = *message
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"detail":  detail,
+	})
 }

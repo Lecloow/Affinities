@@ -49,7 +49,9 @@
     "popup": {
       "goodAnswer": "Bravo tu as trouvé ton âme soeur, tu gagnes {{points}} points !",
       "badAnswer": "Dommage, **{{inputCandidate}}** n'est pas ton âme soeur. Tu peux ressaier au prochain indice !",
-      "badAnswer_lastHint": "Dommage, **{{inputCandidate}}** n'est pas ton âme soeur. C'était ta dernière chance pour aujourd'hui !"
+      "badAnswer_lastHint": "Dommage, **{{inputCandidate}}** n'est pas ton âme soeur. C'était ta dernière chance pour aujourd'hui !",
+      "goodCode": "Super, tu as échangé le code de ton âme soeur, vous allez tous les deux gagner 100 points bonus !",
+      "badCode": "Désolé, **{{inputCode}}** n'est pas le code de ton âme soeur"
     }
   },
   "leaderboard": {

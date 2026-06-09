@@ -34,6 +34,8 @@ export default function HomePage() {
   const [inputCode, setInputCode] = useState("");
   const [showGuessResult, setShowGuessResult] = useState(false);
   const [guessResultMessage, setGuessResultMessage] = useState("");
+  const [showCodeResult, setShowCodeResult] = useState(false);
+  const [codeResultMessage, setCodeResultMessage] = useState("");
 
   const uniqueDays = useMemo(
       () => Array.from(new Set(hints.map(h => h.day))).sort((a, b) => a - b),
@@ -137,12 +139,16 @@ export default function HomePage() {
 
   const handleCodeExchange = async () => {
     try {
-      await Api.exchangeRevealCode(day, inputCode);
+      const result = await Api.exchangeRevealCode(day, inputCode);
+      const message = result.success ?
+          t("home.popup.goodCode")
+          : t("home.popup.badCode", { inputCode });
       setInputCode("");
+      setCodeResultMessage(message);
+      setShowCodeResult(true);
       await fetchRevealCode();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Exchange failed");
-      //TODO: Add popup to say that the code is incorrect
     }
   };
 
@@ -328,10 +334,16 @@ export default function HomePage() {
         content={guessResultMessage}
       />
       <Popup
-          isOpen={error!="k"}
+          isOpen={showCodeResult}
+          onClose={() => setShowCodeResult(false)}
+          content={codeResultMessage}
+      />
+
+      <Popup
+          isOpen={error!=""}
           error = {true}
           onClose={() => window.location.reload()}
-          content={"error"}
+          content={error}
       />
       <Credits />
     </div>

@@ -24,24 +24,32 @@ export default function CodeWidget({ exchangeCode, inputCode, setInputCode, onCl
         <span className="text-[25px] p-3 rounded-lg whitespace-nowrap shrink-0" style={{backgroundColor: "#F990DA", color:"#ffffff"}}>{exchangeCode.code}</span>
         {/*TODO: Change to a gradient*/}
 
-        <ReactMarkdown components={{ strong: (props) => <strong style={{fontWeight: "600"}} {...props} /> }}>
-          {t("home.codeWidget.explanation")}
-        </ReactMarkdown>
-
-        <TextInput
-          value={inputCode}
-          width="100%"
-          onChange={(e) => setInputCode(e.target.value)}
-          placeholder={t("home.codeWidget.textInput")
-        }/>
-
-        <Button
-          text={t("home.codeWidget.button")}
-          backgroundColor="#FF6CA7"
-          foregroundColor="#ffffff"
-          onClick={onClick}
-          width="100%"
-        />
+        {exchangeCode.partnerExchanged ?
+          (exchangeCode.exchanged ?
+            <p className="m-0 text-[18px]" style={{fontWeight: 600}}>{t("home.codeWidget.bothExchanged", {partner: exchangeCode.partnerExchanged})}</p>
+            :
+            <p className="m-0 text-[18px]" style={{fontWeight: 600}}>{t("home.codeWidget.exchanged", {partner: exchangeCode.partnerExchanged})}</p>
+          )
+          :
+            <>
+              <ReactMarkdown components={{ strong: (props) => <strong style={{fontWeight: "600"}} {...props} /> }}>
+                {t("home.codeWidget.explanation")}
+              </ReactMarkdown>
+              <TextInput
+                  value={inputCode}
+                  width="100%"
+                  onChange={(e) => setInputCode(e.target.value)}
+                  placeholder={t("home.codeWidget.textInput")}
+              />
+              <Button
+                  text={t("home.codeWidget.button")}
+                  backgroundColor="#FF6CA7"
+                  foregroundColor="#ffffff"
+                  onClick={onClick}
+                  width="100%"
+              />
+            </>
+        }
       </div>
   );
 }

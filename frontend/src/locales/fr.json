@@ -1,4 +1,7 @@
 {
+  "cancel": "Annuler",
+  "retry": "Réessayer",
+  "errorMessage": "Une erreur est survenue, veuillez réessayer plus tard",
   "header": "Découvre ton âme soeur",
   "caption": "Un évènement du Comité de promo 2026",
   "login": {

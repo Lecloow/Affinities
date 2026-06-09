@@ -8,12 +8,13 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import type {LeaderboardEntry} from "../services/types.ts";
 import Tag from "../components/Tag.tsx";
+import Popup from "@/components/Popup.tsx";
 
 export default function LeaderboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const goBack = () => navigate("/home");
-  const [_error, setError] = useState("");
+  const [error, setError] = useState("");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const intervalRef = useRef<number | null>(null);
   const REFRESH_MS = 20000; //20s
@@ -62,7 +63,7 @@ export default function LeaderboardPage() {
 
   return (
       <div>
-        <div className="bg-white flex flex-col w-full items-center min-h-screen">
+        <div className="bg-white flex flex-col w-full items-center mt-5 min-h-screen">
           <div className="flex flex-row justify-center items-center gap-[4.9rem]">
             <Button
                 text=""
@@ -106,6 +107,12 @@ export default function LeaderboardPage() {
           })}
           </div>
         </div>
+        <Popup
+            isOpen={error!=""}
+            error = {true}
+            onClose={() => window.location.reload()}
+            content={error}
+        />
         <Credits />
       </div>
   );

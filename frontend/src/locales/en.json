@@ -1,4 +1,7 @@
 {
+  "cancel": "Cancel",
+  "retry": "Retry",
+  "errorMessage": "An error occurred, please try again later",
   "header": "Find your soulmate",
   "caption": "An event organized by the Comité de Promo 2026",
   "login": {

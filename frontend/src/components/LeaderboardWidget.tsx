@@ -11,7 +11,7 @@ export default function LeaderboardWidget({ score, onClick }: WidgetProps) {
 
   return (
       <div
-          className="flex flex-col gap-2.5 p-3 rounded-xl justify-center items-center w-88"
+          className="flex flex-col gap-2.5 p-3 rounded-xl justify-center items-center w-full"
           style={{ backgroundColor: "#6973db", color: "#F5F5F5" }}
       >
         <p className="m-0" >{t("home.leaderboardWidget")}</p>

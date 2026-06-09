@@ -31,6 +31,8 @@ export default function GuessWidget({ inputCandidate, setInputValue, setSelected
           {t("home.guessWidget.explanation", { points })}
         </ReactMarkdown>
 
+        {/*TODO: Log all guesses for today*/}
+
         <TextInput
             value={inputCandidate}
             width="100%"

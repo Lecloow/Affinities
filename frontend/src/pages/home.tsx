@@ -3,7 +3,7 @@ import Credits from "../components/Credits";
 import Button from "../components/Button";
 import { SegmentedControl } from "../components/SegmentedControl";
 import { Api } from "@/api";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import type { Hint, Match, Candidate, RevealCode } from "../services/types.ts";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/24/outline';
@@ -16,7 +16,7 @@ import Popup from "../components/Popup";
 
 export default function HomePage() {
   const { t } = useTranslation();
-  const [_error, setError] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -53,7 +53,7 @@ export default function HomePage() {
   const intervalRef = useRef<number | null>(null);
   const REFRESH_MS = 20000; //20s
 
-  const fetchScoreAndHints = async () => {
+  const fetchScoreAndHints = useCallback(async () => {
     try {
       const [hintsData, stats, matches] = await Promise.all([
         Api.getHints(),
@@ -61,7 +61,6 @@ export default function HomePage() {
         Api.getMatches(),
       ]);
       setHints(hintsData);
-
       setMatches(matches);
       const daysFromResponse = Array.from(new Set(hintsData.map(h => h.day))).sort((a, b) => a - b);
       setDay(prev => {
@@ -83,9 +82,9 @@ export default function HomePage() {
       console.error("fetchScoreAndHints error", err);
       setError((err instanceof Error) ? err.message : "Unknown error");
     }
-  };
+  }, [navigate]);
 
-  const fetchRevealCode = async () => {
+  const fetchRevealCode = useCallback(async () => {
     try {
       const revealCode = await Api.getRevealCode();
       setExchangeCode(revealCode);
@@ -97,7 +96,7 @@ export default function HomePage() {
       console.error("fetchRevealCode error", err);
       setError((err instanceof Error) ? err.message : "Unknown error");
     }
-  };
+  }, []);
 
   const revealHint = async () => {
     try {
@@ -166,11 +165,12 @@ export default function HomePage() {
     };
 
     void fetchData();
-  }, []);
+  }, [fetchScoreAndHints, fetchRevealCode]);
 
   useEffect(() => {
     intervalRef.current = window.setInterval(() => {
       void fetchScoreAndHints();
+      void fetchRevealCode();
     }, REFRESH_MS);
 
     return () => {
@@ -179,7 +179,7 @@ export default function HomePage() {
         intervalRef.current = null;
       }
     };
-  }, []);
+  }, [fetchScoreAndHints, fetchRevealCode]);
 
   const handleLogout = async () => {
     setError("");
@@ -216,62 +216,63 @@ export default function HomePage() {
         />
       </div>
 
-      <LeaderboardWidget score={score} onClick={goToLeaderboard} />
-      <SegmentedControl options={options} value={day} onChange={setDay} />
-
       <div className="flex flex-col pt-8 gap-3 w-full px-4">
-        <div className="w-full max-w-md mx-auto flex flex-col gap-3">
-        {filteredHints.map((hint) => (
-          <div
-              key={`${hint.hintNumber}-${hint.revealed}`}
-              className="flex flex-col gap-2.5 w-full"
-          >
+        <div className="w-full max-w-md mx-auto flex flex-col items-center gap-3">
 
-            <div className="flex flex-row justify-between items-center w-full gap-4">
+          <LeaderboardWidget score={score} onClick={goToLeaderboard} />
+          <SegmentedControl options={options} value={day} onChange={setDay} />
 
-              <Tag
-                content={`${t("hint")} n°${hint.hintNumber}`}
-                revealed={hint.revealed}
-              />
+          {filteredHints.map((hint) => (
+            <div
+                key={`${hint.hintNumber}-${hint.revealed}`}
+                className="flex flex-col gap-2.5 w-full"
+            >
 
-              <Tag content={toRelativeTime(hint.revealTime)} />
+              <div className="flex flex-row justify-between items-center w-full gap-4">
 
-            </div>
-
-            {hint.revealed && (
-              <div className="flex items-center gap-1 flex-wrap w-full">
-                <Trans
-                  i18nKey={`hints.${hint.type}`}
-                  values={{ content: hint.content }}
-                  components={{
-                    tag: <Tag revealed={false} />
-                  }}
+                <Tag
+                  content={`${t("hint")} n°${hint.hintNumber}`}
+                  revealed={hint.revealed}
                 />
+
+                <Tag content={toRelativeTime(hint.revealTime)} />
+
               </div>
-            )}
 
-          </div>
-        ))}
+              {hint.revealed && (
+                <div className="flex items-center gap-1 flex-wrap w-full">
+                  <Trans
+                    i18nKey={`hints.${hint.type}`}
+                    values={{ content: hint.content }}
+                    components={{
+                      tag: <Tag revealed={false} />
+                    }}
+                  />
+                </div>
+              )}
 
-        {match && (
-          <div className="flex flex-col gap-2.5 w-full mt-4">
-
-            <div className="flex flex-row justify-between items-center w-full gap-4">
-              <Tag content={t("reveal")} revealed={match.revealed} />
-              <Tag content={toRelativeTime(match.revealTime)} />
             </div>
+          ))}
 
-            {match.revealed && (
-              <div className="flex flex-col mt-3 w-full p-3 rounded-xl items-center justify-center bg-[#f1f1f1]">
-                <h1 className="text-base">{t("home.yourMatch")}</h1>
-                <p className="text-[25px] text-black leading-none">
-                  {match.firstName} {match.lastName}
-                </p>
+          {match && (
+            <div className="flex flex-col gap-2.5 w-full mt-4">
+
+              <div className="flex flex-row justify-between items-center w-full gap-4">
+                <Tag content={t("reveal")} revealed={match.revealed} />
+                <Tag content={toRelativeTime(match.revealTime)} />
               </div>
-            )}
 
-          </div>
-        )}
+              {match.revealed && (
+                <div className="flex flex-col mt-3 w-full p-3 rounded-xl items-center justify-center bg-[#f1f1f1]">
+                  <h1 className="text-base">{t("home.yourMatch")}</h1>
+                  <p className="text-[25px] text-black leading-none">
+                    {match.firstName} {match.lastName}
+                  </p>
+                </div>
+              )}
+
+            </div>
+          )}
         </div>
       </div>
 
@@ -326,7 +327,12 @@ export default function HomePage() {
         onClose={() => setShowGuessResult(false)}
         content={guessResultMessage}
       />
-
+      <Popup
+          isOpen={error!="k"}
+          error = {true}
+          onClose={() => window.location.reload()}
+          content={"error"}
+      />
       <Credits />
     </div>
   );

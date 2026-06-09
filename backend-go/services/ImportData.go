@@ -4,6 +4,8 @@ import (
 	"backend/models"
 	"backend/utils"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 )
 
@@ -12,25 +14,25 @@ func (s *UserService) ImportUser(
 	user *models.User,
 	passwordLength int,
 	answers []int16,
-) (string, error) {
+) error {
 
 	for tries := 0; tries < 5; tries++ {
 		password, err := utils.GeneratePassword(passwordLength)
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		err = s.tryImportUser(ctx, user, password, answers)
 		if err == nil {
-			return password, nil
+			return nil
 		}
 
 		if !utils.IsUniqueViolation(err) {
-			return "", err
+			return err
 		}
 	}
 
-	return "", fmt.Errorf("failed to generate a unique password after 5 attempts")
+	return fmt.Errorf("failed to generate a unique password after 5 attempts")
 }
 
 func (s *UserService) tryImportUser(
@@ -52,11 +54,13 @@ func (s *UserService) tryImportUser(
 		}
 	}()
 
+	lookup := sha256.Sum256([]byte(password))
+	lookupStr := hex.EncodeToString(lookup[:])
+
 	hashedPassword, err := utils.HashPassword(password)
 	if err != nil {
 		return err
 	}
-	fmt.Printf(hashedPassword)
 
 	err = tx.QueryRow(
 		ctx,
@@ -81,16 +85,16 @@ func (s *UserService) tryImportUser(
 		password,
 	)
 	if err != nil {
-		fmt.Print(err)
 		return err
 	}
 
 	_, err = tx.Exec(
 		ctx,
-		`INSERT INTO credentials (user_id, password_hash)
-		 VALUES ($1, $2)`,
+		`INSERT INTO credentials (user_id, password_hash, password_lookup)
+		 VALUES ($1, $2, $3)`,
 		user.ID,
 		hashedPassword,
+		lookupStr,
 	)
 	if err != nil {
 		return err

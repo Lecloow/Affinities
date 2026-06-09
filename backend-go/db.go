@@ -40,12 +40,15 @@ func initDB() {
 
 	CREATE TABLE IF NOT EXISTS credentials (
 		user_id BIGSERIAL PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		password_hash TEXT NOT NULL
+		password_hash TEXT NOT NULL,
+	   	password_lookup TEXT NOT NULL
 	);
 
 	CREATE TABLE IF NOT EXISTS non_hashed_passwords (
 		user_id BIGSERIAL PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		password TEXT NOT NULL
+		password TEXT NOT NULL,
+		UNIQUE (user_id),
+		UNIQUE (password)
 	);
 
 	CREATE UNIQUE INDEX IF NOT EXISTS unique_password_idx ON credentials(password_hash);

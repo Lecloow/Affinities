@@ -50,15 +50,15 @@ func importUsersFromFile(
 	h *UserHandler,
 	passwordLength int,
 	ctx context.Context,
-) ([]*models.EmailUser, error) {
+) (int, error) {
 
 	sheetName := xf.GetSheetName(0)
 	rows, err := xf.GetRows(sheetName)
 	if err != nil {
-		return nil, errors.New("could not get rows")
+		return 0, errors.New("could not get rows")
 	}
 	if len(rows) < 2 {
-		return nil, errors.New("no data")
+		return 0, errors.New("no data")
 	}
 
 	colIndex := map[string]int{}
@@ -69,7 +69,7 @@ func importUsersFromFile(
 	requiredColumns := []string{utils.FormResponse.Name, utils.FormResponse.Email, utils.FormResponse.Level, utils.FormResponse.Letter}
 	for _, key := range requiredColumns {
 		if _, ok := colIndex[key]; !ok {
-			return nil, fmt.Errorf("missing column: %s", key)
+			return 0, fmt.Errorf("missing column: %s", key)
 		}
 	}
 
@@ -81,7 +81,7 @@ func importUsersFromFile(
 		return row[idx]
 	}
 
-	var importedUsers []*models.EmailUser
+	var importedUsers int
 
 	for _, row := range rows[1:] {
 		name := get(row, utils.FormResponse.Name)
@@ -100,16 +100,12 @@ func importUsersFromFile(
 
 		answers, err := parseAnswers(row, colIndex)
 
-		password, err := h.Service.ImportUser(ctx, newUser, passwordLength, answers)
+		err = h.Service.ImportUser(ctx, newUser, passwordLength, answers)
 		if err != nil {
-			return nil, err
+			return 0, err
 		}
 
-		importedUsers = append(importedUsers, &models.EmailUser{
-			Email:    newUser.Email,
-			Name:     firstName,
-			Password: password,
-		})
+		importedUsers += 1
 	}
 
 	return importedUsers, nil

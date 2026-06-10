@@ -7,10 +7,10 @@ import type {
   Candidate,
   RevealCode,
   UserID,
-  Match
+  Match,
 } from "../services/types";
 
-const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 let tokenData: { expiresAt: number } | null = null;
 
@@ -19,7 +19,7 @@ const DEMO_USER: User = {
   firstName: "User",
   lastName: "Demo",
   email: "dev.demo@example.com",
-  class: "DemoClass"
+  class: "DemoClass",
 };
 
 const state = {
@@ -29,7 +29,7 @@ const state = {
   candidates: [
     { id: "101", firstName: "Alice", lastName: "Dupont" },
     { id: "102", firstName: "Bob", lastName: "Martin" },
-    { id: "103", firstName: "Charlie", lastName: "Durand" }
+    { id: "103", firstName: "Charlie", lastName: "Durand" },
   ] as Candidate[],
 };
 
@@ -41,7 +41,7 @@ const matches: Match[] = [
     firstName: "Alice",
     lastName: "Dupont",
     revealTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-    revealed: false
+    revealed: false,
   },
   {
     id: 2,
@@ -49,9 +49,9 @@ const matches: Match[] = [
     day: 1,
     firstName: "Bob",
     lastName: "Martin",
-    revealTime: new Date(Date.now() +  3 * 60 * 60 * 1000).toISOString(),
-    revealed: false
-  }
+    revealTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+    revealed: false,
+  },
 ];
 
 const hints: Hint[] = [
@@ -64,7 +64,7 @@ const hints: Hint[] = [
     type: "length",
     content: "6",
     revealTime: new Date(Date.now() - 1000).toISOString(),
-    revealed: false
+    revealed: false,
   },
   {
     id: "2",
@@ -74,8 +74,8 @@ const hints: Hint[] = [
     difficulty: "easy",
     type: "length",
     content: "6",
-    revealTime: new Date(Date.now() +  60 * 60 * 1000).toISOString(),
-    revealed: false
+    revealTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    revealed: false,
   },
   {
     id: "3",
@@ -86,7 +86,7 @@ const hints: Hint[] = [
     type: "length",
     content: "6",
     revealTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-    revealed: false
+    revealed: false,
   },
   {
     id: "4",
@@ -97,7 +97,7 @@ const hints: Hint[] = [
     type: "length",
     content: "6",
     revealTime: new Date(Date.now() - 1000).toISOString(),
-    revealed: false
+    revealed: false,
   },
   {
     id: "5",
@@ -108,7 +108,7 @@ const hints: Hint[] = [
     type: "length",
     content: "6",
     revealTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-    revealed: false
+    revealed: false,
   },
   {
     id: "6",
@@ -119,7 +119,7 @@ const hints: Hint[] = [
     type: "length",
     content: "6",
     revealTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-    revealed: false
+    revealed: false,
   },
 ];
 
@@ -127,17 +127,16 @@ const revealCode: RevealCode[] = [
   {
     code: "DEMO",
     exchanged: false,
-    partnerExchanged: false
+    partnerExchanged: false,
   },
   {
     code: "Test",
     exchanged: false,
-    partnerExchanged: false
-  }
+    partnerExchanged: false,
+  },
 ];
 
 export class DemoApiService {
-
   static async login(): Promise<User> {
     await delay(150);
 
@@ -173,28 +172,28 @@ export class DemoApiService {
       userId: "999",
       totalPoints: state.points,
       bonusPoints: 0,
-      guesses: state.guesses,
-      pointsForNextGuess: 100
+      guesses: [...state.guesses],
+      pointsForNextGuess: 100,
     };
   }
 
   static async getCandidates(): Promise<Candidate[]> {
     await delay(80);
     this.requireAuth();
-    return state.candidates;
+    return [...state.candidates];
   }
 
   static async getMatches(): Promise<Match[]> {
     await delay(80);
     this.requireAuth();
-    return matches;
+    return matches.map((m) => ({ ...m }));
   }
 
   static async getHints(): Promise<Hint[]> {
     await delay(80);
     this.requireAuth();
 
-    return hints
+    return hints.map((h) => ({ ...h }));
   }
 
   static async getLeaderboard(): Promise<LeaderboardEntry[]> {
@@ -207,58 +206,78 @@ export class DemoApiService {
     await delay(80);
     this.requireAuth();
 
-    return revealCode
+    return revealCode.map((c) => ({ ...c }));
   }
 
-  static async revealAllHints(day: number): Promise<{ day: number; hintsRevealed: number[] }> {
+  static async revealAllHints(
+    day: number,
+  ): Promise<{ day: number; hintsRevealed: number[] }> {
     await delay(80);
     this.requireAuth();
 
     const now = Date.now();
-    const dayHints = hints.filter(h => h.day === day);
+    const dayHints = hints
+      .filter((h) => h.day === day)
+      .sort((a, b) => a.hintNumber - b.hintNumber);
 
-    const hintsRevealed: number[] = [];
-    for (const hint of dayHints) {
-      const revealTime = new Date(hint.revealTime).getTime();
+    // Only reveal ONE hint per click: the first unrevealed hint whose
+    // revealTime has passed. Setting the next hint's revealTime to "now"
+    // means the user has to click again to reveal it.
+    const candidate = dayHints.find(
+      (h) => !h.revealed && new Date(h.revealTime).getTime() <= now,
+    );
 
-      if (now >= revealTime && !hint.revealed) {
-        hint.revealed = true;
-        hintsRevealed.push(hint.hintNumber);
+    if (!candidate) {
+      return { day, hintsRevealed: [] };
+    }
 
-        const nextHint = dayHints.find(h => h.hintNumber === hint.hintNumber + 1);
-        if (nextHint) {
-          nextHint.revealTime = new Date(now).toISOString();
-        } else {
-          const match = matches.find(m => m.day === day);
-          if (match) {
-            match.revealTime = new Date(now).toISOString();
-          }
-        }
+    candidate.revealed = true;
+
+    const nextHint = dayHints.find(
+      (h) => h.hintNumber === candidate.hintNumber + 1,
+    );
+    if (nextHint) {
+      nextHint.revealTime = new Date(now).toISOString();
+    } else {
+      const match = matches.find((m) => m.day === day);
+      if (match) {
+        match.revealTime = new Date(now).toISOString();
       }
     }
 
-    return { day, hintsRevealed };
+    return { day, hintsRevealed: [candidate.hintNumber] };
   }
 
-  static async exchangeRevealCode(): Promise<{ success: boolean }> {
+  static async exchangeRevealCode(
+    day: number,
+    code: string,
+  ): Promise<{ success: boolean }> {
     await delay(80);
     this.requireAuth();
-    return { success: true };
+
+    const entry = revealCode[day - 1];
+    if (!entry) return { success: false };
+
+    if (entry.code.toLowerCase() === code.trim().toLowerCase()) {
+      entry.exchanged = true;
+      return { success: true };
+    }
+    return { success: false };
   }
 
   static async revealMatch(day: number): Promise<{ success: boolean }> {
     await delay(80);
     this.requireAuth();
 
-    const match = matches[day - 1];
+    const match = matches.find((m) => m.day === day);
     if (match) match.revealed = true;
 
     return { success: true };
   }
 
   static async guess(
-      hintNumber: number,
-      guessedUserId: UserID
+    hintNumber: number,
+    guessedUserId: UserID,
   ): Promise<Guess> {
     await delay(120);
 
@@ -274,7 +293,7 @@ export class DemoApiService {
       guessedUserId,
       isCorrect,
       pointsEarned: isCorrect ? 0 : 100,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     state.guesses.push(guess);

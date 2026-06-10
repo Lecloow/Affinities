@@ -7,21 +7,21 @@ interface Props {
   activeColor?: string
 }
 
-export function SegmentedControl({
+export default function SegmentedControl({
                                    options,
                                    value,
                                    onChange,
                                    activeColor = "#FF8EC4",
                                  }: Props) {
   return (
-      <div className="flex rounded-[12px] p-[4px] gap-[2px]" style={{ background: "#F0F0F0" }}>
+      <div className="flex rounded-xl p-1 gap-0.5" style={{ background: "#F0F0F0" }}>
         {options.map((opt) => {
           const isActive = opt.value === value
           return (
               <button
                   key={opt.value}
                   onClick={() => onChange(opt.value)}
-                  className="flex justify-center items-center p-[10px] border-0 rounded-[8px] text-[16px] cursor-pointer min-w-[10rem]"
+                  className="flex justify-center items-center p-2.5 border-0 rounded-lg text-[16px] cursor-pointer min-w-40"
                   style={{
                     background: isActive ? activeColor : "transparent",
                     color: isActive ? "#fff" : "#aaa",

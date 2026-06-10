@@ -1,18 +1,11 @@
 import {Trans, useTranslation} from "react-i18next";
-import Credits from "../components/Credits";
-import Button from "../components/Button";
-import { SegmentedControl } from "../components/SegmentedControl";
 import { Api } from "@/api";
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import type { Hint, Match, Candidate, RevealCode } from "../services/types.ts";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import {toLocalDateTimeString, toRelativeTime} from "../utils/time";
-import LeaderboardWidget from "../components/LeaderboardWidget";
-import GuessWidget from "../components/GuessWidget";
-import CodeWidget from "../components/CodeWidget";
-import Tag from "../components/Tag";
-import Popup from "../components/Popup";
+import { Button, CodeWidget, Credits, GuessWidget, LeaderboardWidget, Popup, SegmentedControl, Tag } from "@/components";
 
 export default function HomePage() {
   const { t } = useTranslation();

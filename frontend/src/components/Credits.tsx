@@ -1,18 +1,18 @@
 export default function Credits() {
   return (
       <footer
-          className={`w-full flex flex-col items-start justify-center p-[10px]`}
+          className={`w-full flex flex-col items-start justify-center p-2.5]`}
           style={{ backgroundColor: "#040303", color: "#EEEEEE" }}
       >
         <p>Made with ❤️ by Thomas Conchon</p>
         <p>Thanks to the Comité de promo 2026</p>
-        <div className="flex items-center gap-[5px]">
+        <div className="flex items-center gap-1.25">
           <p>Code source :</p>
           <a
               href="https://github.com/Lecloow/Affinities"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-[5px] p-[5px] rounded-[8px] text-[#dddddd] text-[15px] leading-none no-underline"
+              className="flex items-center gap-1.25 p-1.25 rounded-lg text-[#dddddd] text-[15px] leading-none no-underline"
               style={{ backgroundColor: "#1f1f1f", border: "1px solid #3d3d3d" }}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">

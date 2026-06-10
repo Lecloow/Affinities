@@ -1,14 +1,11 @@
 import { useTranslation } from "react-i18next";
-import Credits from "../components/Credits";
-import Button from "../components/Button.tsx";
-import { ApiService } from "../api/ApiService.ts";
+import { Api } from "@/api";
 
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import type {LeaderboardEntry} from "../services/types.ts";
-import Tag from "../components/Tag.tsx";
-import Popup from "@/components/Popup.tsx";
+import { Button, Credits, Tag, Popup } from "@/components";
 
 export default function LeaderboardPage() {
   const { t } = useTranslation();
@@ -22,7 +19,7 @@ export default function LeaderboardPage() {
 
   const fetchLeaderboard = async () => {
     try {
-      const leaderboard = await ApiService.getLeaderboard();
+      const leaderboard = await Api.getLeaderboard();
       console.log(leaderboard);
       setLeaderboard(leaderboard);
     } catch (err) {

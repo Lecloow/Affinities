@@ -1,14 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Credits from "../components/Credits";
-import Button from "../components/Button";
-import TextInput from "../components/TextInput";
 import { Api } from "@/api";
-import logoImg from "../assets/logo.png";
-import branchImg from "../assets/branch.png";
+import logoImg from "@/assets/logo.png";
+import branchImg from "@/assets/branch.png";
 import { useEffect } from "react";
-import Tag from "../components/Tag.tsx";
+import { Button, Credits, Tag, TextInput, Popup } from "@/components";
 
 const HeartIcon = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="#F5F5F5">
@@ -21,7 +18,7 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [inputValue, setInputValue] = useState("");
-  const [_error, setError] = useState("");
+  const [error, setError] = useState("");
   const timeline = t('timeline', { returnObjects: true }) as Array<{ day: string; desc: string }>;
 
   const handleLogin = async () => {
@@ -46,7 +43,8 @@ export default function LoginPage() {
       try {
         await Api.getUserStats();
         navigate("/home");
-      } catch (_e) {
+      } catch (err) {
+        console.log("AutoLogin failed", err)
       }
     };
     void autoLogin();
@@ -128,10 +126,15 @@ export default function LoginPage() {
                 rightIcon={<HeartIcon/>}
               />
             </div>
-
           </div>
         </div>
       </div>
+      <Popup
+          isOpen={error!=""}
+          error = {true}
+          onClose={() => window.location.reload()}
+          content={error}
+      />
       <Credits/>
     </div>
   );

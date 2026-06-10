@@ -1,7 +1,7 @@
 export default function Credits() {
   return (
       <footer
-          className={`w-full flex flex-col items-start justify-center p-2.5]`}
+          className={`w-full flex flex-col items-start justify-center p-2.5`}
           style={{ backgroundColor: "#040303", color: "#EEEEEE" }}
       >
         <p>Made with ❤️ by Thomas Conchon</p>

@@ -16,8 +16,8 @@ let tokenData: { expiresAt: number } | null = null;
 
 const DEMO_USER: User = {
   id: "999",
-  firstName: "User",
-  lastName: "Demo",
+  firstName: "Dev",
+  lastName: "User",
   email: "dev.demo@example.com",
   class: "DemoClass",
 };

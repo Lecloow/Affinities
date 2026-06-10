@@ -204,15 +204,13 @@ export default function HomePage() {
         </h1>
 
         <Button
-          text=""
           backgroundColor="#FF6CA7"
           onClick={handleLogout}
           width="2.5rem"
           padding="0px"
-          rightIcon={
-            <ArrowLeftEndOnRectangleIcon className="w-[1.4rem] h-[1.4rem]" />
-          }
-        />
+        >
+          <ArrowLeftEndOnRectangleIcon className="w-[1.4rem] h-[1.4rem]" />
+        </Button>
       </div>
 
       <div className="flex flex-col pt-8 gap-3 w-full px-4">

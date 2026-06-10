@@ -67,11 +67,9 @@ export default function GuessWidget({ inputCandidate, setInputValue, setSelected
         )}
 
         <Button
-            text={t("home.guessWidget.button")}
-            backgroundColor="#FF6CA7"
-            foregroundColor="#ffffff"
-            onClick={onClick}
-            width="100%"
+          text={t("home.guessWidget.button")}
+          style={{width: "100%"}}
+          onClick={onClick}
         />
       </div>
   );

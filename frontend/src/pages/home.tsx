@@ -204,10 +204,8 @@ export default function HomePage() {
         </h1>
 
         <Button
-          backgroundColor="#FF6CA7"
+          style={{width: "2.5rem", padding: "0px"}}
           onClick={handleLogout}
-          width="2.5rem"
-          padding="0px"
         >
           <ArrowLeftEndOnRectangleIcon className="w-[1.4rem] h-[1.4rem]" />
         </Button>
@@ -277,9 +275,9 @@ export default function HomePage() {
         {match && new Date(toLocalDateTimeString(match.revealTime)) < new Date() ? (
           <Button
             text={match.revealed ? t("home.revealed") : t("home.revealMatch")}
-            backgroundColor={match.revealed ? "#F8ADCB" : "#FF6CA7"}
+            //backgroundColor={match.revealed ? "#F8ADCB" : "#FF6CA7"}
+            style={{backgroundColor: !match.revealed ? "#FF6CA7" : "#F8ADCB" }}
             onClick={() => void revealMatch()}
-            width="19.25rem"
             disabled={match.revealed}
           />
         ) : (
@@ -289,9 +287,8 @@ export default function HomePage() {
                 ? t("home.revealHint", { count })
                 : t("home.noHintsAvailable")
             }
-            backgroundColor={count > 0 ? "#FF6CA7" : "#F8ADCB"}
+            style={{backgroundColor: count > 0 ? "#FF6CA7" : "#F8ADCB" }}
             onClick={() => void revealHint()}
-            width="19.25rem"
             disabled={count === 0}
           />
         )}

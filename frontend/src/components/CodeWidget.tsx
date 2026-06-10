@@ -40,11 +40,9 @@ export default function CodeWidget({ exchangeCode, inputCode, setInputCode, onCl
                   placeholder={t("home.codeWidget.textInput")}
               />
               <Button
-                  text={t("home.codeWidget.button")}
-                  backgroundColor="#FF6CA7"
-                  foregroundColor="#ffffff"
-                  onClick={onClick}
-                  width="100%"
+                text={t("home.codeWidget.button")}
+                style={{width: "100%"}}
+                onClick={onClick}
               />
             </>
         }

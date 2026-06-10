@@ -63,10 +63,8 @@ export default function LeaderboardPage() {
         <div className="bg-white flex flex-col w-full items-center mt-5 min-h-screen">
           <div className="flex flex-row justify-center items-center gap-[4.9rem]">
             <Button
-              backgroundColor="#FF6CA7"
               onClick={goBack}
-              width="2.5rem"
-              padding="0px"
+              style={{width: "2.5rem", padding: "0px"}}
             >
               <ChevronLeftIcon className="w-[1.4rem] h-[1.4rem]" />
             </Button>

@@ -18,11 +18,9 @@ export default function LeaderboardWidget({ score, onClick }: WidgetProps) {
         <p className="m-0.5 text-[30px] leading-none" style={{ fontWeight: 600 }} >{score} pts</p>
 
         <Button
-            text={t("home.leaderboardButton")}
-            backgroundColor="#ffffff"
-            foregroundColor="#667eea"
-            onClick={onClick}
-            width=""
+          text={t("home.leaderboardButton")}
+          style={{backgroundColor: "#ffffff", color: "#667eea", width: "100%"}}
+          onClick={onClick}
         />
       </div>
   );

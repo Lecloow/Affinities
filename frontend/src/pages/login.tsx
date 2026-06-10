@@ -119,9 +119,7 @@ export default function LoginPage() {
               {/*{error && <p className="text-red-500 text-sm mt-1">{error}</p>} TODO: show alert instead bc this suck*/}
 
               <Button
-                backgroundColor="#FF6CA7"
                 onClick={handleLogin}
-                width="19.25rem"
               >
                 {t("login.button")} <HeartIcon/>
               </Button>

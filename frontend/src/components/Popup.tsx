@@ -63,9 +63,9 @@ export default function Popup({ isOpen, error, onClose, content }: PopupProps) {
 
           <div className="flex justify-center w-full mt-3">
             {error ?
-              <Button text={t("retry")} backgroundColor="#e1e0e3" foregroundColor="#e4363c" onClick={() => window.location.reload()}/>
+              <Button text={t("retry")} style={{backgroundColor: "#e1e0e3", color: "#e4363c"}} onClick={() => window.location.reload()}/>
               :
-              <Button text={t("cancel")} backgroundColor="#e1e0e3" foregroundColor="#000000" onClick={onClose}/>
+              <Button text={t("cancel")} style={{backgroundColor: "#e1e0e3", color: "#000000"}} onClick={onClose}/>
             }
           </div>
         </div>

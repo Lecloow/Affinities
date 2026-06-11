@@ -81,10 +81,10 @@ export class ApiService {
     });
   }
 
-  static async guess(hintNumber: number, guessedUser: UserID): Promise<Guess> {
+  static async guess(day: number, hintNumber: number, guessedUserId: UserID): Promise<Guess> {
     return this.request(`me/guess`, {
       method: 'POST',
-      body: JSON.stringify({ hintNumber, guessedUserId: guessedUser }),
+      body: JSON.stringify({ day, hintNumber, guessedUserId }),
     });
   }
 

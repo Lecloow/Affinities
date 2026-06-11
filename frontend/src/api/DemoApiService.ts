@@ -1,14 +1,4 @@
-import type {
-  User,
-  Hint,
-  LeaderboardEntry,
-  Guess,
-  UserStats,
-  Candidate,
-  RevealCode,
-  UserID,
-  Match,
-} from "../services/types";
+import type { User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID, Match } from "../services/types";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -46,7 +36,7 @@ const matches: Match[] = [
   {
     id: 2,
     userId: "102",
-    day: 1,
+    day: 2,
     firstName: "Bob",
     lastName: "Martin",
     revealTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
@@ -276,6 +266,7 @@ export class DemoApiService {
   }
 
   static async guess(
+    day: number,
     hintNumber: number,
     guessedUserId: UserID,
   ): Promise<Guess> {
@@ -288,7 +279,7 @@ export class DemoApiService {
     const guess: Guess = {
       id: state.guesses.length + 1,
       userId: "999",
-      day: 1,
+      day: day,
       hintNumber,
       guessedUserId,
       isCorrect,

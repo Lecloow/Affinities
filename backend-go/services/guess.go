@@ -54,6 +54,17 @@ func (s *UserService) CreateGuess(ctx context.Context, guess models.GuessRequest
 		return nil, errors.New("guess already exists for this hint")
 	}
 
+	var isMatchAlreadyRevealed bool
+	err = tx.QueryRow(ctx,
+		"SELECT revealed FROM matches WHERE user_id=$1 AND day=$2",
+		guess.UserId, guess.Day).Scan(&isMatchAlreadyRevealed)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, err
+	}
+	if isMatchAlreadyRevealed {
+		return nil, errors.New("the match for this day has already been revealed")
+	}
+
 	var AlreadyCorrect bool
 	err = tx.QueryRow(ctx,
 		"SELECT is_correct FROM guesses WHERE user_id=$1 AND day=$2",

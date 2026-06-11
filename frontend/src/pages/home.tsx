@@ -113,7 +113,7 @@ export default function HomePage() {
   const handleGuess = async () => {
     try {
       if (selectedCandidate) {
-        const result = await Api.guess(hintNumber, selectedCandidate.id)
+        const result = await Api.guess(day, hintNumber, selectedCandidate.id)
         const message = result.isCorrect
             ? t("home.popup.goodAnswer", {points: result.pointsEarned})
             : filteredHints.filter(h => h.revealed).length === filteredHints.length

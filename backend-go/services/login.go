@@ -8,6 +8,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
+	"errors"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func (s *UserService) Login(ctx context.Context, password string) (*models.User, error) {
@@ -29,10 +32,12 @@ func (s *UserService) Login(ctx context.Context, password string) (*models.User,
 		&user.Email,
 		&user.Class,
 	)
-
 	if err != nil {
-		return nil, fmt.Errorf("invalid credentials")
-	}
+        if errors.Is(err, pgx.ErrNoRows) {
+            return nil, pgx.ErrNoRows
+        }
+        return nil, fmt.Errorf("database error: %w", err)
+    }
 
 	return &user, nil
 }

@@ -146,9 +146,10 @@ export class DemoApiService {
 
   private static requireAuth() {
     if (!this.isTokenValid()) {
-        const error = new Error("UNAUTHORIZED") as ApiError;
-        error.statusCode = 401;
-        throw error;
+      tokenData = null;
+      const error = new Error("UNAUTHORIZED") as ApiError;
+      error.statusCode = 401;
+      throw error;
     }
   }
 

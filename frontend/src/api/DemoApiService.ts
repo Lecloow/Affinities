@@ -1,4 +1,4 @@
-import type { User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID, Match } from "../services/types";
+import type { User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID, Match, ApiError } from "../utils/types";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -146,10 +146,9 @@ export class DemoApiService {
 
   private static requireAuth() {
     if (!this.isTokenValid()) {
-      tokenData = null;
-      const error = new Error("UNAUTHORIZED");
-      (error as any).statusCode = 401;
-      throw error;
+        const error = new Error("UNAUTHORIZED") as ApiError;
+        error.statusCode = 401;
+        throw error;
     }
   }
 

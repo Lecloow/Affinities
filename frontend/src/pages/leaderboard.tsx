@@ -4,7 +4,7 @@ import { Api } from "@/api";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
-import type {LeaderboardEntry} from "../services/types.ts";
+import type {LeaderboardEntry} from "../utils/types";
 import { Button, Credits, Tag, Popup } from "@/components";
 
 export default function LeaderboardPage() {

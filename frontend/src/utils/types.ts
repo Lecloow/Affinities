@@ -78,3 +78,7 @@ export interface RevealCode {
   exchanged: boolean;
   partnerExchanged: boolean;
 }
+
+export interface ApiError extends Error {
+    statusCode: number;
+}

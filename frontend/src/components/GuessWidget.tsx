@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import Button from "./Button";
-import type {Candidate} from "../services/types.ts";
+import type {Candidate} from "../utils/types.ts";
 import TextInput from "./TextInput.tsx";
 import Markdown from "@/components/Markdown.tsx";
 

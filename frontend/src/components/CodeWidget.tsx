@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import Button from "./Button";
 import TextInput from "./TextInput.tsx";
-import type { RevealCode } from "../services/types.ts"
+import type { RevealCode } from "../utils/types.ts"
 import Markdown from "../components/Markdown";
 
 type WidgetProps = {

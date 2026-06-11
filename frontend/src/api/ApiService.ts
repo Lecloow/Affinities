@@ -1,4 +1,4 @@
-import type {User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID, Match} from '../services/types.ts';
+import type { User, Hint, LeaderboardEntry, Guess, UserStats, Candidate, RevealCode, UserID, Match} from "../utils/types"
 import { API_BASE_URL } from "./index.ts"
 
 export class ApiService {

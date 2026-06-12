@@ -4,18 +4,9 @@ import (
 	"time"
 )
 
-func CalculatePoints(hints int) int {
-	switch hints {
-	case 1:
-		return 100
-	case 2:
-		return 75
-	case 3:
-		return 50
-	default:
-		return 0
-	}
-}
+// If you change the number of hints per day,
+// be sure to update CalculatePoints and HintRevealTime
+const NumberOfHintsPerDay = 3
 
 const EventDuration = 2 // The numbers of day
 
@@ -28,3 +19,35 @@ var eventStartDate, _ = time.Parse("2006-01-02", "2026-05-28") // 2006-01-02 is 
 // Be sure to keep it in UTC, because the server will probably be in UTC, just check it before (It's not cool to discover it the day of the event, I swear)
 var MatchRevealTime = time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC)
 
+func HintRevealTime(hintIndex int) time.Time {
+	switch hintIndex {
+	case 1:
+		return time.Date(2000, 1, 1, 9, 0, 0, 0, time.UTC) // Hint 1
+	case 2:
+		return time.Date(2000, 1, 1, 11, 0, 0, 0, time.UTC) // Hint 2
+	case 3:
+		return time.Date(2000, 1, 1, 12, 0, 0, 0, time.UTC) // Hint 3
+	default:
+		return time.Time{} // error btw
+	}
+}
+
+func CalculatePoints(hintNumber int) int {
+	switch hintNumber {
+	case 1:
+		return 100
+	case 2:
+		return 75
+	case 3:
+		return 50
+	default:
+		return 0
+	}
+}
+
+var hintType = [...]string{
+	"letterInFirstName",
+	"letterInLastName",
+	"class",
+	"firstName",
+}

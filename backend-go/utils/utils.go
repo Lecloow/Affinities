@@ -6,6 +6,7 @@ import (
 	"errors"
 	"math/big"
 	"time"
+	mathrand "math/rand"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
@@ -27,7 +28,7 @@ func GetCurrentDay() int {
 	return daysPassed + 1
 }
 
-func GetRevealTime(day int, revealTime time.Time) time.Time {
+func GetRevealTime(revealTime time.Time, day int) time.Time {
     dayDate := eventStartDate.AddDate(0, 0, day-1)
 
     return time.Date(
@@ -40,6 +41,11 @@ func GetRevealTime(day int, revealTime time.Time) time.Time {
         0, // nanoseconds
         time.UTC,
     )
+}
+
+func RandomHintType(hintNumber int) string { //TODO: Use hintNumber for the difficulty of the hint
+	index := mathrand.Intn(len(hintType))
+	return hintType[index]
 }
 
 func GenerateRevealCode() (string, error) {

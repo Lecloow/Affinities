@@ -61,7 +61,7 @@ func (s *UserService) ComputeMatches(ctx context.Context) error {
 
 		for day := 1; day <= utils.EventDuration && day <= len(scored); day++ {
 			match := scored[day-1]
-			dayRevealTime := utils.GetRevealTime(day, utils.MatchRevealTime)
+			dayRevealTime := utils.GetRevealTime(utils.MatchRevealTime, day)
 			_, err := s.DB.Exec(ctx, `
                 INSERT INTO matches (user_id, match_id, score, day, reveal_time, revealed)
                 VALUES ($1, $2, $3, $4, $5, FALSE)

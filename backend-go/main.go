@@ -82,7 +82,24 @@ func main() {
 		authAdmin.POST("/createHints", userHandler.CreateHints)
 	}
 
+	go startTokenCleaner(userService)
+
 	if err := router.Run(":8080"); err != nil {
 		panic(fmt.Errorf("failed to run server: %v", err))
+	}
+}
+
+func startTokenCleaner(s *services.UserService) {
+	if err := s.CleanExpiredTokens(); err != nil {
+		fmt.Printf("clean token error: %v\n", err)
+	}
+
+	ticker := time.NewTicker(12 * time.Hour)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		if err := s.CleanExpiredTokens(); err != nil {
+			fmt.Printf("clean token error: %v\n", err)
+		}
 	}
 }

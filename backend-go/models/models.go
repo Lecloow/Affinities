@@ -79,7 +79,6 @@ type Hint struct {
 	UserID     UserID    `json:"userId"`
 	Day        int       `json:"day"`
 	HintNumber int       `json:"hintNumber"`
-	Difficulty string    `json:"difficulty"`
 	Type       string    `json:"type"`
 	Content    string    `json:"content"`
 	RevealTime time.Time `json:"revealTime"`

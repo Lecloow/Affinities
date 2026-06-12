@@ -23,26 +23,23 @@ func GenerateSecureToken() string {
 func GetCurrentDay() int {
 	// Implement logic to determine the current day of the event
 	// For example, if the event starts on a specific date, calculate the difference in days from that date to today
-	eventStartDate, err := time.Parse("2006-01-02", "2026-05-28") //2006-01-02 is just the format (YYYY-MM_DD)
-	if err != nil {
-		return 0
-	}
-
 	daysPassed := int(time.Since(eventStartDate).Hours() / 24)
 	return daysPassed + 1
 }
 
-func CalculatePoints(hints int) int {
-	switch hints {
-	case 1:
-		return 100
-	case 2:
-		return 75
-	case 3:
-		return 50
-	default:
-		return 0
-	}
+func GetRevealTime(day int, revealTime time.Time) time.Time {
+    dayDate := eventStartDate.AddDate(0, 0, day-1)
+
+    return time.Date(
+        dayDate.Year(),
+        dayDate.Month(),
+        dayDate.Day(),
+        revealTime.Hour(),
+        revealTime.Minute(),
+        revealTime.Second(),
+        0, // nanoseconds
+        time.UTC,
+    )
 }
 
 func GenerateRevealCode() (string, error) {
@@ -108,8 +105,3 @@ func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
 }
-
-//func VerifyPassword(password, hash string) bool {
-//	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-//	return err == nil
-//}

@@ -77,7 +77,6 @@ func initDB() {
 		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		day INTEGER NOT NULL CHECK (day > 0),
 		hint_number INTEGER NOT NULL CHECK (hint_number > 0),
-		difficulty TEXT NOT NULL,
 		type TEXT NOT NULL,
 		content TEXT NOT NULL,
 		reveal_time TIMESTAMP NOT NULL,

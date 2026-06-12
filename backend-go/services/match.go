@@ -6,10 +6,9 @@ import (
 	"context"
 	"sort"
 	"strings"
-	"time"
 )
 
-func (s *UserService) ComputeMatches(ctx context.Context, days int, revealTime time.Time) error {
+func (s *UserService) ComputeMatches(ctx context.Context) error {
 	rows, err := s.DB.Query(ctx, "SELECT id, class, answers FROM users")
 	if err != nil {
 		return err
@@ -60,9 +59,9 @@ func (s *UserService) ComputeMatches(ctx context.Context, days int, revealTime t
 			return scored[i].Score < scored[j].Score
 		})
 
-		for day := 1; day <= days && day <= len(scored); day++ {
+		for day := 1; day <= utils.EventDuration && day <= len(scored); day++ {
 			match := scored[day-1]
-			dayRevealTime := revealTime.AddDate(0, 0, day-1)
+			dayRevealTime := utils.GetRevealTime(day, utils.MatchRevealTime)
 			_, err := s.DB.Exec(ctx, `
                 INSERT INTO matches (user_id, match_id, score, day, reveal_time, revealed)
                 VALUES ($1, $2, $3, $4, $5, FALSE)

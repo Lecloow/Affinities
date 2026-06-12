@@ -3,7 +3,6 @@ package handlers
 import (
 	"backend/utils"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,21 +18,10 @@ func (h *UserHandler) Logout(c *gin.Context) {
 
 	err = h.Service.DeleteToken(ctx, sessionToken)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete token", "detail": err })
 		return
 	}
 
 	c.SetCookie("session_token", "", -1, "/", "", utils.IsProduction, true)
 	c.JSON(http.StatusOK, gin.H{"message": "Logged out"})
-}
-
-func (h *UserHandler) cleanExpiredTokens(c *gin.Context) {
-	ctx := c.Request.Context()
-
-	now := time.Now()
-
-	err := h.Service.DeleteExpiredTokens(ctx, now)
-	if err != nil {
-		return
-	}
 }

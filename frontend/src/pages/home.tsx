@@ -1,10 +1,10 @@
-import {Trans, useTranslation} from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Api } from "@/api";
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import type { Hint, Match, Candidate, RevealCode } from "../utils/types";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/24/outline';
-import {toLocalDateTimeString, toRelativeTime} from "../utils/time";
+import { toLocalDateTimeString, toRelativeTime } from "../utils/time";
 import { Button, CodeWidget, Credits, GuessWidget, LeaderboardWidget, Popup, SegmentedControl, Tag } from "@/components";
 
 export default function HomePage() {

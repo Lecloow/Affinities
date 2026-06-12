@@ -44,6 +44,49 @@ const matches: Match[] = [
   },
 ];
 
+const leaderboard: LeaderboardEntry[] = [
+  {
+    rank: 1,
+    userId: "101",
+    firstName: "Alice",
+    lastName: "Dupont",
+    class: "ClassA",
+    totalPoints: 300,
+    bonusPoints: 0,
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    rank: 2,
+    userId: "102",
+    firstName: "Bob",
+    lastName: "Martin",
+    class: "ClassB",
+    totalPoints: 200,
+    bonusPoints: 0,
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    rank: 3,
+    userId: "999",
+    firstName: "Dev",
+    lastName: "User",
+    class: "DemoClass",
+    totalPoints: 0,
+    bonusPoints: 0,
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    rank: 4,
+    userId: "103",
+    firstName: "Charlie",
+    lastName: "Durand",
+    class: "ClassC",
+    totalPoints: 0,
+    bonusPoints: 0,
+    updatedAt: new Date().toISOString(),
+  },
+];    
+
 const hints: Hint[] = [
   {
     id: "1",
@@ -189,7 +232,7 @@ export class DemoApiService {
   static async getLeaderboard(): Promise<LeaderboardEntry[]> {
     await delay(80);
     this.requireAuth();
-    return [];
+    return leaderboard.map((l) => ({ ...l }));
   }
 
   static async getRevealCode(): Promise<RevealCode[]> {
@@ -274,8 +317,8 @@ export class DemoApiService {
 
     this.requireAuth();
 
-    const isCorrect = matches[0].userId === guessedUserId;
-
+    const isCorrect = matches[day - 1].userId === guessedUserId;
+    
     const guess: Guess = {
       id: state.guesses.length + 1,
       userId: "999",
@@ -283,7 +326,7 @@ export class DemoApiService {
       hintNumber,
       guessedUserId,
       isCorrect,
-      pointsEarned: isCorrect ? 0 : 100,
+      pointsEarned: isCorrect ? 100 : 0,
       createdAt: new Date().toISOString(),
     };
 

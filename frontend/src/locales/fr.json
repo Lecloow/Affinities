@@ -61,5 +61,8 @@
       "rank": "Rang",
       "name": "Nom",
       "score": "Score"
+  },
+  "demo": {
+    "loginButton": "Accéder à la démo"
   }
 }

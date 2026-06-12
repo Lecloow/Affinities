@@ -6,7 +6,7 @@
   "caption": "An event organized by the Comité de Promo 2026",
   "login": {
     "button": "Sign in",
-    "placeholder": "Enter the code you received by email here"
+    "placeholder": "Enter the code you received by email"
   },
   "timeline": [
     { "day": "Tuesday", "desc": "Fill out the form to participate in the event" },
@@ -61,5 +61,8 @@
     "rank": "Rank",
     "name": "Name",
     "score": "Score"
+  },
+  "demo": {
+    "loginButton": "Access the demo"
   }
 }

@@ -6,13 +6,8 @@ import logoImg from "@/assets/logo.png";
 import branchImg from "@/assets/branch.png";
 import { useEffect } from "react";
 import { Button, Credits, Tag, TextInput, Popup } from "@/components";
-
-const HeartIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="#F5F5F5">
-      <path d="M8 13.7C7.7 13.5 1 9.3 1 5.5 1 3.6 2.6 2 4.5 2c1 0 2 .5 2.7 1.3L8 4.2
-      l.8-.9C9.5 2.5 10.5 2 11.5 2 13.4 2 15 3.6 15 5.5c0 3.8-6.7 8-7 8.2z"/>
-    </svg>
-);
+import { HeartIcon } from '@heroicons/react/24/solid';
+import { isDemo } from "@/api";
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -23,7 +18,7 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     setError("");
-    if (!inputValue.trim()) {
+    if (!inputValue.trim() && !isDemo) {
       setError("Please enter a password");
       return;
     }
@@ -108,7 +103,6 @@ export default function LoginPage() {
                 </div>
               ))}
             </div>
-            {/*FIXME: Fix the gap between the tad and the value*/}
             <div className="flex flex-col gap-6 items-center justify-center pb-15 w-full">
               <TextInput
                 value={inputValue}
@@ -116,12 +110,11 @@ export default function LoginPage() {
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={t("login.placeholder")}
               />
-              {/*{error && <p className="text-red-500 text-sm mt-1">{error}</p>} TODO: show alert instead bc this suck*/}
 
               <Button
                 onClick={handleLogin}
               >
-                {t("login.button")} <HeartIcon/>
+                {isDemo ? t("demo.loginButton") : t("login.button")} <HeartIcon className="w-[1.4rem] h-[1.4rem]"/>
               </Button>
             </div>
           </div>

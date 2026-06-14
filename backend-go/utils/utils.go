@@ -74,7 +74,7 @@ func GenerateHintContent(match models.User, hintType string) string {
 }
 
 func countVowels(text string) string {
-	re := regexp.MustCompile("[aeiouAEIOU]")
+	re := regexp.MustCompile("[aeiouAEIOUáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜ]")
 	matches := re.FindAllString(text, -1)
 	return strconv.Itoa(len(matches))
 }
@@ -109,18 +109,19 @@ func GeneratePassword(length int) (string, error) {
 }
 
 func GenerateString(charsets string, length int) (string, error) {
-	result := make([]byte, length)
-	charsetLen := big.NewInt(int64(len(charsets)))
-	for i := 0; i < length; i++ {
-		randomIndex, err := rand.Int(rand.Reader, charsetLen)
-		if err != nil {
-			return "", err
-		}
-		result[i] = charsets[randomIndex.Int64()]
-	}
+    result := make([]byte, length)
+    charsetLen := big.NewInt(int64(len(charsets)))
+    for range make([]int, length) {
+        randomIndex, err := rand.Int(rand.Reader, charsetLen)
+        if err != nil {
+            return "", err
+        }
+        result = append(result, charsets[randomIndex.Int64()])
+    }
 
-	return string(result), nil
+    return string(result), nil
 }
+
 
 func MatchScore(a, b []int16) float64 {
 	if len(a) != len(b) {

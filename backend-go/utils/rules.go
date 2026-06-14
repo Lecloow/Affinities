@@ -45,9 +45,15 @@ func CalculatePoints(hintNumber int) int {
 	}
 }
 
-var hintType = [...]string{
-	"letterInFirstName",
-	"letterInLastName",
-	"class",
-	"firstName",
+func getHintType(hintNumber int) []string {
+	switch hintNumber {
+		case 1:
+			return []string{"letterInFirstName", "letterInLastName", "numberOfVowel"}[:]
+		case 2:
+			return []string{"firstLetterOfFirstName", "firstLetterOfLastName"}[:]
+		case 3:
+			return []string{"class", "firstName"}[:]
+		default:
+			return nil
+	}
 }

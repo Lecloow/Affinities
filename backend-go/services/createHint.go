@@ -52,7 +52,7 @@ func generateHint(match models.User, day int, hintNumber int) *models.Hint {
 	}
 
 	hint.Type = utils.RandomHintType(hintNumber)
-
-	//hint.Content = utils.GenerateHintContent(match, hint.Type) //The problem is here 
+	hint.Content = utils.GenerateHintContent(match, hint.Type)
+	
 	return &hint
 }

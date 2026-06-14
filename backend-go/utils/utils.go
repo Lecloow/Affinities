@@ -1,12 +1,15 @@
 package utils
 
 import (
+	"backend/models"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"math/big"
-	"time"
 	mathrand "math/rand"
+	"regexp"
+	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
@@ -29,27 +32,60 @@ func GetCurrentDay() int {
 }
 
 func GetRevealTime(revealTime time.Time, day int) time.Time {
-    dayDate := eventStartDate.AddDate(0, 0, day-1)
+	dayDate := eventStartDate.AddDate(0, 0, day-1)
 
-    return time.Date(
-        dayDate.Year(),
-        dayDate.Month(),
-        dayDate.Day(),
-        revealTime.Hour(),
-        revealTime.Minute(),
-        revealTime.Second(),
-        0, // nanoseconds
-        time.UTC,
-    )
+	return time.Date(
+		dayDate.Year(),
+		dayDate.Month(),
+		dayDate.Day(),
+		revealTime.Hour(),
+		revealTime.Minute(),
+		revealTime.Second(),
+		0, // nanoseconds
+		time.UTC,
+	)
 }
 
-func RandomHintType(hintNumber int) string { //TODO: Use hintNumber for the difficulty of the hint
-	index := mathrand.Intn(len(hintType))
-	return hintType[index]
+func RandomHintType(hintNumber int) string {
+	types := getHintType(hintNumber)
+	index := mathrand.Intn(len(types))
+	return types[index]
+}
+
+func GenerateHintContent(match models.User, hintType string) string {
+	switch hintType {
+	case "letterInFirstName":
+		return countLetters(match.FirstName)
+	case "letterInLastName":
+		return countLetters(match.LastName)
+	case "numberOfVowel":
+		return countVowels(match.LastName)
+	case "firstLetterOfFirstName":
+		return string(match.FirstName[0])
+	case "firstLetterOfLastName":
+		return string(match.LastName[0])
+	case "class":
+		return match.Class
+	case "firstName":
+		return match.FirstName
+	default:
+		return "" // error btw
+	}
+}
+
+func countVowels(text string) string {
+	re := regexp.MustCompile("[aeiouAEIOU]")
+	matches := re.FindAllString(text, -1)
+	return strconv.Itoa(len(matches))
+}
+
+func countLetters(text string) string {
+	re := regexp.MustCompile("[a-zA-Z]")
+	matches := re.FindAllString(text, -1)
+	return strconv.Itoa(len(matches))
 }
 
 func GenerateRevealCode() (string, error) {
-
 	charsets := "abcdefghijklmnopqrstuvwxyz0123456789"
 	var length = 6
 

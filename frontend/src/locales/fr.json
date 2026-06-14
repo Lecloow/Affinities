@@ -20,9 +20,13 @@
     "2": "Vendredi"
   },
   "hints": {
-    "letter": "Le nom de ton âme soeur contient la lettre <tag>{{content}}</tag>",
-    "length": "Le nom de ton âme soeur contient <tag>{{content}} lettres</tag>",
-    "name": "Le prénom de ton âme soeur est <tag>{{content}}</tag>"
+    "letterInFirstName": "Ton âme soeur a <tag>{{content}}</tag> lettres dans son prénom",
+    "letterInLastName": "Ton âme soeur a <tag>{{content}}</tag> lettres dans son nom de famille",
+    "numberOfVowel": "Ton âme soeur a <tag>{{content}}</tag> voyelles dans son nom de famille",
+    "firstLetterOfFirstName": "Le prénom de ton âme soeur commence par <tag>{{content}}</tag>",
+    "firstLetterOfLastName": "Le nom de famille de ton âme soeur commence par <tag>{{content}}</tag>",
+    "class": "Ton âme soeur est en <tag>{{content}}</tag>",
+    "firstName": "Le prénom de ton âme soeur est <tag>{{content}}</tag>"
   },
   "home": {
     "hey": "\uD83D\uDC4B Salut {{name}}!",

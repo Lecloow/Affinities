@@ -20,9 +20,13 @@
     "2": "Friday"
   },
   "hints": {
-    "letter": "Your soulmate's name contains the letter <tag>{{content}}</tag>",
-    "length": "Your soulmate's name has <tag>{{content}} letters</tag>",
-    "name": "Your soulmate's name is <tag>{{content}}</tag>"
+    "letterInFirstName": "Your soulmate's first name has <tag>{{content}} letters</tag>",
+    "letterInLastName": "Your soulmate's last name has <tag>{{content}} letters</tag>",
+    "numberOfVowel": "Your soulmate's last name has <tag>{{content}} vowels</tag>",
+    "firstLetterOfFirstName": "Your soulmate's first name starts with <tag>{{content}}</tag>",
+    "firstLetterOfLastName": "Your soulmate's last name starts with <tag>{{content}}</tag>",
+    "class": "Your soulmate's class is <tag>{{content}}</tag>",
+    "firstName": "Your soulmate's first name is <tag>{{content}}</tag>"
   },
   "home": {
     "hey": "\uD83D\uDC4B Hey {{name}}!",

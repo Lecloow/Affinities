@@ -20,7 +20,6 @@ export interface Hint {
   userId: UserID;
   day: number;
   hintNumber: number;
-  difficulty: string;
   type: string;
   content: string;
   revealTime: string;

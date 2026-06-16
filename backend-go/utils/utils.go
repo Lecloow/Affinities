@@ -111,12 +111,14 @@ func GeneratePassword(length int) (string, error) {
 func GenerateString(charsets string, length int) (string, error) {
     result := make([]byte, length)
     charsetLen := big.NewInt(int64(len(charsets)))
-    for range make([]int, length) {
+    
+    for i := range length {
         randomIndex, err := rand.Int(rand.Reader, charsetLen)
         if err != nil {
             return "", err
         }
-        result = append(result, charsets[randomIndex.Int64()])
+    
+        result[i] = charsets[randomIndex.Int64()]
     }
 
     return string(result), nil

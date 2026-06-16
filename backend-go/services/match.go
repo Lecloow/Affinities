@@ -44,8 +44,8 @@ func (s *UserService) ComputeMatches(ctx context.Context) error {
 			if i == j {
 				continue
 			}
-			aLevel := strings.Split(a.Class, " ")[0]
-			bLevel := strings.Split(b.Class, " ")[0]
+			aLevel, _, _ := strings.Cut(a.Class, " ")
+			bLevel, _, _ := strings.Cut(b.Class, " ")
 			if aLevel != bLevel {
 				continue
 			}

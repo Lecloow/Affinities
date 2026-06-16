@@ -16,7 +16,7 @@ func (s *UserService) ImportUser(
 	answers []int16,
 ) error {
 
-	for tries := 0; tries < 5; tries++ {
+	for range 5 {
 		password, err := utils.GeneratePassword(passwordLength)
 		if err != nil {
 			return err
@@ -64,14 +64,15 @@ func (s *UserService) tryImportUser(
 
 	err = tx.QueryRow(
 		ctx,
-		`INSERT INTO users (first_name, last_name, email, class, answers)
-		 VALUES ($1, $2, $3, $4, $5)
+		`INSERT INTO users (first_name, last_name, email, class, answers, gender)
+		 VALUES ($1, $2, $3, $4, $5, $6)
 		 RETURNING id`,
 		user.FirstName,
 		user.LastName,
 		user.Email,
 		user.Class,
 		answers,
+		user.Gender,
 	).Scan(&user.ID)
 	if err != nil {
 		return err

@@ -12,7 +12,7 @@ export default function LeaderboardWidget({ score, onClick }: WidgetProps) {
   return (
       <div
           className="flex flex-col gap-2.5 p-3 rounded-xl justify-center items-center w-full"
-          style={{ backgroundColor: "#6973db", color: "#F5F5F5" }}
+          style={{ background: "linear-gradient(111deg, #5877FF 0%, #A323DA 100%)", color: "#F5F5F5" }}
       >
         <p className="m-0" >{t("home.leaderboardWidget")}</p>
         <p className="m-0.5 text-[30px] leading-none" style={{ fontWeight: 600 }} >{score} pts</p>

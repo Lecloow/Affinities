@@ -10,6 +10,7 @@ type User struct {
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`
 	Class     string `json:"class"`
+	Gender    string `json:"gender"`
 }
 
 type Candidates struct {

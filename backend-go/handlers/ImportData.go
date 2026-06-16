@@ -98,6 +98,8 @@ func importUsersFromFile(
 			Class:     level + " " + classLetter,
 		}
 
+		newUser.Gender = utils.GetGender(firstName)
+
 		answers, err := parseAnswers(row, colIndex)
 
 		err = h.Service.ImportUser(ctx, newUser, passwordLength, answers)

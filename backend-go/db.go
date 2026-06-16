@@ -35,6 +35,7 @@ func initDB() {
 		email TEXT NOT NULL UNIQUE,
 		class TEXT NOT NULL,
 		answers SMALLINT[] NOT NULL,
+		gender TEXT NOT NULL,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);
 

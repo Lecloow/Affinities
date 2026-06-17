@@ -2,6 +2,7 @@ package utils
 
 import (
 	"backend/models"
+	"backend/utils/ml"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
@@ -149,4 +150,8 @@ func IsUniqueViolation(err error) bool {
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
+}
+
+func GetGender(name string) string {
+	return ml.GetGender(name)
 }

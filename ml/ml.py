@@ -14,7 +14,7 @@ INPUT_SIZE = 755
 NUM_CLASSES = 3
 BATCH_SIZE = 128
 LEARNING_RATE = 0.001
-NUM_EPOCHS = 50 # Minimum (500+ is better for precision)
+NUM_EPOCHS = 500 # Minimum (500+ is better for precision)
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # -------------------

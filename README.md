@@ -76,6 +76,7 @@ To run this project for your own event, follow the setup guide:
 A Bruno collection is available in the `/bruno` folder to test all API endpoints.
 
 Import it into Bruno and set the `baseUrl` variable to start using the API without setup.
+
 ## Impact
 
 - **330 students** participated

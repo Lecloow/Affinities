@@ -1,11 +1,12 @@
+import json
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import json
-from pathlib import Path
-from torch.utils.data import DataLoader
-from model import Classifier
 from dataset import NameDataset
+from model import Classifier
+from torch.utils.data import DataLoader
 
 # -------------------
 # CONFIG

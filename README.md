@@ -15,6 +15,7 @@ My school committee (Comite de promo) wanted to organize a Valentine's Day match
 
 Deployed under real constraints: actual deadline, actual users, actual consequences if it broke.
 
+> Built for 330 students
 
 ## Architecture
 
@@ -58,51 +59,32 @@ Same logic on the frontend: original HTML/CSS → React + TypeScript rewrite, cu
 | Layer        | Tech                    |
 |--------------|-------------------------|
 | Frontend     | React, TypeScript, Vite |
-| Backend (v2) | Go, Gin                 |
+| Backend      | Go, Gin                 |
 | Database     | PostgreSQL              |
 | CI/CD        | GitHub Actions          |
 | Deployment   | Render                  |
 | API Testing  | Bruno                   |
 
 
-## Running Locally
+## Usage
 
-### Backend (Go)
+To run this project for your own event, follow the setup guide:
 
-Dev:
-```bash
-cd backend-go
-cp ../.env.example .env   # fill in your DB credentials
-go run .
-```
+- [Instructions](./INSTRUCTIONS.md)
+- [Instructions (French)](./FRENCH_INSTRUCTIONS.md)
 
-Prod:
-Build command
-```bash
-cd backend-go && go build
-```
-Start command
-```bash
-cd backend-go && ./backend
-```
+A Bruno collection is available in the `/bruno` folder to test all API endpoints.
 
-A Bruno collection covering all API endpoints is available in the `/bruno` folder — import it directly to test the API without setup. (You may need to fill the baseUrl)
-
-### Frontend
-
-Rewrite in progress.
-
-
+Import it into Bruno and set the `baseUrl` variable to start using the API without setup.
 ## Impact
 
 - **330 students** participated
 - Live at [comitedepromo2026.fr](https://comitedepromo2026.fr)
 
-
 ## What I Learned
 
 - Don't forget date conversion, because the server was based in UTC when Paris was in UTC+1
-- You can run as many test as you want something will break in prod
+- No matter how many tests you run, something will break in production.
 - Tradeoffs between shipping fast and owning your code
 - Debugging in production when real users are affected (I don't recommend it)
 - CI/CD, environment management, cloud deployment

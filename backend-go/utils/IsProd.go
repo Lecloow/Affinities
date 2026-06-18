@@ -7,10 +7,10 @@ import (
 func loadEnv() bool {
 	env := os.Getenv("ENV")
 
-	if env == "" {
-		return true
+	if env == "dev" {
+		return false
 	}
-	return false
+	return true
 }
 
 // IsProduction to know if it's prod or not, it's used to set security on cookie and to create the main router

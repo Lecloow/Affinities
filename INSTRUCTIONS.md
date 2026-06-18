@@ -77,6 +77,7 @@ For the frontend, the GitHub actions will build the app, you will just have to p
 ### 5. Importing the Data
 
 Once the application is running, open [Bruno](https://usebruno.com) and execute the `importData` endpoint.
+PS: You can access the bruno documentation (all endpoints) here [Documentation](./Affinities-documentation.html)
 
 You will need to provide:
 - `baseUrl` (your Render URL)

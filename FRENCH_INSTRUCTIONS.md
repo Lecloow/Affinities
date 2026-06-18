@@ -82,6 +82,7 @@ Pour le frontend, les GitHub Actions buildent automatiquement l’application. I
 ## 5. Import des données
 
 Une fois l'application lancée, ouvre [Bruno](https://usebruno.com) et exécute l'endpoint `importData`.
+PS: Tu peux acceder a la doc Bruno (tous les endpoints) ici [Documentation](./Affinities-documentation.html)
 
 Tu devras fournir :
 

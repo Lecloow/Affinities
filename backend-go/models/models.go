@@ -93,7 +93,8 @@ type RevealCode struct {
 }
 
 type EmailUser struct {
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	ID        UserID `json:"id"`
+	Email     string `json:"email"`
+	FirstName string `json:"firstName"`
+	Password  string `json:"password"`
 }

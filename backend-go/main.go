@@ -78,8 +78,9 @@ func main() {
 		authAdmin.GET("/users", userHandler.GetAllUsers)
 		authAdmin.GET("/users/:id", userHandler.GetUserByID)
 		authAdmin.POST("/importData", userHandler.ImportXlsx)
-		authAdmin.GET("/createMatches", userHandler.CreateMatches)
-		authAdmin.GET("/createHints", userHandler.CreateHints)
+		authAdmin.POST("/createMatches", userHandler.CreateMatches)
+		authAdmin.POST("/createHints", userHandler.CreateHints)
+		authAdmin.POST("/sendMails", userHandler.SendMails)
 	}
 
 	go startTokenCleaner(userService)

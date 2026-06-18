@@ -1,11 +1,11 @@
 meta {
-  name: CreateHints
+  name: Send Mails
   type: http
   seq: 21
 }
 
-get {
-  url: {{baseUrl}}/admin/createHints
+post {
+  url: {{baseUrl}}/admin/sendMails
   body: none
   auth: inherit
 }

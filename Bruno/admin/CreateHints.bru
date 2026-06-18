@@ -1,11 +1,11 @@
 meta {
-  name: Health
+  name: CreateHints
   type: http
-  seq: 16
+  seq: 21
 }
 
-get {
-  url: {{baseUrl}}/health
+post {
+  url: {{baseUrl}}/admin/createHints
   body: none
   auth: inherit
 }

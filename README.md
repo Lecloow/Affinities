@@ -2,7 +2,7 @@
 
 > Full-stack matchmaking platform built for my high school's Valentine's Day event — **330+ students** 
 
-[![Hackatime](https://img.shields.io/badge/Hackatime-96h22m-e53953?style=flat&logo=hackatime&logoColor=white)](https://hackatime.hackclub.com)
+[![Hackatime](https://img.shields.io/badge/Hackatime-96h48m-e53953?style=flat&logo=hackatime&logoColor=white)](https://hackatime.hackclub.com)
 [![Go](https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white)](https://golang.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -21,8 +21,8 @@ Deployed under real constraints: actual deadline, actual users, actual consequen
 
 ```
 ┌─────────────────┐        ┌──────────────────────┐
-│  React Frontend  │ ──────▶│   Go Backend (v2)    │
-│  (TypeScript)    │        │   Gin + PostgreSQL   │
+│  React Frontend │ ──────▶│   Go Backend (v2)    │
+│  (TypeScript)   │        │   Gin + PostgreSQL   │
 └─────────────────┘        └──────────────────────┘
                                       │
                               ┌───────▼────────┐
@@ -51,7 +51,7 @@ I'm not interested in deploying AI spaghetti code, I am here to learn.
 | **Security**       | Minimal input validation | Strict validation, rate limiting, proper auth |
 | **Concurrency**    | Single-threaded ASGI     | Native goroutines                             |
 
-Same logic on the frontend: original HTML/CSS → React + TypeScript rewrite, currently in progress.
+Same logic on the frontend: original HTML/CSS → React + TypeScript rewrite.
 
 
 ## Tech Stack

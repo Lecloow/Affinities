@@ -77,6 +77,8 @@ A Bruno collection is available in the `/bruno` folder to test all API endpoints
 
 Import it into Bruno and set the `baseUrl` variable to start using the API without setup.
 
+There is also a demo data file that you can use to test the backend and the ml (and to be sure that your file format is correct).
+
 ## Impact
 
 - **330 students** participated

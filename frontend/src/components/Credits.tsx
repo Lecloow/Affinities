@@ -23,8 +23,10 @@ export default function Credits() {
       </div>
       <div className="pt-2">
         {isDemo &&
+          <>
           <CreditsButton text="Access to admin panel" onClick={() => navigate("/Affinities-documentation.html")} />
-
+          <CreditsButton text="Access to ml" onClick={() => navigate("/ml")} />
+          </>
         }
       </div>
     </footer>

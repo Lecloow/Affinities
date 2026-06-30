@@ -4,6 +4,7 @@ type TextInputProps = {
   value: string;
   width?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   placeholder?: string;
   className?: string;
 };
@@ -12,12 +13,14 @@ export default function TextInput({
                                     value,
                                     width = "",
                                     onChange,
+                                    onKeyDown,
                                     placeholder = "",
                                   }: TextInputProps) {
   return (
         <input
             value={value}
             onChange={onChange}
+            onKeyDown={onKeyDown}
             placeholder={placeholder}
             style={{ width: width }}
             className={`

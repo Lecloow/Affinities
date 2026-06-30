@@ -15,7 +15,7 @@ INPUT_SIZE = 755
 NUM_CLASSES = 3
 BATCH_SIZE = 128
 LEARNING_RATE = 0.001
-NUM_EPOCHS = 500 # Minimum (500+ is better for precision)
+NUM_EPOCHS = 50 # Minimum (500+ is better for precision)
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # -------------------
@@ -118,3 +118,18 @@ with open(output_path, "w") as f:
     json.dump(weights, f)
 
 print(f"Data exported → {output_path}")
+
+output_path = BASE_DIR / "../frontend/public/model.onnx"
+dummy = torch.randn(1, 755)
+
+torch.onnx.export(
+    model,
+    (dummy,),
+    str(output_path),
+    input_names=["input"],
+    output_names=["output"],
+    export_params=True,
+    external_data=False,
+)
+
+print(f"Model exported to model.onnx -> {output_path}")

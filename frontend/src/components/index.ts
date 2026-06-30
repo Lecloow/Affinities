@@ -8,4 +8,4 @@ export { default as Popup } from "./Popup";
 export { default as SegmentedControl } from "./SegmentedControl";
 export { default as Tag } from "./Tag";
 export { default as TextInput } from "./TextInput";
-export { default as Documentation } from "./Documentation";
+export { default as CreditsButton } from "./CreditsButton";
